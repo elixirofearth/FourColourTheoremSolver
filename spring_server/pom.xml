@@ -67,23 +67,6 @@
                 <version>${protobuf.version}</version>
             </dependency>
             
-            <!-- MongoDB -->
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-data-mongodb</artifactId>
-            </dependency>
-            
-            <!-- PostgreSQL -->
-            <dependency>
-                <groupId>org.postgresql</groupId>
-                <artifactId>postgresql</artifactId>
-            </dependency>
-            
-            <!-- RabbitMQ -->
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-amqp</artifactId>
-            </dependency>
             
             <!-- JWT -->
             <dependency>
