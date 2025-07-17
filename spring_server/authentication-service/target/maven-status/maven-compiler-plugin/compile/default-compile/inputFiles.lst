@@ -1,9 +1,0 @@
-/Users/andytran/Documents/GitHub/FourColourTheoremSolver/spring_server/authentication-service/src/main/java/com/fourcolour/auth/repository/UserRepository.java
-/Users/andytran/Documents/GitHub/FourColourTheoremSolver/spring_server/authentication-service/src/main/java/com/fourcolour/auth/service/JwtService.java
-/Users/andytran/Documents/GitHub/FourColourTheoremSolver/spring_server/authentication-service/src/main/java/com/fourcolour/auth/config/SecurityConfig.java
-/Users/andytran/Documents/GitHub/FourColourTheoremSolver/spring_server/authentication-service/src/main/java/com/fourcolour/auth/controller/AuthController.java
-/Users/andytran/Documents/GitHub/FourColourTheoremSolver/spring_server/authentication-service/src/main/java/com/fourcolour/auth/service/AuthenticationService.java
-/Users/andytran/Documents/GitHub/FourColourTheoremSolver/spring_server/authentication-service/src/main/java/com/fourcolour/auth/repository/SessionRepository.java
-/Users/andytran/Documents/GitHub/FourColourTheoremSolver/spring_server/authentication-service/src/main/java/com/fourcolour/auth/AuthenticationServiceApplication.java
-/Users/andytran/Documents/GitHub/FourColourTheoremSolver/spring_server/authentication-service/src/main/java/com/fourcolour/auth/entity/User.java
-/Users/andytran/Documents/GitHub/FourColourTheoremSolver/spring_server/authentication-service/src/main/java/com/fourcolour/auth/entity/Session.java

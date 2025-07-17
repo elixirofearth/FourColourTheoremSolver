@@ -1,11 +1,91 @@
+# Python Virtual Environment
 .venv
-.env.local
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment files  
 .env
-server/__pycache__
-__pycache__
-db-data
+.env.local
+.env.*
+
+# Database
+db-data/
+*.db
+*.sqlite
+*.sqlite3
+
+# System files
 .DS_Store
-venv
-bin
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.cursor/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Maven build artifacts
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Java compiled classes
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+
+# Spring Boot
+*.log
+logs/
+spring.log
+*.tmp
+*.bak
+
+# Generated sources (protobuf, etc.)
+**/target/generated-sources/
+**/target/generated-test-sources/
+
+# Go build artifacts
+bin/
+*.exe
+go.work
+go.work.sum
+
+# Node.js (for client)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+package-lock.json
+
+# Next.js (for client)
+.next/
+out/
+build/
+dist/
+
+# Kubernetes config
 k8s-four-color-map-theorem-problem-kubeconfig.yaml
-.cursor
+
+# Docker
+*.dockerignore
