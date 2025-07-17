@@ -46,6 +46,308 @@ The system consists of 5 Spring Boot microservices plus the original Python solv
 - **MongoDB**: Map storage, metadata, and logs
 - **RabbitMQ**: Message queuing for log events
 
+## Getting Started
+
+### Prerequisites
+
+Before running the application locally, ensure you have the following installed:
+
+- **Java 21+**: [Download OpenJDK](https://openjdk.org/projects/jdk/21/)
+- **Maven 3.8+**: [Download Maven](https://maven.apache.org/download.cgi)
+- **Docker Desktop**: [Download Docker](https://www.docker.com/products/docker-desktop/)
+- **Python 3.8+**: For the solver service (if running without Docker)
+- **Git**: For cloning the repository
+
+Verify your installations:
+
+```bash
+java --version
+mvn --version
+docker --version
+python --version
+```
+
+### Quick Start (Recommended)
+
+The fastest way to get everything running:
+
+```bash
+# 1. Navigate to the spring_server directory
+cd spring_server
+
+# 2. Build all services
+make build
+
+# 3. Start everything with Docker Compose
+make up
+
+# 4. Verify all services are running
+make logs
+```
+
+Access the application at `http://localhost:8080`
+
+### Local Development Setup
+
+For development work where you want to run services individually:
+
+#### Step 1: Clone and Build
+
+```bash
+# Clone the repository (if not already done)
+git clone <repository-url>
+cd FourColourTheoremSolver/spring_server
+
+# Build the entire project
+mvn clean install
+```
+
+#### Step 2: Start Infrastructure Services
+
+Start the required databases and message queue:
+
+```bash
+# Start PostgreSQL, MongoDB, and RabbitMQ
+docker-compose up -d postgres mongo rabbitmq
+
+# Verify they're running
+docker-compose ps
+```
+
+Wait for all services to be healthy (usually 30-60 seconds).
+
+#### Step 3: Set Environment Variables (Optional)
+
+For local development, default values work, but you can customize:
+
+```bash
+# PostgreSQL (Authentication Service)
+export DB_HOST=localhost
+export DB_PORT=5432
+export DB_USER=postgres
+export DB_PASSWORD=password
+export DB_NAME=users
+export JWT_SECRET=your-secret-key-here
+
+# MongoDB (Map Storage & Logger Services)
+export MONGO_URI=mongodb://localhost:27017
+export MONGO_DB_MAPS=mapstore
+export MONGO_DB_LOGS=logs
+
+# RabbitMQ (Logger Service)
+export RABBITMQ_HOST=localhost
+export RABBITMQ_PORT=5672
+export RABBITMQ_USERNAME=guest
+export RABBITMQ_PASSWORD=guest
+
+# Service URLs (API Gateway)
+export AUTHENTICATION_SERVICE_URL=http://localhost:8081
+export MAP_STORAGE_SERVICE_URL=http://localhost:8083
+export COLORING_SERVICE_URL=http://localhost:8082
+export LOGGER_SERVICE_URL=localhost:50001
+```
+
+#### Step 4: Start Services in Order
+
+**Important**: Start services in this order due to dependencies:
+
+```bash
+# Terminal 1 - Logger Service (other services depend on this)
+cd logger-service
+mvn spring-boot:run
+
+# Wait for "gRPC server started on port 50001" message
+```
+
+```bash
+# Terminal 2 - Authentication Service
+cd authentication-service
+mvn spring-boot:run
+
+# Wait for "Started AuthenticationServiceApplication" message
+```
+
+```bash
+# Terminal 3 - Map Storage Service
+cd map-storage-service
+mvn spring-boot:run
+
+# Wait for "Started MapStorageServiceApplication" message
+```
+
+```bash
+# Terminal 4 - Solver Service (Python)
+cd solver-service
+# Install dependencies (first time only)
+pip install -r requirements.txt
+python app.py
+
+# Wait for "Solver service running on port 8082" message
+```
+
+```bash
+# Terminal 5 - API Gateway (start last)
+cd api-gateway-service
+mvn spring-boot:run
+
+# Wait for "Started ApiGatewayServiceApplication" message
+```
+
+#### Step 5: Verify Everything is Running
+
+Check that all services are responding:
+
+```bash
+# Check service health
+curl http://localhost:8080/healthcheck  # API Gateway
+curl http://localhost:8081/healthcheck  # Authentication
+curl http://localhost:8083/healthcheck  # Map Storage
+curl http://localhost:8084/healthcheck  # Logger Service
+curl http://localhost:8082/healthcheck  # Solver Service
+
+# Test basic functionality
+curl -X POST http://localhost:8080/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"test","email":"test@example.com","password":"password123"}'
+```
+
+### Alternative: IDE Setup
+
+For development in IntelliJ IDEA or Eclipse:
+
+1. **Import the project**: Open the `pom.xml` in the spring_server directory
+2. **Configure Run Configurations**: Create separate run configurations for each service
+3. **Set Working Directory**: Ensure each service runs from its own module directory
+4. **Start Infrastructure**: Use `docker-compose up -d postgres mongo rabbitmq`
+5. **Run Services**: Start each service using your IDE's run configurations
+
+### Docker Deployment
+
+For production-like environment or if you prefer containers:
+
+#### Full Docker Setup
+
+```bash
+# Build and start all services
+docker-compose up --build
+
+# Or run in background
+docker-compose up -d --build
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
+```
+
+#### Partial Docker Setup (Infrastructure Only)
+
+Run infrastructure in Docker but services locally:
+
+```bash
+# Start only databases and RabbitMQ
+docker-compose up -d postgres mongo rabbitmq
+
+# Then run Spring services locally as described above
+```
+
+### Using the Makefile
+
+The project includes a Makefile for common operations:
+
+```bash
+# Build all services
+make build
+
+# Start everything
+make up
+
+# Start in background
+make up_build
+
+# View logs
+make logs
+
+# Stop everything
+make down
+
+# Clean containers and images
+make clean
+
+# Run tests
+make test
+```
+
+### Troubleshooting
+
+#### Common Issues
+
+**Service won't start - Port already in use:**
+
+```bash
+# Find what's using the port
+lsof -i :8080  # Replace with your port
+# Kill the process or use different ports
+```
+
+**Database connection issues:**
+
+```bash
+# Check if PostgreSQL is running
+docker-compose ps postgres
+# Check logs
+docker-compose logs postgres
+# Restart if needed
+docker-compose restart postgres
+```
+
+**gRPC connection errors:**
+
+```bash
+# Ensure logger service is running first
+# Check gRPC port is not blocked
+telnet localhost 50001
+```
+
+**Maven build failures:**
+
+```bash
+# Clear local repository and rebuild
+rm -rf ~/.m2/repository/com/fourcolour
+mvn clean install -U
+```
+
+#### Service Startup Order Issues
+
+If services fail to connect to each other:
+
+1. Stop all services
+2. Start infrastructure: `docker-compose up -d postgres mongo rabbitmq`
+3. Wait 30 seconds for databases to initialize
+4. Start logger service first (other services depend on it)
+5. Start remaining services in any order
+
+#### Log Files and Debugging
+
+```bash
+# View service logs
+docker-compose logs [service-name]
+
+# Follow logs in real-time
+docker-compose logs -f [service-name]
+
+# Spring Boot debug mode
+mvn spring-boot:run -Dspring-boot.run.jvmArguments="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005"
+```
+
+### Development Tips
+
+1. **Hot Reload**: Use `spring-boot-devtools` dependency for automatic restarts
+2. **Database Tools**: Connect to PostgreSQL at `localhost:5432` and MongoDB at `localhost:27017`
+3. **API Testing**: Use tools like Postman or curl to test endpoints
+4. **Log Monitoring**: Check RabbitMQ management UI at `http://localhost:15672` (guest/guest)
+
 ## API Endpoints
 
 ### Authentication (via Gateway)
@@ -61,65 +363,6 @@ The system consists of 5 Spring Boot microservices plus the original Python solv
 - `GET /api/v1/maps?userId={id}` - Get maps for user
 - `GET /api/v1/maps/{id}` - Get specific map
 - `DELETE /api/v1/maps/{id}` - Delete a map
-
-## Getting Started
-
-### Prerequisites
-
-- Java 21+
-- Maven 3.8+
-- Docker and Docker Compose
-
-### Development Setup
-
-1. **Build the project:**
-
-   ```bash
-   mvn clean install
-   ```
-
-2. **Start infrastructure services:**
-
-   ```bash
-   docker-compose up postgres mongo rabbitmq
-   ```
-
-3. **Run services locally:**
-
-   ```bash
-   # Terminal 1 - Logger Service
-   cd logger-service
-   mvn spring-boot:run
-
-   # Terminal 2 - Authentication Service
-   cd authentication-service
-   mvn spring-boot:run
-
-   # Terminal 3 - Map Storage Service
-   cd map-storage-service
-   mvn spring-boot:run
-
-   # Terminal 4 - API Gateway
-   cd api-gateway-service
-   mvn spring-boot:run
-
-   # Terminal 5 - Solver Service (Python)
-   cd ../server/solver-service
-   python app.py
-   ```
-
-### Docker Deployment
-
-1. **Build and start all services:**
-
-   ```bash
-   docker-compose up --build
-   ```
-
-2. **Stop services:**
-   ```bash
-   docker-compose down
-   ```
 
 ### Configuration
 
