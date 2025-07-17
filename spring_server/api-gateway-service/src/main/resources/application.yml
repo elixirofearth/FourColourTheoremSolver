@@ -1,0 +1,19 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway-service
+
+services:
+  coloring:
+    url: ${COLORING_SERVICE_URL:http://localhost:8082}
+  authentication:
+    url: ${AUTHENTICATION_SERVICE_URL:http://localhost:8081}
+  map-storage:
+    url: ${MAP_STORAGE_SERVICE_URL:http://localhost:8083}
+
+logging:
+  level:
+    com.fourcolour.gateway: INFO
+    org.springframework.web: DEBUG

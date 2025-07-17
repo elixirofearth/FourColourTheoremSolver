@@ -1,0 +1,27 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: logger-service
+
+  data:
+    mongodb:
+      uri: ${MONGO_URI:mongodb://admin:password@localhost:27017/?authSource=admin}
+      database: ${MONGO_DB:logs}
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+
+grpc:
+  server:
+    port: 50001
+
+logging:
+  level:
+    com.fourcolour.logger: INFO
+    org.springframework.amqp: DEBUG
+    io.grpc: INFO

@@ -1,0 +1,86 @@
+package com.fourcolour.gateway.service;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.Map;
+
+@Service
+public class ProxyService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ProxyService.class);
+
+    private final RestTemplate restTemplate;
+
+    @Value("${services.coloring.url:http://solver-service}")
+    private String coloringServiceUrl;
+
+    @Value("${services.authentication.url:http://authentication-service}")
+    private String authServiceUrl;
+
+    @Value("${services.map-storage.url:http://map-storage-service}")
+    private String mapStorageServiceUrl;
+
+    public ProxyService(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
+
+    public ResponseEntity<String> forwardRequest(String serviceName, String path, HttpMethod method, 
+                                               HttpHeaders headers, Object body) {
+        String targetUrl = getServiceUrl(serviceName) + path;
+        
+        logger.info("Forwarding {} request to: {}", method, targetUrl);
+
+        try {
+            HttpEntity<Object> entity = new HttpEntity<>(body, headers);
+            ResponseEntity<String> response = restTemplate.exchange(
+                    targetUrl, method, entity, String.class);
+            
+            logger.info("Received response from {}: {}", targetUrl, response.getStatusCode());
+            return response;
+            
+        } catch (Exception e) {
+            logger.error("Error forwarding request to {}: {}", targetUrl, e.getMessage());
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .body("{\"error\":\"Service unavailable\"}");
+        }
+    }
+
+    public ResponseEntity<String> verifyToken(String token) {
+        String url = authServiceUrl + "/auth/verify";
+        
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", token);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        
+        try {
+            return restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+        } catch (Exception e) {
+            logger.error("Token verification failed: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("{\"error\":\"Invalid token\"}");
+        }
+    }
+
+    private String getServiceUrl(String serviceName) {
+        switch (serviceName.toLowerCase()) {
+            case "auth":
+            case "authentication":
+                return authServiceUrl;
+            case "maps":
+            case "map-storage":
+                return mapStorageServiceUrl;
+            case "solver":
+            case "coloring":
+                return coloringServiceUrl;
+            default:
+                throw new IllegalArgumentException("Unknown service: " + serviceName);
+        }
+    }
+} 

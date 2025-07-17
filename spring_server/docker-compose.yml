@@ -1,0 +1,119 @@
+version: "3.8"
+
+services:
+  # Spring Boot Services
+  api-gateway-service:
+    build:
+      context: ./api-gateway-service
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      COLORING_SERVICE_URL: http://solver-service:8082
+      AUTHENTICATION_SERVICE_URL: http://authentication-service:8081
+      MAP_STORAGE_SERVICE_URL: http://map-storage-service:8083
+    depends_on:
+      - authentication-service
+      - map-storage-service
+      - solver-service
+
+  authentication-service:
+    build:
+      context: ./authentication-service
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "8081:8081"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: password
+      DB_NAME: users
+      JWT_SECRET: mySecretKey123456789012345678901234567890
+    depends_on:
+      - postgres
+
+  map-storage-service:
+    build:
+      context: ./map-storage-service
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "8083:8083"
+    environment:
+      MONGO_URI: mongodb://admin:password@mongo:27017/?authSource=admin
+      MONGO_DB: mapstore
+    depends_on:
+      - mongo
+
+  logger-service:
+    build:
+      context: ./logger-service
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "8084:8084"
+      - "50001:50001"
+    environment:
+      MONGO_URI: mongodb://admin:password@mongo:27017/?authSource=admin
+      MONGO_DB: logs
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
+    depends_on:
+      - mongo
+      - rabbitmq
+
+  # Keep the Python solver service as-is
+  solver-service:
+    build:
+      context: ./solver-service
+      dockerfile: solver-service.dockerfile
+    restart: always
+    ports:
+      - "8082:80"
+    environment:
+      PORT: 80
+
+  # Infrastructure services (same as original)
+  mongo:
+    image: "mongo:4.2.16-bionic"
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: mapstore
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - ./db-data/mongo/:/data/db
+
+  postgres:
+    image: "postgres:14.2"
+    ports:
+      - "5432:5432"
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: users
+    volumes:
+      - ./db-data/postgres/:/var/lib/postgresql/data/
+
+  rabbitmq:
+    image: "rabbitmq:3.9-alpine"
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ./db-data/rabbitmq/:/var/lib/rabbitmq
