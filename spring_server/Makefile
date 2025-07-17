@@ -26,10 +26,10 @@ clean:
 	mvn clean
 	@echo "Done!"
 
-## build: build all maven projects
+## build: build all maven projects  
 build:
 	@echo "Building all Maven projects..."
-	mvn clean install -DskipTests
+	mvn clean install -DskipTests -T1 --fail-at-end
 	@echo "Done!"
 
 ## test: run tests for all projects
