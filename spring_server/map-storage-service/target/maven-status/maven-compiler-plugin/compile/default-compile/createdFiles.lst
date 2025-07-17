@@ -1,0 +1,5 @@
+com/fourcolour/mapstorage/controller/MapController.class
+com/fourcolour/mapstorage/repository/MapRepository.class
+com/fourcolour/mapstorage/MapStorageServiceApplication.class
+com/fourcolour/mapstorage/service/MapService.class
+com/fourcolour/mapstorage/entity/Map.class

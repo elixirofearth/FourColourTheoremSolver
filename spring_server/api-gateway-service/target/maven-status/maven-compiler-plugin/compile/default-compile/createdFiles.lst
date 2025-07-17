@@ -1,0 +1,4 @@
+com/fourcolour/gateway/config/WebConfig.class
+com/fourcolour/gateway/service/ProxyService.class
+com/fourcolour/gateway/controller/GatewayController.class
+com/fourcolour/gateway/ApiGatewayServiceApplication.class

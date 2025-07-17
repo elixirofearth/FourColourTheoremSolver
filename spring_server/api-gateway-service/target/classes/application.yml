@@ -13,6 +13,12 @@ services:
   map-storage:
     url: ${MAP_STORAGE_SERVICE_URL:http://localhost:8083}
 
+grpc:
+  client:
+    logger-service:
+      address: ${LOGGER_SERVICE_URL:static://localhost:50001}
+      negotiationType: plaintext
+
 logging:
   level:
     com.fourcolour.gateway: INFO
