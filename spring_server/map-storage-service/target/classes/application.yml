@@ -1,0 +1,22 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: map-storage-service
+
+  data:
+    mongodb:
+      uri: ${MONGO_URI:mongodb://admin:password@localhost:27017/?authSource=admin}
+      database: ${MONGO_DB:mapstore}
+
+grpc:
+  client:
+    logger-service:
+      address: ${LOGGER_SERVICE_URL:static://localhost:50001}
+      negotiationType: plaintext
+
+logging:
+  level:
+    com.fourcolour.mapstorage: INFO
+    org.springframework.data.mongodb: DEBUG
