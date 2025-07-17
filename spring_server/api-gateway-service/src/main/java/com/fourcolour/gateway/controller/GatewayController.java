@@ -30,6 +30,11 @@ public class GatewayController {
         return ResponseEntity.ok("OK");
     }
 
+    @GetMapping("/healthcheck/services")
+    public ResponseEntity<String> healthCheckServices() {
+        return proxyService.checkAllServicesHealth();
+    }
+
     // Auth routes (unprotected)
     @PostMapping("/api/v1/auth/register")
     public ResponseEntity<String> register(@RequestBody String body, HttpServletRequest request) {

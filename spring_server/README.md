@@ -144,7 +144,7 @@ export RABBITMQ_PASSWORD=guest
 export AUTHENTICATION_SERVICE_URL=http://localhost:8081
 export MAP_STORAGE_SERVICE_URL=http://localhost:8083
 export COLORING_SERVICE_URL=http://localhost:8082
-export LOGGER_SERVICE_URL=localhost:50001
+export LOGGER_SERVICE_URL=http://localhost:50001
 ```
 
 #### Step 4: Start Services in Order
@@ -198,18 +198,169 @@ mvn spring-boot:run
 Check that all services are responding:
 
 ```bash
-# Check service health
-curl http://localhost:8080/healthcheck  # API Gateway
-curl http://localhost:8081/healthcheck  # Authentication
-curl http://localhost:8083/healthcheck  # Map Storage
-curl http://localhost:8084/healthcheck  # Logger Service
-curl http://localhost:8082/healthcheck  # Solver Service
+# Check comprehensive health (all services at once)
+curl http://localhost:8080/healthcheck/services
+
+# Check individual service health
+curl http://localhost:8080/healthcheck               # API Gateway
+curl http://localhost:8081/auth/healthcheck          # Authentication
+curl http://localhost:8083/api/v1/maps/healthcheck   # Map Storage
+curl http://localhost:8084/healthcheck               # Logger Service
+curl http://localhost:8082/health                    # Solver Service
 
 # Test basic functionality
 curl -X POST http://localhost:8080/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{"username":"test","email":"test@example.com","password":"password123"}'
 ```
+
+## Health Check System
+
+The system includes a comprehensive health check mechanism that allows you to verify the status of all services from a single endpoint. This is particularly useful for monitoring, load balancers, and ensuring system reliability.
+
+### Health Check Endpoints
+
+#### Comprehensive Health Check (Recommended)
+
+**Endpoint**: `GET /healthcheck/services`  
+**URL**: `http://localhost:8080/healthcheck/services`
+
+This endpoint checks the health of all critical services through the API Gateway:
+
+```bash
+curl -X GET http://localhost:8080/healthcheck/services
+```
+
+**Response when all services are healthy (HTTP 200):**
+
+```json
+{
+  "gateway": "OK",
+  "authentication-service": "OK",
+  "map-storage-service": "OK",
+  "solver-service": "OK"
+}
+```
+
+**Response when any service is down (HTTP 503):**
+
+```json
+{
+  "gateway": "OK",
+  "authentication-service": "FAIL - I/O error on GET request...",
+  "map-storage-service": "OK",
+  "solver-service": "OK"
+}
+```
+
+#### Individual Service Health Checks
+
+Each service also provides its own health check endpoint:
+
+```bash
+# API Gateway basic health
+curl -X GET http://localhost:8080/healthcheck
+
+# Authentication Service
+curl -X GET http://localhost:8081/auth/healthcheck
+
+# Map Storage Service
+curl -X GET http://localhost:8083/api/v1/maps/healthcheck
+
+# Logger Service
+curl -X GET http://localhost:8084/healthcheck
+
+# Solver Service
+curl -X GET http://localhost:8082/health
+```
+
+All individual endpoints return `OK` when healthy and appropriate error messages when unhealthy.
+
+### Health Check Features
+
+- ✅ **Comprehensive Monitoring**: Single endpoint checks all services
+- ✅ **Proper HTTP Status Codes**: Returns 200 for healthy, 503 for unhealthy
+- ✅ **Detailed Error Messages**: Shows which service failed and why
+- ✅ **Real-time Connectivity Testing**: Actually calls each service's health endpoint
+- ✅ **JSON Response Format**: Easy to parse programmatically
+- ✅ **Logging**: All health checks are logged for debugging
+
+### Testing Health Check System
+
+#### Test All Services Healthy
+
+```bash
+# Should return HTTP 200 with all services "OK"
+curl -X GET http://localhost:8080/healthcheck/services
+
+# Check status code
+curl -I http://localhost:8080/healthcheck/services
+```
+
+#### Test Error Handling
+
+```bash
+# Stop a service to test failure detection
+docker compose stop authentication-service
+
+# Should return HTTP 503 with authentication-service marked as "FAIL"
+curl -X GET http://localhost:8080/healthcheck/services
+
+# Check status code (should be 503)
+curl -I http://localhost:8080/healthcheck/services
+
+# Restart the service
+docker compose start authentication-service
+
+# Should return to HTTP 200
+curl -X GET http://localhost:8080/healthcheck/services
+```
+
+#### Test Individual Services
+
+```bash
+# Test each service individually
+curl -X GET http://localhost:8081/auth/healthcheck          # Should return "OK"
+curl -X GET http://localhost:8083/api/v1/maps/healthcheck   # Should return "OK"
+curl -X GET http://localhost:8082/health                    # Should return {"status":"healthy"}
+```
+
+### Integration with Monitoring
+
+The health check system is designed to integrate with:
+
+- **Load Balancers**: Use `/healthcheck/services` for health checks
+- **Monitoring Systems**: Parse JSON responses for alerting
+- **CI/CD Pipelines**: Verify deployment success
+- **Service Mesh**: Integrate with service discovery
+
+### Troubleshooting Health Checks
+
+If health checks are failing:
+
+1. **Check Service Logs**:
+
+   ```bash
+   docker compose logs [service-name]
+   ```
+
+2. **Verify Service Status**:
+
+   ```bash
+   docker compose ps
+   ```
+
+3. **Test Individual Services**:
+
+   ```bash
+   curl -X GET http://localhost:8081/auth/healthcheck
+   ```
+
+4. **Check Network Connectivity**:
+   ```bash
+   # Test internal Docker network
+   docker exec -it spring_server-api-gateway-service-1 curl http://authentication-service:8081/auth/healthcheck
+   ```
 
 ### Alternative: IDE Setup
 
@@ -279,6 +430,24 @@ make clean
 make test
 ```
 
+### Quick Health Check Commands
+
+For quick system verification:
+
+```bash
+# Check all services at once (recommended)
+curl http://localhost:8080/healthcheck/services
+
+# Check if API Gateway can reach all services
+curl -I http://localhost:8080/healthcheck/services  # Should return 200
+
+# Individual service checks
+curl http://localhost:8080/healthcheck               # API Gateway
+curl http://localhost:8081/auth/healthcheck          # Authentication
+curl http://localhost:8083/api/v1/maps/healthcheck   # Map Storage
+curl http://localhost:8082/health                    # Solver Service
+```
+
 ### Troubleshooting
 
 #### Common Issues
@@ -316,6 +485,21 @@ telnet localhost 50001
 # Clear local repository and rebuild
 rm -rf ~/.m2/repository/com/fourcolour
 mvn clean install -U
+```
+
+**Health check failures:**
+
+```bash
+# Check which services are failing
+curl http://localhost:8080/healthcheck/services
+
+# Test individual services
+curl http://localhost:8081/auth/healthcheck
+curl http://localhost:8083/api/v1/maps/healthcheck
+curl http://localhost:8082/health
+
+# Check service logs for errors
+docker-compose logs [service-name]
 ```
 
 #### Service Startup Order Issues
@@ -497,9 +681,54 @@ mvn test
 
 - [x] Complete gRPC logger service integration
 - [x] RabbitMQ message queuing for logs
+- [x] Comprehensive health check system with monitoring
 - [ ] Add Spring Boot Actuator for monitoring
 - [ ] Implement service discovery with Eureka
 - [ ] Add distributed tracing with Zipkin
 - [ ] Kubernetes deployment manifests
 - [ ] Integration tests with Testcontainers
 - [ ] Log analytics and search capabilities
+
+## Quick Reference
+
+### Essential Health Check Commands
+
+```bash
+# Check all services at once (recommended)
+curl http://localhost:8080/healthcheck/services
+
+# Individual service health checks
+curl http://localhost:8080/healthcheck               # API Gateway
+curl http://localhost:8081/auth/healthcheck          # Authentication
+curl http://localhost:8083/api/v1/maps/healthcheck   # Map Storage
+curl http://localhost:8082/health                    # Solver Service
+```
+
+### Key Docker Commands
+
+```bash
+# Start all services
+docker-compose up -d --build
+
+# Check service status
+docker-compose ps
+
+# View logs
+docker-compose logs -f [service-name]
+
+# Stop all services
+docker-compose down
+```
+
+### Troubleshooting
+
+```bash
+# Check health status
+curl http://localhost:8080/healthcheck/services
+
+# Restart failed service
+docker-compose restart [service-name]
+
+# Check logs for errors
+docker-compose logs [service-name]
+```

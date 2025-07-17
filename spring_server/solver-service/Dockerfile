@@ -43,13 +43,13 @@ COPY solver-service/asp_program/graph.lp asp_program/
 # Copy the rest of the application code
 COPY solver-service .
 
-# Expose the ports the app runs on
-EXPOSE 80 
-
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
-ENV PORT=80
+ENV PORT=8082
+
+# Expose the ports the app runs on
+EXPOSE ${PORT}
 ENV PYTHONPATH=/app
 
 # Command to run the application
-CMD ["gunicorn", "--bind", "0.0.0.0:80", "app:app"]
+CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT} app:app"]

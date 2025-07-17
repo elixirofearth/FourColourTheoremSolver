@@ -86,4 +86,9 @@ public class AuthController {
                     .body(Map.of("error", "Invalid or expired token"));
         }
     }
+
+    @GetMapping("/healthcheck")
+    public ResponseEntity<String> healthCheck() {
+        return ResponseEntity.ok("OK");
+    }
 } 

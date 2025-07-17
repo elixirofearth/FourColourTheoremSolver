@@ -82,4 +82,47 @@ public class ProxyService {
                 throw new IllegalArgumentException("Unknown service: " + serviceName);
         }
     }
+
+    public ResponseEntity<String> checkAllServicesHealth() {
+        StringBuilder result = new StringBuilder();
+        result.append("{\n");
+        result.append("  \"gateway\": \"OK\",\n");
+        
+        // Check authentication service
+        String authStatus = checkServiceHealth(authServiceUrl + "/auth/healthcheck");
+        result.append("  \"authentication-service\": \"").append(authStatus).append("\",\n");
+        
+        // Check map storage service
+        String mapStorageStatus = checkServiceHealth(mapStorageServiceUrl + "/api/v1/maps/healthcheck");
+        result.append("  \"map-storage-service\": \"").append(mapStorageStatus).append("\",\n");
+        
+        // Check solver service
+        String solverStatus = checkServiceHealth(coloringServiceUrl + "/health");
+        result.append("  \"solver-service\": \"").append(solverStatus).append("\"\n");
+        
+        result.append("}");
+        
+        // If any service is down, return 503
+        if (authStatus.contains("FAIL") || mapStorageStatus.contains("FAIL") || solverStatus.contains("FAIL")) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(result.toString());
+        }
+        
+        return ResponseEntity.ok(result.toString());
+    }
+    
+    private String checkServiceHealth(String healthUrl) {
+        try {
+            logger.info("Checking health of: {}", healthUrl);
+            ResponseEntity<String> response = restTemplate.getForEntity(healthUrl, String.class);
+            
+            if (response.getStatusCode().is2xxSuccessful()) {
+                return "OK";
+            } else {
+                return "FAIL - Status: " + response.getStatusCode();
+            }
+        } catch (Exception e) {
+            logger.error("Health check failed for {}: {}", healthUrl, e.getMessage());
+            return "FAIL - " + e.getMessage();
+        }
+    }
 } 
