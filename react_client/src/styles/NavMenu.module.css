@@ -1,0 +1,48 @@
+.nav {
+  display: flex;
+  background-color: #3498db;
+  color: #fff;
+  height: 70px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  border-bottom: 5px solid #2980b9;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.navItem {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.navItem:first-child {
+  justify-content: flex-start;
+}
+
+.navItem:last-child {
+  justify-content: flex-end;
+}
+
+.authButtons {
+  display: flex;
+  gap: 15px;
+  justify-content: flex-end;
+}
+
+.navItem h1 {
+  font-size: 1.3rem;
+  margin: 0;
+  text-align: center;
+  text-shadow: 2px 2px 0 #2980b9;
+}
+
+.navItem img {
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+}
+
+.navItem img:hover {
+  transform: rotate(10deg);
+}
