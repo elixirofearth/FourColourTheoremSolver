@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first to leverage Docker cache
-COPY requirements.txt .
+COPY solver-service/requirements.txt .
 
 # Install Python dependencies
 RUN pip install --upgrade pip && \
@@ -23,7 +23,7 @@ RUN pip install --upgrade pip && \
 RUN mkdir -p asp_program proto/logs
 
 # Copy proto files first
-COPY proto/logs/logger.proto proto/logs/
+COPY solver-service/proto/logs/logger.proto proto/logs/
 
 # Create __init__.py files to make proto a proper Python package
 RUN touch proto/__init__.py proto/logs/__init__.py
@@ -36,11 +36,12 @@ RUN python -m grpc_tools.protoc \
     proto/logs/logger.proto
 
 # Copy ASP program files
-COPY asp_program/program.lp asp_program/
-COPY asp_program/colors.lp asp_program/
+COPY solver-service/asp_program/program.lp asp_program/
+COPY solver-service/asp_program/colors.lp asp_program/
+COPY solver-service/asp_program/graph.lp asp_program/
 
 # Copy the rest of the application code
-COPY . .
+COPY solver-service .
 
 # Expose the ports the app runs on
 EXPOSE 80 
