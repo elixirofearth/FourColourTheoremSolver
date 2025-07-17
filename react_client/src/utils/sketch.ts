@@ -53,7 +53,7 @@ function sketch(p: p5) {
     if (captureImage) {
       const img = p.get(grid_margin, grid_margin, grid_w, grid_h);
       img.loadPixels();
-      const array_pixels = img.pixels;
+      const array_pixels = new Uint8ClampedArray(img.pixels);
       getData(array_pixels, img.width, img.height);
       captureImage = false;
     }
@@ -123,7 +123,7 @@ function drawLine(p: p5, x0: number, y0: number, x1: number, y1: number) {
   }
 }
 
-async function getData(array_pixels: number[], w: number, h: number) {
+async function getData(array_pixels: Uint8ClampedArray, w: number, h: number) {
   const apiHost = import.meta.env.VITE_API_GATEWAY_URL;
 
   if (!apiHost) {
