@@ -1,6 +1,5 @@
 package com.fourcolour.common.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ColoringRequest {
     private ImageData image;

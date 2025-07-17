@@ -2,7 +2,6 @@ package com.fourcolour.common.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.time.LocalDateTime;
 
 public class TokenResponse {
     private String token;
