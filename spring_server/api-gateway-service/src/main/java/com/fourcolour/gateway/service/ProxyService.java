@@ -91,14 +91,17 @@ public class ProxyService {
         // Check authentication service
         String authStatus = checkServiceHealth(authServiceUrl + "/auth/healthcheck");
         result.append("  \"authentication-service\": \"").append(authStatus).append("\",\n");
+        result.append("  \"URL of authentication-service\": \"").append(authServiceUrl).append("\",\n");
         
         // Check map storage service
         String mapStorageStatus = checkServiceHealth(mapStorageServiceUrl + "/api/v1/maps/healthcheck");
         result.append("  \"map-storage-service\": \"").append(mapStorageStatus).append("\",\n");
+        result.append("  \"URL of map-storage-service\": \"").append(mapStorageServiceUrl).append("\",\n");
         
         // Check solver service
         String solverStatus = checkServiceHealth(coloringServiceUrl + "/health");
         result.append("  \"solver-service\": \"").append(solverStatus).append("\"\n");
+        result.append("  \"URL of solver-service\": \"").append(coloringServiceUrl).append("\",\n");
         
         result.append("}");
         
