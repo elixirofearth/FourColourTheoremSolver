@@ -137,12 +137,6 @@ const Canvas: React.FC = () => {
     setCapturedImage(false);
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "c" || e.key === "C") {
-      clearCanvas();
-    }
-  };
-
   // Handle image capture
   useEffect(() => {
     if (captureImage) {
@@ -349,8 +343,6 @@ const Canvas: React.FC = () => {
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
-      onKeyDown={handleKeyPress}
-      tabIndex={0}
       style={{
         border: "1px solid #ccc",
         cursor: "crosshair",
