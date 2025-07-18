@@ -40,13 +40,47 @@ public class ProxyService {
                     targetUrl, method, entity, String.class);
             
             logger.info("Received response from {}: {}", targetUrl, response.getStatusCode());
-            return response;
+            
+            // Create clean headers by filtering out problematic headers
+            HttpHeaders cleanHeaders = new HttpHeaders();
+            if (response.getHeaders() != null) {
+                response.getHeaders().forEach((name, values) -> {
+                    // Filter out headers that shouldn't be forwarded
+                    if (!shouldFilterHeader(name)) {
+                        cleanHeaders.put(name, values);
+                    }
+                });
+            }
+            
+            // Return a new ResponseEntity with clean headers
+            return ResponseEntity.status(response.getStatusCode())
+                    .headers(cleanHeaders)
+                    .body(response.getBody());
             
         } catch (Exception e) {
             logger.error("Error forwarding request to {}: {}", targetUrl, e.getMessage());
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                     .body("{\"error\":\"Service unavailable\"}");
         }
+    }
+
+    private boolean shouldFilterHeader(String headerName) {
+        if (headerName == null) {
+            return true;
+        }
+        
+        String lowerName = headerName.toLowerCase();
+        // Filter out headers that can cause issues when forwarding responses
+        return lowerName.equals("transfer-encoding") ||
+               lowerName.equals("content-encoding") ||
+               lowerName.equals("content-length") ||
+               lowerName.equals("connection") ||
+               lowerName.equals("keep-alive") ||
+               lowerName.equals("proxy-authenticate") ||
+               lowerName.equals("proxy-authorization") ||
+               lowerName.equals("te") ||
+               lowerName.equals("trailers") ||
+               lowerName.equals("upgrade");
     }
 
     public ResponseEntity<String> verifyToken(String token) {
