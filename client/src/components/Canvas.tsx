@@ -175,6 +175,7 @@ const Canvas: React.FC = () => {
         width: w,
         height: h,
         imageLength: array_pixels.length,
+        userId: localStorage.getItem("userId"),
       });
 
       const res = await fetch(`${apiHost}/api/v1/maps/color`, {
