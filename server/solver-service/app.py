@@ -65,9 +65,15 @@ def return_home():
 @app.route('/api/solve', methods=['POST'])
 def solve():
     try:
+
         data = request.get_json()
         if not data:
             return jsonify({"error": "No JSON data received"}), 400
+        
+        # Print the data
+        print("width: ", data["width"])
+        print("height: ", data["height"])
+        print("user id: ", data["userId"])
 
         user_id = data.get("userId", "unknown")
         
@@ -106,21 +112,23 @@ def solve():
         end = time.time()
         processing_time = end - begin
 
-        log_event(
-            user_id,
-            "map_coloring_completed",
-            "Successfully colored map",
-            1,
-            {
-                "processing_time": f"{processing_time:.2f}",
-                "vertices": str(len(vertices)),
-                "edges": str(len(edges))
-            }
-        )
+        print(f"Processing time: {processing_time:.2f} seconds")
+
+        # log_event(
+        #     user_id,
+        #     "map_coloring_completed",
+        #     "Successfully colored map",
+        #     1,
+        #     {
+        #         "processing_time": f"{processing_time:.2f}",
+        #         "vertices": str(len(vertices)),
+        #         "edges": str(len(edges))
+        #     }
+        # )
 
         # Convert numpy array to list for JSON serialization
         result = colored_map.tolist()
-        return jsonify(result)
+        return jsonify(result), 200
 
     except Exception as e:
         print(f"Error processing request: {str(e)}")
