@@ -5,13 +5,23 @@ public class ColoringRequest {
     private ImageData image;
     private int width;
     private int height;
+    private String userId;
 
     public ColoringRequest() {}
 
-    public ColoringRequest(ImageData image, int width, int height) {
+    public ColoringRequest(ImageData image, int width, int height, String userId) {
         this.image = image;
         this.width = width;
         this.height = height;
+        this.userId = userId;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     public ImageData getImage() {

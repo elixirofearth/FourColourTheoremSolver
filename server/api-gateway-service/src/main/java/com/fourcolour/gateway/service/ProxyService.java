@@ -60,7 +60,7 @@ public class ProxyService {
         } catch (Exception e) {
             logger.error("Error forwarding request to {}: {}", targetUrl, e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("{\"error\":\"Service unavailable\", \"Target Service\": \""+ targetUrl + "\", \"Error Message\": \""+ e.getMessage() + "\"}");
+                    .body("{\"error\":\"Internal Server Error\", \"Target Service\": \""+ targetUrl + "\", \"Error Message\": \""+ e.getMessage() + "\", \"Status Code\": \""+ HttpStatus.INTERNAL_SERVER_ERROR + "\"}");
         }
     }
 

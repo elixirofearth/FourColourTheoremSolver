@@ -67,7 +67,8 @@ public class GatewayController {
             Map<String, Object> solverRequest = Map.of(
                 "image", coloringRequest.getImage().getData(),
                 "width", coloringRequest.getWidth(),
-                "height", coloringRequest.getHeight()
+                "height", coloringRequest.getHeight(),
+                "userId", coloringRequest.getUserId() != null ? coloringRequest.getUserId() : "unknown"
             );
 
             String solverBody = objectMapper.writeValueAsString(solverRequest);
