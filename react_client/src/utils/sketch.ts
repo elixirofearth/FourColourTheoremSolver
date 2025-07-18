@@ -19,6 +19,7 @@ const grid_margin = 50;
 let lines: Line[] = [];
 let start: Point | null, end: Point | null;
 let dragging = false;
+let gestureStartedInCanvas = false; // Track if the current gesture started inside canvas
 let captureImage = false;
 let downloadImage = false;
 let captured_image = false;
@@ -49,6 +50,7 @@ function sketch(p: p5) {
     p.frameRate(60); // Increase frame rate for smoother interaction
     start = null;
     end = null;
+    gestureStartedInCanvas = false;
   };
 
   p.draw = function () {
@@ -102,24 +104,21 @@ function sketch(p: p5) {
     // Reset state regardless of where we click
     dragging = false;
 
-    // Only set start point if the mouse is within the grid bounds
+    // Check if the gesture starts within the canvas
     if (isWithinGridBounds(p.mouseX, p.mouseY)) {
+      gestureStartedInCanvas = true;
       start = constrainToGrid(p.mouseX, p.mouseY);
       return false; // Prevent default behavior
     } else {
-      // Clear start point if clicking outside the canvas
+      // Gesture started outside canvas - don't allow line drawing
+      gestureStartedInCanvas = false;
       start = null;
     }
   };
 
   p.mouseDragged = function () {
-    // If we're within bounds now
-    if (isWithinGridBounds(p.mouseX, p.mouseY)) {
-      // If we don't have a start point yet (started outside canvas), set it to current position
-      if (!start) {
-        start = constrainToGrid(p.mouseX, p.mouseY);
-      }
-
+    // Only allow drawing if the gesture started inside the canvas
+    if (gestureStartedInCanvas && isWithinGridBounds(p.mouseX, p.mouseY)) {
       // Set end point and enable dragging
       end = constrainToGrid(p.mouseX, p.mouseY);
       dragging = true;
@@ -146,6 +145,9 @@ function sketch(p: p5) {
       // Reset dragging state if released outside bounds or no drag occurred
       dragging = false;
     }
+
+    // Always reset gesture tracking for next interaction
+    gestureStartedInCanvas = false;
   };
 }
 
