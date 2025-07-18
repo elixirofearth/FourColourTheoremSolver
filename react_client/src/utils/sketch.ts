@@ -45,8 +45,8 @@ function constrainToGrid(x: number, y: number): Point {
 function sketch(p: p5) {
   p.setup = function () {
     p.createCanvas(w, h);
-    p.noSmooth();
-    p.frameRate(30);
+    p.smooth(); // Enable anti-aliasing for smoother lines
+    p.frameRate(60); // Increase frame rate for smoother interaction
     start = null;
     end = null;
   };
@@ -54,19 +54,31 @@ function sketch(p: p5) {
   p.draw = function () {
     if (captured_image === false) {
       p.background(200);
+
+      // Draw grid background
       p.stroke(0);
       p.fill(255);
       p.rect(grid_margin, grid_margin, grid_w - 1, grid_h - 1);
 
-      // draw lines
+      // Set up line drawing properties for smooth lines
+      p.stroke(0);
+      p.strokeWeight(2);
+      p.strokeCap(p.ROUND);
+      p.strokeJoin(p.ROUND);
+
+      // draw existing lines
       for (let i = 0; i < lines.length; i++) {
         const a = lines[i][0];
         const b = lines[i][1];
-        drawLine(p, a.x, a.y, b.x, b.y);
+        p.line(a.x, a.y, b.x, b.y);
       }
 
-      // draw temporary line while dragging
-      if (dragging && start && end) drawLine(p, start.x, start.y, end.x, end.y);
+      // draw temporary line while dragging with a slightly different style
+      if (dragging && start && end) {
+        p.stroke(100); // Lighter color for preview
+        p.strokeWeight(1.5);
+        p.line(start.x, start.y, end.x, end.y);
+      }
     }
 
     if (captureImage) {
@@ -135,45 +147,6 @@ function sketch(p: p5) {
       dragging = false;
     }
   };
-}
-
-function drawPoint(p: p5, x: number, y: number) {
-  for (let i = 0; i < 3; i++) {
-    for (let j = 0; j < 3; j++) {
-      const px = x - 1 + i;
-      const py = y - 1 + j;
-      if (
-        px >= grid_margin &&
-        px < grid_w + grid_margin &&
-        py >= grid_margin &&
-        py < grid_h + grid_margin
-      ) {
-        p.point(px, py);
-      }
-    }
-  }
-}
-
-function drawLine(p: p5, x0: number, y0: number, x1: number, y1: number) {
-  const dx = Math.abs(x1 - x0);
-  const dy = Math.abs(y1 - y0);
-  const sx = x0 < x1 ? 1 : -1;
-  const sy = y0 < y1 ? 1 : -1;
-  let err = dx - dy;
-
-  while (true) {
-    drawPoint(p, x0, y0);
-    if (x0 === x1 && y0 === y1) break;
-    const e2 = 2 * err;
-    if (e2 > -dy) {
-      err -= dy;
-      x0 += sx;
-    }
-    if (e2 < dx) {
-      err += dx;
-      y0 += sy;
-    }
-  }
 }
 
 async function getData(array_pixels: number[], w: number, h: number) {
