@@ -17,8 +17,7 @@ const grid_w = 400;
 const grid_margin = 50;
 
 let lines: Line[] = [];
-let currentStart: Point | null = null;
-let currentEnd: Point | null = null;
+let start: Point, end: Point;
 let dragging = false;
 let captureImage = false;
 let downloadImage = false;
@@ -30,6 +29,7 @@ function sketch(p: p5) {
     p.createCanvas(w, h);
     p.noSmooth();
     p.frameRate(30);
+    start = { x: w / 2, y: h / 2 };
   };
 
   p.draw = function () {
@@ -47,15 +47,13 @@ function sketch(p: p5) {
       }
 
       // draw temporary line while dragging
-      if (dragging && currentStart && currentEnd) {
-        drawLine(p, currentStart.x, currentStart.y, currentEnd.x, currentEnd.y);
-      }
+      if (dragging) drawLine(p, start.x, start.y, end.x, end.y);
     }
 
     if (captureImage) {
       const img = p.get(grid_margin, grid_margin, grid_w, grid_h);
       img.loadPixels();
-      const array_pixels = new Uint8ClampedArray(img.pixels);
+      const array_pixels = img.pixels;
       getData(array_pixels, img.width, img.height);
       captureImage = false;
     }
@@ -70,43 +68,19 @@ function sketch(p: p5) {
   };
 
   p.mousePressed = function () {
-    // Only start drawing if mouse is within the grid area
-    if (
-      p.mouseX >= grid_margin &&
-      p.mouseX <= grid_margin + grid_w &&
-      p.mouseY >= grid_margin &&
-      p.mouseY <= grid_margin + grid_h
-    ) {
-      currentStart = { x: p.mouseX, y: p.mouseY };
-      currentEnd = { x: p.mouseX, y: p.mouseY };
-      dragging = false;
-    }
+    start = { x: p.mouseX, y: p.mouseY };
   };
 
   p.mouseDragged = function () {
-    // Only drag if we have a valid start point and mouse is within grid
-    if (
-      currentStart &&
-      p.mouseX >= grid_margin &&
-      p.mouseX <= grid_margin + grid_w &&
-      p.mouseY >= grid_margin &&
-      p.mouseY <= grid_margin + grid_h
-    ) {
-      currentEnd = { x: p.mouseX, y: p.mouseY };
-      dragging = true;
-    }
+    end = { x: p.mouseX, y: p.mouseY };
+    dragging = true;
   };
 
   p.mouseReleased = function () {
-    // Only create line if we have valid start and end points
-    if (currentStart && currentEnd && dragging) {
-      lines.push([currentStart, currentEnd]);
-    }
-
-    // Reset the current drawing state
-    currentStart = null;
-    currentEnd = null;
     dragging = false;
+    end = { x: p.mouseX, y: p.mouseY };
+    lines.push([start, end]);
+    start = { x: end.x, y: end.y };
   };
 }
 
@@ -149,7 +123,7 @@ function drawLine(p: p5, x0: number, y0: number, x1: number, y1: number) {
   }
 }
 
-async function getData(array_pixels: Uint8ClampedArray, w: number, h: number) {
+async function getData(array_pixels: number[], w: number, h: number) {
   const apiHost = import.meta.env.VITE_API_GATEWAY_URL;
 
   if (!apiHost) {
