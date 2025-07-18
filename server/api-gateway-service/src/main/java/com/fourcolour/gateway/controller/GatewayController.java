@@ -74,6 +74,7 @@ public class GatewayController {
             String solverBody = objectMapper.writeValueAsString(solverRequest);
             
             HttpHeaders headers = extractHeaders(request);
+            headers.remove(HttpHeaders.CONTENT_LENGTH);
             return proxyService.forwardRequest("solver", "/api/solve", HttpMethod.POST, headers, solverBody);
             
         } catch (Exception e) {

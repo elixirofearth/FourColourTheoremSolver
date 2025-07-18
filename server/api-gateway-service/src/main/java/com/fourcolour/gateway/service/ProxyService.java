@@ -80,7 +80,14 @@ public class ProxyService {
                lowerName.equals("proxy-authorization") ||
                lowerName.equals("te") ||
                lowerName.equals("trailers") ||
-               lowerName.equals("upgrade");
+               lowerName.equals("upgrade") ||
+               // Filter out CORS headers since the gateway handles CORS
+               lowerName.equals("access-control-allow-origin") ||
+               lowerName.equals("access-control-allow-methods") ||
+               lowerName.equals("access-control-allow-headers") ||
+               lowerName.equals("access-control-allow-credentials") ||
+               lowerName.equals("access-control-expose-headers") ||
+               lowerName.equals("access-control-max-age");
     }
 
     public ResponseEntity<String> verifyToken(String token) {
@@ -134,8 +141,8 @@ public class ProxyService {
         
         // Check solver service
         String solverStatus = checkServiceHealth(coloringServiceUrl + "/health");
-        result.append("  \"solver-service\": \"").append(solverStatus).append("\"\n");
-        result.append("  \"URL of solver-service\": \"").append(coloringServiceUrl).append("\",\n");
+        result.append("  \"solver-service\": \"").append(solverStatus).append("\",\n");
+        result.append("  \"URL of solver-service\": \"").append(coloringServiceUrl).append("\"\n");
         
         result.append("}");
         
