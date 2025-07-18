@@ -24,6 +24,24 @@ let downloadImage = false;
 let captured_image = false;
 let matrix: number[][][];
 
+// Helper function to check if a point is within the canvas grid area
+function isWithinGridBounds(x: number, y: number): boolean {
+  return (
+    x >= grid_margin &&
+    x <= grid_margin + grid_w &&
+    y >= grid_margin &&
+    y <= grid_margin + grid_h
+  );
+}
+
+// Helper function to constrain a point to the grid bounds
+function constrainToGrid(x: number, y: number): Point {
+  return {
+    x: Math.max(grid_margin, Math.min(grid_margin + grid_w, x)),
+    y: Math.max(grid_margin, Math.min(grid_margin + grid_h, y)),
+  };
+}
+
 function sketch(p: p5) {
   p.setup = function () {
     p.createCanvas(w, h);
@@ -68,19 +86,42 @@ function sketch(p: p5) {
   };
 
   p.mousePressed = function () {
-    start = { x: p.mouseX, y: p.mouseY };
+    // Only start drawing if the mouse is within the grid bounds
+    if (isWithinGridBounds(p.mouseX, p.mouseY)) {
+      start = constrainToGrid(p.mouseX, p.mouseY);
+      dragging = false; // Reset dragging state
+      return false; // Prevent default behavior
+    }
   };
 
   p.mouseDragged = function () {
-    end = { x: p.mouseX, y: p.mouseY };
-    dragging = true;
+    // Only continue dragging if we have a valid start point and current position is within bounds
+    if (start && isWithinGridBounds(p.mouseX, p.mouseY)) {
+      end = constrainToGrid(p.mouseX, p.mouseY);
+      dragging = true;
+      return false; // Prevent default behavior
+    }
   };
 
   p.mouseReleased = function () {
-    dragging = false;
-    end = { x: p.mouseX, y: p.mouseY };
-    lines.push([start, end]);
-    start = { x: end.x, y: end.y };
+    // Only complete the line if we were dragging
+    if (dragging && start) {
+      dragging = false;
+      end = constrainToGrid(p.mouseX, p.mouseY);
+
+      // Only add the line if both start and end points are valid and different
+      if (start && end && (start.x !== end.x || start.y !== end.y)) {
+        lines.push([start, end]);
+      }
+
+      // Reset state for next line
+      start = { x: 0, y: 0 };
+      end = { x: 0, y: 0 };
+      return false; // Prevent default behavior
+    } else {
+      // Reset dragging state if released outside bounds or no drag occurred
+      dragging = false;
+    }
   };
 }
 
