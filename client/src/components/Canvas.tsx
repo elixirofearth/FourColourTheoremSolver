@@ -185,6 +185,7 @@ const Canvas: React.FC = () => {
           },
           height: h,
           width: w,
+          userId: localStorage.getItem("userId"),
         }),
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
