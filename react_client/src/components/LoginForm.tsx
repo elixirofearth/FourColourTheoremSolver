@@ -44,11 +44,11 @@ const LoginForm: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4">
+    <div className="flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <form
           onSubmit={handleSubmit}
-          className="bg-white rounded-3xl shadow-2xl p-8 transform hover:scale-105 transition-all duration-300 border border-gray-100"
+          className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-8 transform hover:scale-105 transition-all duration-300 border border-white/20"
         >
           <div className="text-center mb-8">
             <img
