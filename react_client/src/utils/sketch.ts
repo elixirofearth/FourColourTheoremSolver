@@ -17,7 +17,7 @@ const grid_w = 400;
 const grid_margin = 50;
 
 let lines: Line[] = [];
-let start: Point, end: Point;
+let start: Point | null, end: Point | null;
 let dragging = false;
 let captureImage = false;
 let downloadImage = false;
@@ -47,7 +47,8 @@ function sketch(p: p5) {
     p.createCanvas(w, h);
     p.noSmooth();
     p.frameRate(30);
-    start = { x: w / 2, y: h / 2 };
+    start = null;
+    end = null;
   };
 
   p.draw = function () {
@@ -65,7 +66,7 @@ function sketch(p: p5) {
       }
 
       // draw temporary line while dragging
-      if (dragging) drawLine(p, start.x, start.y, end.x, end.y);
+      if (dragging && start && end) drawLine(p, start.x, start.y, end.x, end.y);
     }
 
     if (captureImage) {
@@ -86,17 +87,28 @@ function sketch(p: p5) {
   };
 
   p.mousePressed = function () {
-    // Only start drawing if the mouse is within the grid bounds
+    // Reset state regardless of where we click
+    dragging = false;
+
+    // Only set start point if the mouse is within the grid bounds
     if (isWithinGridBounds(p.mouseX, p.mouseY)) {
       start = constrainToGrid(p.mouseX, p.mouseY);
-      dragging = false; // Reset dragging state
       return false; // Prevent default behavior
+    } else {
+      // Clear start point if clicking outside the canvas
+      start = null;
     }
   };
 
   p.mouseDragged = function () {
-    // Only continue dragging if we have a valid start point and current position is within bounds
-    if (start && isWithinGridBounds(p.mouseX, p.mouseY)) {
+    // If we're within bounds now
+    if (isWithinGridBounds(p.mouseX, p.mouseY)) {
+      // If we don't have a start point yet (started outside canvas), set it to current position
+      if (!start) {
+        start = constrainToGrid(p.mouseX, p.mouseY);
+      }
+
+      // Set end point and enable dragging
       end = constrainToGrid(p.mouseX, p.mouseY);
       dragging = true;
       return false; // Prevent default behavior
@@ -115,8 +127,8 @@ function sketch(p: p5) {
       }
 
       // Reset state for next line
-      start = { x: 0, y: 0 };
-      end = { x: 0, y: 0 };
+      start = null;
+      end = null;
       return false; // Prevent default behavior
     } else {
       // Reset dragging state if released outside bounds or no drag occurred
