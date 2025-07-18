@@ -67,7 +67,7 @@ export default function NavBar() {
                 width={40}
                 height={40}
                 alt="Map Coloring Logo"
-                className="rounded-full border-2 border-white/30 group-hover:border-white/60 transform group-hover:rotate-12 transition-all duration-300"
+                className="transform group-hover:rotate-12 transition-all duration-300"
               />
               <span className="text-white font-bold text-lg hidden sm:block">
                 ColorMap
