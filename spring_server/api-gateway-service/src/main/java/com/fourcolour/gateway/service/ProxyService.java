@@ -59,8 +59,8 @@ public class ProxyService {
             
         } catch (Exception e) {
             logger.error("Error forwarding request to {}: {}", targetUrl, e.getMessage());
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                    .body("{\"error\":\"Service unavailable\"}");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("{\"error\":\"Service unavailable\", \"Target Service\": \""+ targetUrl + "\", \"Error Message\": \""+ e.getMessage() + "\"}");
         }
     }
 
