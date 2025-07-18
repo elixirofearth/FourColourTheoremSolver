@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import styles from "../styles/SignUpForm.module.css";
 
 const SignUpForm: React.FC = () => {
   const [name, setName] = useState("");
@@ -42,82 +41,110 @@ const SignUpForm: React.FC = () => {
   };
 
   return (
-    <div className={styles.signupContainer}>
-      <form onSubmit={handleSubmit} className={styles.signupForm}>
-        <img
-          src="/logo.png"
-          alt="Cartoon Logo"
-          width={100}
-          height={100}
-          className={styles.logo}
-        />
-        <h2 className={`${styles.formTitle} text-lg md:text-xl lg:text-2xl`}>
-          Create Your Account
-        </h2>
-
-        <div className={styles.inputGroup}>
-          <label
-            htmlFor="name"
-            className={`${styles.label} text-sm md:text-base`}
-          >
-            Name
-          </label>
-          <input
-            type="text"
-            id="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className={`${styles.inputField} text-sm md:text-base`}
-            required
-          />
-        </div>
-
-        <div className={styles.inputGroup}>
-          <label
-            htmlFor="email"
-            className={`${styles.label} text-sm md:text-base`}
-          >
-            Email
-          </label>
-          <input
-            type="email"
-            id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className={`${styles.inputField} text-sm md:text-base`}
-            required
-          />
-        </div>
-
-        <div className={styles.inputGroup}>
-          <label
-            htmlFor="password"
-            className={`${styles.label} text-sm md:text-base`}
-          >
-            Password
-          </label>
-          <input
-            type="password"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className={`${styles.inputField} text-sm md:text-base`}
-            required
-          />
-        </div>
-
-        {error && <p className={`${styles.error} text-sm`}>{error}</p>}
-
-        <button
-          type="submit"
-          className={`${styles.submitButton} text-sm md:text-base`}
+    <div className="min-h-screen bg-white flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white rounded-3xl shadow-2xl p-8 transform hover:scale-105 transition-all duration-300 border border-gray-100"
         >
-          Sign Up
-        </button>
-        <p className={`${styles.loginLink} text-xs md:text-sm`}>
-          Already have an account? <Link to="/login">Login</Link>
-        </p>
-      </form>
+          <div className="text-center mb-8">
+            <img
+              src="/logo.png"
+              alt="Cartoon Logo"
+              width={80}
+              height={80}
+              className="mx-auto mb-4 animate-bounce"
+            />
+            <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+              Join Us Today!
+            </h2>
+            <p className="text-gray-600 text-sm">
+              Create your account and start coloring
+            </p>
+          </div>
+
+          <div className="space-y-6">
+            <div className="relative">
+              <label
+                htmlFor="name"
+                className="block text-sm font-semibold text-gray-700 mb-2"
+              >
+                Full Name
+              </label>
+              <input
+                type="text"
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-200 transition-all duration-300 outline-none placeholder-gray-400"
+                placeholder="Enter your full name"
+                required
+              />
+            </div>
+
+            <div className="relative">
+              <label
+                htmlFor="email"
+                className="block text-sm font-semibold text-gray-700 mb-2"
+              >
+                Email Address
+              </label>
+              <input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-200 transition-all duration-300 outline-none placeholder-gray-400"
+                placeholder="Enter your email"
+                required
+              />
+            </div>
+
+            <div className="relative">
+              <label
+                htmlFor="password"
+                className="block text-sm font-semibold text-gray-700 mb-2"
+              >
+                Password
+              </label>
+              <input
+                type="password"
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-200 transition-all duration-300 outline-none placeholder-gray-400"
+                placeholder="Create a secure password"
+                required
+              />
+            </div>
+
+            {error && (
+              <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg animate-shake">
+                <p className="text-red-700 text-sm font-medium">{error}</p>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-3 px-6 rounded-xl hover:from-purple-700 hover:to-pink-700 transform hover:-translate-y-1 hover:shadow-xl transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-purple-200"
+            >
+              Create Account
+            </button>
+
+            <div className="text-center pt-4">
+              <p className="text-gray-600 text-sm">
+                Already have an account?{" "}
+                <Link
+                  to="/login"
+                  className="text-purple-600 hover:text-pink-600 font-semibold transition-colors duration-300 hover:underline"
+                >
+                  Sign in here
+                </Link>
+              </p>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

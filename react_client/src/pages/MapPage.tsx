@@ -59,56 +59,85 @@ export default function MapPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Loading map...</div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 flex items-center justify-center">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl">
+          <div className="flex items-center space-x-3">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+            <span className="text-lg font-semibold text-gray-700">
+              Loading map...
+            </span>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-red-500">{error}</div>
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-100 flex items-center justify-center">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl text-center">
+          <div className="text-6xl mb-4">😞</div>
+          <h2 className="text-2xl font-bold text-red-600 mb-2">Oops!</h2>
+          <p className="text-red-500 mb-6">{error}</p>
+          <button
+            onClick={() => navigate("/profile")}
+            className="bg-gradient-to-r from-red-500 to-pink-600 text-white py-2 px-6 rounded-xl hover:from-red-600 hover:to-pink-700 transform hover:-translate-y-1 hover:shadow-lg transition-all duration-300 font-semibold"
+          >
+            ← Back to Profile
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-8 px-4">
       <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h1 className="text-2xl font-bold mb-4">
-            {mapData?.name || `Map ${id}`}
-          </h1>
-
-          {mapData?.imageData && (
-            <div className="mb-4">
-              <img
-                src={mapData.imageData}
-                alt={mapData.name}
-                className="max-w-full h-auto rounded-lg border"
-              />
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            <div>
-              <strong>Created:</strong>{" "}
-              {mapData?.createdAt
-                ? new Date(mapData.createdAt).toLocaleString()
-                : "Unknown"}
-            </div>
-            <div>
-              <strong>Dimensions:</strong> {mapData?.width}x{mapData?.height}
+        <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl p-8 border border-white/20">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+              🗺️ {mapData?.name || `Map ${id}`}
+            </h1>
+            <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-600">
+              <div className="bg-gradient-to-r from-blue-100 to-purple-100 px-4 py-2 rounded-full">
+                📅 Created:{" "}
+                {mapData?.createdAt
+                  ? new Date(mapData.createdAt).toLocaleDateString()
+                  : "Unknown"}
+              </div>
+              <div className="bg-gradient-to-r from-purple-100 to-pink-100 px-4 py-2 rounded-full">
+                📐 Dimensions: {mapData?.width}×{mapData?.height}
+              </div>
             </div>
           </div>
 
-          <div className="mt-6">
+          {/* Map Image */}
+          {mapData?.imageData && (
+            <div className="mb-8">
+              <div className="bg-gradient-to-r from-gray-100 to-gray-200 p-6 rounded-2xl">
+                <img
+                  src={mapData.imageData}
+                  alt={mapData.name}
+                  className="max-w-full h-auto rounded-xl border-4 border-white shadow-lg mx-auto"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="flex flex-wrap justify-center gap-4">
             <button
               onClick={() => navigate("/profile")}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+              className="bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 px-8 rounded-xl hover:from-blue-600 hover:to-purple-700 transform hover:-translate-y-1 hover:shadow-lg transition-all duration-300 font-semibold"
             >
-              Back to Profile
+              ← Back to Profile
+            </button>
+            <button
+              onClick={() => navigate("/")}
+              className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white py-3 px-8 rounded-xl hover:from-emerald-600 hover:to-teal-700 transform hover:-translate-y-1 hover:shadow-lg transition-all duration-300 font-semibold"
+            >
+              🎨 Create New Map
             </button>
           </div>
         </div>

@@ -1,5 +1,4 @@
 import { Link, useNavigate } from "react-router-dom";
-import styles from "../styles/NavMenu.module.css";
 import { ProfileButton, SignInButton, SignOutButton } from "./Buttons";
 import { useEffect, useState } from "react";
 import { handleResetMap } from "../utils/sketchHandlers";
@@ -57,26 +56,44 @@ export default function NavBar() {
   };
 
   return (
-    <nav className={styles.nav}>
-      <div className={styles.navItem}>
-        <Link to="/">
-          <img src="/logo.png" width={50} height={30} alt="Map Coloring Logo" />
-        </Link>
-      </div>
-      <div className={styles.navItem}>
-        <h1 className="text-sm md:text-lg lg:text-xl">
-          The Best Map Coloring App in the World!
-        </h1>
-      </div>
-      <div className={`${styles.navItem} ${styles.authButtons}`}>
-        {isAuthenticated ? (
-          <>
-            <ProfileButton />
-            <SignOutButton onSignOut={handleSignOut} />
-          </>
-        ) : (
-          <SignInButton />
-        )}
+    <nav className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700 shadow-xl border-b-4 border-white/20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          {/* Logo Section */}
+          <div className="flex items-center">
+            <Link to="/" className="flex items-center space-x-3 group">
+              <img
+                src="/logo.png"
+                width={40}
+                height={40}
+                alt="Map Coloring Logo"
+                className="rounded-full border-2 border-white/30 group-hover:border-white/60 transform group-hover:rotate-12 transition-all duration-300"
+              />
+              <span className="text-white font-bold text-lg hidden sm:block">
+                ColorMap
+              </span>
+            </Link>
+          </div>
+
+          {/* Title Section */}
+          <div className="flex-1 text-center px-4">
+            <h1 className="text-white font-bold text-lg sm:text-xl lg:text-2xl drop-shadow-lg">
+              🎨 The Best Map Coloring App in the World! 🗺️
+            </h1>
+          </div>
+
+          {/* Auth Buttons Section */}
+          <div className="flex items-center space-x-3">
+            {isAuthenticated ? (
+              <>
+                <ProfileButton />
+                <SignOutButton onSignOut={handleSignOut} />
+              </>
+            ) : (
+              <SignInButton />
+            )}
+          </div>
+        </div>
       </div>
     </nav>
   );

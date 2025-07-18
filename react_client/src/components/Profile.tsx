@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import styles from "../styles/Profile.module.css";
 
 interface Map {
   id: string;
@@ -117,58 +116,103 @@ export default function Profile() {
 
   if (isLoading) {
     return (
-      <div className={styles.loadingContainer}>
-        <div className="text-lg">Loading...</div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 flex items-center justify-center">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl">
+          <div className="flex items-center space-x-3">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+            <span className="text-lg font-semibold text-gray-700">
+              Loading your profile...
+            </span>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className={styles.profileContainer}>
-      <div className={styles.profileHeader}>
-        <h1 className="text-xl md:text-2xl lg:text-3xl">User Profile</h1>
-        <div className={styles.userInfo}>
-          <p className="text-sm md:text-base">
-            <strong>Name:</strong> {userName}
-          </p>
-          <p className="text-sm md:text-base">
-            <strong>Email:</strong> {userEmail}
-          </p>
-        </div>
-      </div>
-
-      <div className={styles.mapsSection}>
-        <h2 className="text-lg md:text-xl lg:text-2xl">Your Saved Maps</h2>
-        {error && <p className={`${styles.error} text-sm`}>{error}</p>}
-
-        {maps && maps.length > 0 ? (
-          <div className={styles.mapsList}>
-            {maps.map((map) => (
-              <div key={map.id} className={styles.mapCard}>
-                <h3 className="text-sm md:text-base">{map.name}</h3>
-                <p className="text-xs md:text-sm">
-                  Created: {new Date(map.createdAt).toLocaleString()}
-                </p>
-                <div className={styles.mapActions}>
-                  <button
-                    onClick={() => handleViewMap(map.id)}
-                    className={`${styles.viewButton} text-xs md:text-sm`}
-                  >
-                    View
-                  </button>
-                  <button
-                    onClick={() => handleDeleteMap(map.id)}
-                    className={`${styles.deleteButton} text-xs md:text-sm`}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            ))}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-8 px-4">
+      <div className="max-w-6xl mx-auto">
+        {/* Profile Header */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl p-8 mb-8 border border-white/20">
+          <div className="text-center">
+            <div className="w-24 h-24 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mx-auto mb-4 flex items-center justify-center text-white text-3xl font-bold">
+              {userName.charAt(0).toUpperCase()}
+            </div>
+            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+              Welcome, {userName}!
+            </h1>
+            <p className="text-gray-600 text-lg">{userEmail}</p>
           </div>
-        ) : (
-          <p className="text-sm md:text-base">No saved maps found.</p>
-        )}
+        </div>
+
+        {/* Maps Section */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl p-8 border border-white/20">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
+              🗺️ Your Saved Maps
+            </h2>
+            <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-full text-sm font-semibold">
+              {maps ? maps.length : 0} Maps
+            </div>
+          </div>
+
+          {error && (
+            <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg mb-6">
+              <p className="text-red-700 font-medium">{error}</p>
+            </div>
+          )}
+
+          {maps && maps.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {maps.map((map) => (
+                <div
+                  key={map.id}
+                  className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-6 shadow-lg hover:shadow-xl transform hover:-translate-y-2 transition-all duration-300 border border-gray-100"
+                >
+                  <div className="mb-4">
+                    <h3 className="text-xl font-bold text-gray-800 mb-2">
+                      {map.name}
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      📅 Created: {new Date(map.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={() => handleViewMap(map.id)}
+                      className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white py-2 px-4 rounded-xl hover:from-blue-600 hover:to-purple-700 transform hover:-translate-y-0.5 transition-all duration-300 font-semibold text-sm"
+                    >
+                      👁️ View
+                    </button>
+                    <button
+                      onClick={() => handleDeleteMap(map.id)}
+                      className="flex-1 bg-gradient-to-r from-red-500 to-pink-600 text-white py-2 px-4 rounded-xl hover:from-red-600 hover:to-pink-700 transform hover:-translate-y-0.5 transition-all duration-300 font-semibold text-sm"
+                    >
+                      🗑️ Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">🗺️</div>
+              <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                No maps yet!
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Start creating your first map to see it here.
+              </p>
+              <button
+                onClick={() => navigate("/")}
+                className="bg-gradient-to-r from-purple-500 to-pink-600 text-white py-3 px-8 rounded-xl hover:from-purple-600 hover:to-pink-700 transform hover:-translate-y-1 hover:shadow-lg transition-all duration-300 font-semibold"
+              >
+                ✨ Create Your First Map
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

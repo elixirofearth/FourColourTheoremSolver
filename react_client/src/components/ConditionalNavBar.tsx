@@ -4,8 +4,11 @@ import NavBar from "./NavBar";
 export default function ConditionalNavBar() {
   const location = useLocation();
 
-  // Don't render NavBar on login or signup pages
-  if (location.pathname === "/login" || location.pathname === "/signup") {
+  // Don't show navbar on login and signup pages for cleaner auth experience
+  const hideNavBarRoutes = ["/login", "/signup"];
+  const shouldHideNavBar = hideNavBarRoutes.includes(location.pathname);
+
+  if (shouldHideNavBar) {
     return null;
   }
 

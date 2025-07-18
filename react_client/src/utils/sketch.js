@@ -1,35 +1,23 @@
-import p5 from "p5";
+let h = 500;
+let w = 500;
+let grid_h = 400;
+let grid_w = 400;
+let grid_margin = 50;
 
-interface Point {
-  x: number;
-  y: number;
-}
-
-interface Line {
-  0: Point;
-  1: Point;
-}
-
-const h = 500;
-const w = 500;
-const grid_h = 400;
-const grid_w = 400;
-const grid_margin = 50;
-
-let lines: Line[] = [];
-let currentStart: Point | null = null;
-let currentEnd: Point | null = null;
+let lines = [];
+let start, end;
 let dragging = false;
 let captureImage = false;
 let downloadImage = false;
 let captured_image = false;
-let matrix: number[][][];
+let matrix;
 
-function sketch(p: p5) {
+function sketch(p) {
   p.setup = function () {
     p.createCanvas(w, h);
     p.noSmooth();
     p.frameRate(30);
+    start = { x: w / 2, y: h / 2 };
   };
 
   p.draw = function () {
@@ -41,21 +29,19 @@ function sketch(p: p5) {
 
       // draw lines
       for (let i = 0; i < lines.length; i++) {
-        const a = lines[i][0];
-        const b = lines[i][1];
+        let a = lines[i][0];
+        let b = lines[i][1];
         drawLine(p, a.x, a.y, b.x, b.y);
       }
 
       // draw temporary line while dragging
-      if (dragging && currentStart && currentEnd) {
-        drawLine(p, currentStart.x, currentStart.y, currentEnd.x, currentEnd.y);
-      }
+      if (dragging) drawLine(p, start.x, start.y, end.x, end.y);
     }
 
     if (captureImage) {
-      const img = p.get(grid_margin, grid_margin, grid_w, grid_h);
+      let img = p.get(grid_margin, grid_margin, grid_w, grid_h);
       img.loadPixels();
-      const array_pixels = new Uint8ClampedArray(img.pixels);
+      let array_pixels = img.pixels;
       getData(array_pixels, img.width, img.height);
       captureImage = false;
     }
@@ -70,51 +56,27 @@ function sketch(p: p5) {
   };
 
   p.mousePressed = function () {
-    // Only start drawing if mouse is within the grid area
-    if (
-      p.mouseX >= grid_margin &&
-      p.mouseX <= grid_margin + grid_w &&
-      p.mouseY >= grid_margin &&
-      p.mouseY <= grid_margin + grid_h
-    ) {
-      currentStart = { x: p.mouseX, y: p.mouseY };
-      currentEnd = { x: p.mouseX, y: p.mouseY };
-      dragging = false;
-    }
+    start = { x: p.mouseX, y: p.mouseY };
   };
 
   p.mouseDragged = function () {
-    // Only drag if we have a valid start point and mouse is within grid
-    if (
-      currentStart &&
-      p.mouseX >= grid_margin &&
-      p.mouseX <= grid_margin + grid_w &&
-      p.mouseY >= grid_margin &&
-      p.mouseY <= grid_margin + grid_h
-    ) {
-      currentEnd = { x: p.mouseX, y: p.mouseY };
-      dragging = true;
-    }
+    end = { x: p.mouseX, y: p.mouseY };
+    dragging = true;
   };
 
   p.mouseReleased = function () {
-    // Only create line if we have valid start and end points
-    if (currentStart && currentEnd && dragging) {
-      lines.push([currentStart, currentEnd]);
-    }
-
-    // Reset the current drawing state
-    currentStart = null;
-    currentEnd = null;
     dragging = false;
+    end = { x: p.mouseX, y: p.mouseY };
+    lines.push([start, end]);
+    start = { x: end.x, y: end.y };
   };
 }
 
-function drawPoint(p: p5, x: number, y: number) {
+function drawPoint(p, x, y) {
   for (let i = 0; i < 3; i++) {
     for (let j = 0; j < 3; j++) {
-      const px = x - 1 + i;
-      const py = y - 1 + j;
+      let px = x - 1 + i;
+      let py = y - 1 + j;
       if (
         px >= grid_margin &&
         px < grid_w + grid_margin &&
@@ -127,17 +89,17 @@ function drawPoint(p: p5, x: number, y: number) {
   }
 }
 
-function drawLine(p: p5, x0: number, y0: number, x1: number, y1: number) {
-  const dx = Math.abs(x1 - x0);
-  const dy = Math.abs(y1 - y0);
-  const sx = x0 < x1 ? 1 : -1;
-  const sy = y0 < y1 ? 1 : -1;
+function drawLine(p, x0, y0, x1, y1) {
+  let dx = Math.abs(x1 - x0);
+  let dy = Math.abs(y1 - y0);
+  let sx = x0 < x1 ? 1 : -1;
+  let sy = y0 < y1 ? 1 : -1;
   let err = dx - dy;
 
   while (true) {
     drawPoint(p, x0, y0);
     if (x0 === x1 && y0 === y1) break;
-    const e2 = 2 * err;
+    let e2 = 2 * err;
     if (e2 > -dy) {
       err -= dy;
       x0 += sx;
@@ -149,8 +111,8 @@ function drawLine(p: p5, x0: number, y0: number, x1: number, y1: number) {
   }
 }
 
-async function getData(array_pixels: Uint8ClampedArray, w: number, h: number) {
-  const apiHost = import.meta.env.VITE_API_GATEWAY_URL;
+async function getData(array_pixels, w, h) {
+  const apiHost = process.env.NEXT_PUBLIC_API_GATEWAY_URL;
 
   if (!apiHost) {
     throw new Error("API host is not defined in the environment variables");
@@ -196,8 +158,8 @@ async function getData(array_pixels: Uint8ClampedArray, w: number, h: number) {
   }
 }
 
-function displayColoredMap(p: p5, matrix: number[][][]) {
-  const img = p.createImage(matrix[0].length, matrix.length);
+function displayColoredMap(p, matrix) {
+  let img = p.createImage(matrix[0].length, matrix.length);
   img.loadPixels();
   for (let i = 0; i < img.height; i++) {
     for (let j = 0; j < img.width; j++) {
@@ -216,8 +178,8 @@ function displayColoredMap(p: p5, matrix: number[][][]) {
   p.image(img, grid_margin, grid_margin);
 }
 
-function saveCanvasAsImage(p: p5) {
-  const img = p.get(grid_margin, grid_margin, grid_w, grid_h);
+function saveCanvasAsImage(p) {
+  let img = p.get(grid_margin, grid_margin, grid_w, grid_h);
   p.save(img, "map_image.png");
   downloadImage = false;
 }
@@ -252,17 +214,13 @@ export async function handleSaveMap() {
     return;
   }
 
-  const apiHost = import.meta.env.VITE_API_GATEWAY_URL;
+  const apiHost = process.env.NEXT_PUBLIC_API_GATEWAY_URL;
   if (!apiHost) {
     throw new Error("API host is not defined");
   }
 
   try {
     const canvas = document.querySelector("canvas");
-    if (!canvas) {
-      throw new Error("Canvas not found");
-    }
-
     const imageData = canvas.toDataURL("image/png");
 
     // Ensure matrix is properly formatted as number[][]

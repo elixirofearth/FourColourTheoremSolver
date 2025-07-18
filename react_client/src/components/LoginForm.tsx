@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import styles from "../styles/LoginForm.module.css";
 
 const LoginForm: React.FC = () => {
   const [username, setUsername] = useState("");
@@ -45,65 +44,92 @@ const LoginForm: React.FC = () => {
   };
 
   return (
-    <div className={styles.loginContainer}>
-      <form onSubmit={handleSubmit} className={styles.loginForm}>
-        <img
-          src="/logo.png"
-          alt="Cartoon Logo"
-          width={100}
-          height={100}
-          className={styles.logo}
-        />
-        <h2 className={`${styles.formTitle} text-lg md:text-xl lg:text-2xl`}>
-          Four-Color Map Theorem Solver
-        </h2>
-
-        <div className={styles.inputGroup}>
-          <label
-            htmlFor="username"
-            className={`${styles.label} text-sm md:text-base`}
-          >
-            Email
-          </label>
-          <input
-            type="text"
-            id="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            className={`${styles.inputField} text-sm md:text-base`}
-            required
-          />
-        </div>
-
-        <div className={styles.inputGroup}>
-          <label
-            htmlFor="password"
-            className={`${styles.label} text-sm md:text-base`}
-          >
-            Password
-          </label>
-          <input
-            type="password"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className={`${styles.inputField} text-sm md:text-base`}
-            required
-          />
-        </div>
-
-        {error && <p className={`${styles.error} text-sm`}>{error}</p>}
-
-        <button
-          type="submit"
-          className={`${styles.submitButton} text-sm md:text-base`}
+    <div className="min-h-screen bg-white flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white rounded-3xl shadow-2xl p-8 transform hover:scale-105 transition-all duration-300 border border-gray-100"
         >
-          Login
-        </button>
-        <p className={`${styles.signupLink} text-xs md:text-sm`}>
-          Don't have an account? <Link to="/signup">Sign up</Link>
-        </p>
-      </form>
+          <div className="text-center mb-8">
+            <img
+              src="/logo.png"
+              alt="Cartoon Logo"
+              width={80}
+              height={80}
+              className="mx-auto mb-4 animate-bounce"
+            />
+            <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+              Welcome Back!
+            </h2>
+            <p className="text-gray-600 text-sm">
+              Four-Color Map Theorem Solver
+            </p>
+          </div>
+
+          <div className="space-y-6">
+            <div className="relative">
+              <label
+                htmlFor="username"
+                className="block text-sm font-semibold text-gray-700 mb-2"
+              >
+                Email Address
+              </label>
+              <input
+                type="text"
+                id="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-200 transition-all duration-300 outline-none placeholder-gray-400"
+                placeholder="Enter your email"
+                required
+              />
+            </div>
+
+            <div className="relative">
+              <label
+                htmlFor="password"
+                className="block text-sm font-semibold text-gray-700 mb-2"
+              >
+                Password
+              </label>
+              <input
+                type="password"
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-200 transition-all duration-300 outline-none placeholder-gray-400"
+                placeholder="Enter your password"
+                required
+              />
+            </div>
+
+            {error && (
+              <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg animate-shake">
+                <p className="text-red-700 text-sm font-medium">{error}</p>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-3 px-6 rounded-xl hover:from-blue-700 hover:to-purple-700 transform hover:-translate-y-1 hover:shadow-xl transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-200"
+            >
+              Sign In
+            </button>
+
+            <div className="text-center pt-4">
+              <p className="text-gray-600 text-sm">
+                Don't have an account?{" "}
+                <Link
+                  to="/signup"
+                  className="text-blue-600 hover:text-purple-600 font-semibold transition-colors duration-300 hover:underline"
+                >
+                  Create one here
+                </Link>
+              </p>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };
