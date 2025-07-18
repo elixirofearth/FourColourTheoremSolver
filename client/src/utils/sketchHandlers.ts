@@ -1,23 +1,34 @@
-// Import the actual functions from sketch
-import {
-  handleColorMap as sketchColorMap,
-  handleResetMap as sketchResetMap,
-  handleDownloadMap as sketchDownloadMap,
-  handleSaveMap as sketchSaveMap,
-} from "./sketch.ts";
+// Extend the Window interface
+declare global {
+  interface Window {
+    handleColorMap: () => void;
+    handleResetMap: () => void;
+    handleDownloadMap: () => void;
+    handleSaveMap: () => Promise<void>;
+  }
+}
 
+// Export functions that call the window functions set by the Canvas component
 export function handleColorMap() {
-  sketchColorMap();
+  if (window.handleColorMap) {
+    window.handleColorMap();
+  }
 }
 
 export function handleResetMap() {
-  sketchResetMap();
+  if (window.handleResetMap) {
+    window.handleResetMap();
+  }
 }
 
 export function handleDownloadMap() {
-  sketchDownloadMap();
+  if (window.handleDownloadMap) {
+    window.handleDownloadMap();
+  }
 }
 
 export async function handleSaveMap() {
-  await sketchSaveMap();
+  if (window.handleSaveMap) {
+    await window.handleSaveMap();
+  }
 }
