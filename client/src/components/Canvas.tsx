@@ -1,13 +1,8 @@
-import React, { useRef, useEffect, useState, useCallback } from "react";
+import React, { useRef, useEffect, useState } from "react";
 
-interface Point {
+interface LinePoint {
   x: number;
   y: number;
-}
-
-interface Line {
-  0: Point;
-  1: Point;
 }
 
 // Extend the Window interface
@@ -20,56 +15,17 @@ declare global {
   }
 }
 
-const h = 500;
-const w = 500;
-const grid_h = 400;
-const grid_w = 400;
-const grid_margin = 50;
-
-export default function Canvas() {
+const Canvas: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [lines, setLines] = useState<Line[]>([]);
-  const [start, setStart] = useState<Point | null>(null);
-  const [end, setEnd] = useState<Point | null>(null);
-  const [dragging, setDragging] = useState(false);
-  const [gestureStartedInCanvas, setGestureStartedInCanvas] = useState(false);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [startPoint, setStartPoint] = useState<LinePoint | null>(null);
+  const [lines, setLines] = useState<LinePoint[][]>([]);
   const [captureImage, setCaptureImage] = useState(false);
   const [downloadImage, setDownloadImage] = useState(false);
   const [capturedImage, setCapturedImage] = useState(false);
   const [matrix, setMatrix] = useState<number[][][]>([]);
 
-  // Helper function to check if a point is within the canvas grid area
-  const isWithinGridBounds = useCallback((x: number, y: number): boolean => {
-    return (
-      x >= grid_margin &&
-      x <= grid_margin + grid_w &&
-      y >= grid_margin &&
-      y <= grid_margin + grid_h
-    );
-  }, []);
-
-  // Helper function to constrain a point to the grid bounds
-  const constrainToGrid = useCallback((x: number, y: number): Point => {
-    return {
-      x: Math.max(grid_margin, Math.min(grid_margin + grid_w, x)),
-      y: Math.max(grid_margin, Math.min(grid_margin + grid_h, y)),
-    };
-  }, []);
-
-  // Get mouse position relative to canvas
-  const getMousePos = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return { x: 0, y: 0 };
-
-    const rect = canvas.getBoundingClientRect();
-    return {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    };
-  }, []);
-
-  // Draw function
-  const draw = useCallback(() => {
+  useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -78,41 +34,30 @@ export default function Canvas() {
 
     if (!capturedImage) {
       // Clear canvas
-      ctx.clearRect(0, 0, w, h);
+      ctx.clearRect(0, 0, 500, 500);
+      ctx.fillStyle = "white";
+      ctx.fillRect(0, 0, 500, 500);
 
-      // Draw background
-      ctx.fillStyle = "#C8C8C8"; // rgb(200, 200, 200)
-      ctx.fillRect(0, 0, w, h);
-
-      // Draw grid background
-      ctx.strokeStyle = "#000000";
-      ctx.fillStyle = "#FFFFFF";
-      ctx.fillRect(grid_margin, grid_margin, grid_w - 1, grid_h - 1);
-      ctx.strokeRect(grid_margin, grid_margin, grid_w - 1, grid_h - 1);
-
-      // Set up line drawing properties for smooth lines
-      ctx.strokeStyle = "#000000";
+      // Set line style
+      ctx.strokeStyle = "black";
       ctx.lineWidth = 2;
       ctx.lineCap = "round";
-      ctx.lineJoin = "round";
 
-      // Draw existing lines
-      for (let i = 0; i < lines.length; i++) {
-        const a = lines[i][0];
-        const b = lines[i][1];
-        ctx.beginPath();
-        ctx.moveTo(a.x, a.y);
-        ctx.lineTo(b.x, b.y);
-        ctx.stroke();
-      }
+      // Draw all completed lines
+      lines.forEach((line) => {
+        if (line.length === 2) {
+          ctx.beginPath();
+          ctx.moveTo(line[0].x, line[0].y);
+          ctx.lineTo(line[1].x, line[1].y);
+          ctx.stroke();
+        }
+      });
 
-      // Draw temporary line while dragging with a slightly different style
-      if (dragging && start && end) {
-        ctx.strokeStyle = "#646464"; // rgb(100, 100, 100)
-        ctx.lineWidth = 1.5;
+      // Draw current line being drawn
+      if (isDrawing && startPoint) {
         ctx.beginPath();
-        ctx.moveTo(start.x, start.y);
-        ctx.lineTo(end.x, end.y);
+        ctx.moveTo(startPoint.x, startPoint.y);
+        ctx.lineTo(startPoint.x, startPoint.y); // Will be updated by mouse move
         ctx.stroke();
       }
     }
@@ -120,7 +65,83 @@ export default function Canvas() {
     if (capturedImage && matrix.length > 0) {
       displayColoredMap(ctx, matrix);
     }
-  }, [lines, dragging, start, end, capturedImage, matrix]);
+  }, [lines, isDrawing, startPoint, capturedImage, matrix]);
+
+  const getMousePos = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    };
+  };
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const pos = getMousePos(e);
+    setStartPoint(pos);
+    setIsDrawing(true);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isDrawing || !startPoint) return;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const currentPos = getMousePos(e);
+
+    // Redraw everything
+    ctx.clearRect(0, 0, 500, 500);
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, 500, 500);
+
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 2;
+    ctx.lineCap = "round";
+
+    // Draw all completed lines
+    lines.forEach((line) => {
+      if (line.length === 2) {
+        ctx.beginPath();
+        ctx.moveTo(line[0].x, line[0].y);
+        ctx.lineTo(line[1].x, line[1].y);
+        ctx.stroke();
+      }
+    });
+
+    // Draw current line preview
+    ctx.beginPath();
+    ctx.moveTo(startPoint.x, startPoint.y);
+    ctx.lineTo(currentPos.x, currentPos.y);
+    ctx.stroke();
+  };
+
+  const handleMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isDrawing || !startPoint) return;
+
+    const endPoint = getMousePos(e);
+    setLines((prev) => [...prev, [startPoint, endPoint]]);
+    setStartPoint(null);
+    setIsDrawing(false);
+  };
+
+  const clearCanvas = () => {
+    setLines([]);
+    setStartPoint(null);
+    setIsDrawing(false);
+    setCapturedImage(false);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "c" || e.key === "C") {
+      clearCanvas();
+    }
+  };
 
   // Handle image capture
   useEffect(() => {
@@ -131,16 +152,11 @@ export default function Canvas() {
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
 
-      // Get image data from the grid area
-      const imageData = ctx.getImageData(
-        grid_margin,
-        grid_margin,
-        grid_w,
-        grid_h
-      );
+      // Get image data from the entire canvas
+      const imageData = ctx.getImageData(0, 0, 500, 500);
       const array_pixels = Array.from(imageData.data);
 
-      getData(array_pixels, grid_w, grid_h);
+      getData(array_pixels, 500, 500);
       setCaptureImage(false);
     }
   }, [captureImage]);
@@ -152,72 +168,6 @@ export default function Canvas() {
       setDownloadImage(false);
     }
   }, [downloadImage]);
-
-  // Draw on canvas updates
-  useEffect(() => {
-    draw();
-  }, [draw]);
-
-  // Initialize canvas
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    canvas.width = w;
-    canvas.height = h;
-    draw();
-  }, [draw]);
-
-  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const mousePos = getMousePos(e);
-    setDragging(false);
-
-    if (isWithinGridBounds(mousePos.x, mousePos.y)) {
-      setGestureStartedInCanvas(true);
-      setStart(constrainToGrid(mousePos.x, mousePos.y));
-    } else {
-      setGestureStartedInCanvas(false);
-      setStart(null);
-    }
-  };
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!gestureStartedInCanvas) return;
-
-    const mousePos = getMousePos(e);
-    if (isWithinGridBounds(mousePos.x, mousePos.y)) {
-      setEnd(constrainToGrid(mousePos.x, mousePos.y));
-      setDragging(true);
-    }
-  };
-
-  const handleMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (dragging && start) {
-      setDragging(false);
-      const mousePos = getMousePos(e);
-      const endPoint = constrainToGrid(mousePos.x, mousePos.y);
-
-      if (
-        start &&
-        endPoint &&
-        (start.x !== endPoint.x || start.y !== endPoint.y)
-      ) {
-        setLines((prevLines) => [...prevLines, [start, endPoint]]);
-      }
-
-      setStart(null);
-      setEnd(null);
-    } else {
-      setDragging(false);
-    }
-
-    setGestureStartedInCanvas(false);
-  };
-
-  const handleMouseLeave = () => {
-    setDragging(false);
-    setGestureStartedInCanvas(false);
-  };
 
   async function getData(array_pixels: number[], w: number, h: number) {
     const apiHost = import.meta.env.VITE_API_GATEWAY_URL;
@@ -280,41 +230,17 @@ export default function Canvas() {
       }
     }
 
-    ctx.putImageData(imageData, grid_margin, grid_margin);
+    ctx.putImageData(imageData, 0, 0);
   }
 
   function saveCanvasAsImage() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    // Create a new canvas for the cropped image
-    const croppedCanvas = document.createElement("canvas");
-    croppedCanvas.width = grid_w;
-    croppedCanvas.height = grid_h;
-    const croppedCtx = croppedCanvas.getContext("2d");
-
-    if (!croppedCtx) return;
-
-    // Draw the cropped portion
-    croppedCtx.drawImage(
-      canvas,
-      grid_margin,
-      grid_margin,
-      grid_w,
-      grid_h,
-      0,
-      0,
-      grid_w,
-      grid_h
-    );
-
     // Download the image
     const link = document.createElement("a");
     link.download = "map_image.png";
-    link.href = croppedCanvas.toDataURL();
+    link.href = canvas.toDataURL();
     link.click();
   }
 
@@ -326,8 +252,7 @@ export default function Canvas() {
     };
 
     window.handleResetMap = () => {
-      setLines([]);
-      setCapturedImage(false);
+      clearCanvas();
       console.log("Resetting map");
     };
 
@@ -418,10 +343,14 @@ export default function Canvas() {
   return (
     <canvas
       ref={canvasRef}
+      width={500}
+      height={500}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseLeave}
+      onMouseLeave={handleMouseUp}
+      onKeyDown={handleKeyPress}
+      tabIndex={0}
       style={{
         border: "1px solid #ccc",
         cursor: "crosshair",
@@ -429,4 +358,6 @@ export default function Canvas() {
       }}
     />
   );
-}
+};
+
+export default Canvas;
