@@ -8,6 +8,7 @@ const SignUpForm: React.FC = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [formError, setFormError] = useState("");
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { showNotification } = useNotification();
@@ -22,19 +23,20 @@ const SignUpForm: React.FC = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  // Handle error notifications
+  // Handle error from Redux and show in form
   useEffect(() => {
     if (error) {
-      showNotification(error, "error");
+      setFormError(error);
       dispatch(clearError());
     }
-  }, [error, showNotification, dispatch]);
+  }, [error, dispatch]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(""); // Clear previous errors
 
     if (!name || !email || !password) {
-      showNotification("Please fill in all fields", "warning");
+      setFormError("Please fill in all fields");
       return;
     }
 
@@ -130,6 +132,12 @@ const SignUpForm: React.FC = () => {
                 disabled={isLoading}
               />
             </div>
+
+            {formError && (
+              <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg animate-shake">
+                <p className="text-red-700 text-sm font-medium">{formError}</p>
+              </div>
+            )}
 
             <button
               type="submit"

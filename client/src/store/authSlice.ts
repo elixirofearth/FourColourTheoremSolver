@@ -34,11 +34,29 @@ export const loginUser = createAsyncThunk(
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        return rejectWithValue(errorData.error || "Login failed");
+        try {
+          const errorData = await response.json();
+          console.log("Login error response (JSON):", errorData);
+          // Handle specific login errors
+          if (response.status === 401) {
+            return rejectWithValue("Invalid email or password");
+          }
+          return rejectWithValue(errorData.error || "Login failed");
+        } catch (parseError) {
+          console.error("Failed to parse error response as JSON:", parseError);
+          // Try to get error from response text
+          const errorText = await response.text();
+          console.log("Login error response (text):", errorText);
+
+          if (response.status === 401) {
+            return rejectWithValue("Invalid email or password");
+          }
+          return rejectWithValue("Login failed");
+        }
       }
 
       const data = await response.json();
+      console.log("Login success response:", data);
       return data;
     } catch (_error) {
       console.error("Login failed:", _error);
@@ -64,11 +82,29 @@ export const registerUser = createAsyncThunk(
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        return rejectWithValue(errorData.error || "Registration failed");
+        try {
+          const errorData = await response.json();
+          console.log("Registration error response (JSON):", errorData);
+          // Handle specific registration errors
+          if (response.status === 409) {
+            return rejectWithValue("User with this email already exists");
+          }
+          return rejectWithValue(errorData.error || "Registration failed");
+        } catch (parseError) {
+          console.error("Failed to parse error response as JSON:", parseError);
+          // Try to get error from response text
+          const errorText = await response.text();
+          console.log("Registration error response (text):", errorText);
+
+          if (response.status === 409) {
+            return rejectWithValue("User with this email already exists");
+          }
+          return rejectWithValue("Registration failed");
+        }
       }
 
       const data = await response.json();
+      console.log("Registration success response:", data);
       return data;
     } catch (_error) {
       console.error("Registration failed:", _error);

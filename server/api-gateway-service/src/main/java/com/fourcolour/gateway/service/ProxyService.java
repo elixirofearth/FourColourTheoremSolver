@@ -59,6 +59,28 @@ public class ProxyService {
             
         } catch (Exception e) {
             logger.error("Error forwarding request to {}: {}", targetUrl, e.getMessage());
+            
+            // Handle specific HTTP status codes
+            if (e instanceof org.springframework.web.client.HttpClientErrorException) {
+                org.springframework.web.client.HttpClientErrorException httpError = 
+                    (org.springframework.web.client.HttpClientErrorException) e;
+                
+                String responseBody = httpError.getResponseBodyAsString();
+                if (responseBody == null || responseBody.isEmpty()) {
+                    if (httpError.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+                        responseBody = "{\"error\":\"Invalid credentials\"}";
+                    } else if (httpError.getStatusCode() == HttpStatus.CONFLICT) {
+                        responseBody = "{\"error\":\"User with this email already exists\"}";
+                    } else {
+                        responseBody = "{\"error\":\"Request failed\"}";
+                    }
+                }
+                
+                return ResponseEntity.status(httpError.getStatusCode())
+                        .body(responseBody);
+            }
+            
+            // Handle other errors
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("{\"error\":\"Internal Server Error\", \"Target Service\": \""+ targetUrl + "\", \"Error Message\": \""+ e.getMessage() + "\", \"Status Code\": \""+ HttpStatus.INTERNAL_SERVER_ERROR + "\"}");
         }
