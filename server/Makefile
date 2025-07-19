@@ -62,6 +62,31 @@ build_logger:
 	cd logger-service && mvn clean package -DskipTests
 	@echo "Done!"
 
+## run_logger_service: run the logger service
+run_logger_service:
+	@echo "Running logger service..."
+	docker compose up -d --build logger-service
+
+## run_solver_service: run the solver service
+run_solver_service:
+	@echo "Running solver service..."
+	docker compose up -d --build solver-service
+
+## run_map_storage_service: run the map storage service
+run_map_storage_service:
+	@echo "Running map storage service..."
+	docker compose up -d --build map-storage-service
+
+## run_api_gateway_service: run the API gateway service
+run_api_gateway_service:
+	@echo "Running API gateway service..."
+	docker compose up -d --build api-gateway-service
+
+## run_authentication_service: run the authentication service
+run_authentication_service:
+	@echo "Running authentication service..."
+	docker compose up -d --build authentication-service
+
 ## logs: view logs from all services
 logs:
 	@echo "Showing logs from all services..."
@@ -91,3 +116,4 @@ logs_logger:
 help:
 	@echo "Available targets:"
 	@sed -n 's/^##//p' ${MAKEFILE_LIST} | column -t -s ':' | sed -e 's/^/ /' 
+
