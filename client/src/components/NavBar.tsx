@@ -15,7 +15,6 @@ export default function NavBar() {
     try {
       await dispatch(logoutUser());
       handleResetMap();
-      showNotification("Logged out successfully", "success");
       navigate("/login");
     } catch (error) {
       console.error("Error during sign-out:", error);
