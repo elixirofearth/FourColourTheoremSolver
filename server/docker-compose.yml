@@ -57,10 +57,12 @@ services:
     environment:
       MONGO_URI: mongodb://admin:password@mongo:27017/?authSource=admin
       MONGO_DB: logs
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     depends_on:
-      - mongo
-      - kafka
+      mongo:
+        condition: service_started
+      kafka:
+        condition: service_healthy
 
   # Keep the Python solver service as-is
   solver-service:
@@ -126,5 +128,12 @@ services:
       KAFKA_JMX_HOSTNAME: localhost
     depends_on:
       - zookeeper
+    healthcheck:
+      test:
+        ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     volumes:
       - ./db-data/kafka/:/var/lib/kafka/data

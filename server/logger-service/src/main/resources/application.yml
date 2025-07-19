@@ -11,10 +11,15 @@ spring:
       database: ${MONGO_DB:logs}
 
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:29092}
     consumer:
       group-id: logger-service-group
       auto-offset-reset: earliest
+      bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:29092}
+    producer:
+      bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:29092}
+    admin:
+      bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:29092}
 
 grpc:
   server:
