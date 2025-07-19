@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from dotenv import load_dotenv
+
 load_dotenv()
 import os
 import clingo
@@ -24,6 +25,7 @@ CORS(app)
 # Add logging configuration
 LOGGER_URL = "logger-service:50001"  # gRPC service address
 
+
 def log_event(user_id, event_type, description, severity=1, metadata=None):
     try:
         # Create gRPC channel
@@ -31,7 +33,7 @@ def log_event(user_id, event_type, description, severity=1, metadata=None):
         stub = logger_pb2_grpc.LoggerServiceStub(channel)
 
         # Create timestamp
-        timestamp = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+        timestamp = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
 
         # Create log request
         request = logger_pb2.LogRequest(
@@ -41,16 +43,16 @@ def log_event(user_id, event_type, description, severity=1, metadata=None):
             description=description,
             severity=severity,
             timestamp=timestamp,
-            metadata=metadata or {}
+            metadata=metadata or {},
         )
 
         # Make gRPC call
         response = stub.LogEvent(request)
         print(f"Log event response: {response}")
-        
+
         if not response.success:
             print(f"Failed to log event: {response.message}")
-            
+
     except Exception as e:
         print(f"Error logging event: {str(e)}")
 
@@ -62,32 +64,32 @@ def return_home():
     )
 
 
-@app.route('/api/solve', methods=['POST'])
+@app.route("/api/solve", methods=["POST"])
 def solve():
     try:
 
         data = request.get_json()
         if not data:
             return jsonify({"error": "No JSON data received"}), 400
-        
+
         # Print the data
         print("width: ", data["width"])
         print("height: ", data["height"])
         print("user id: ", data["userId"])
 
         user_id = data.get("userId", "unknown")
-        
-        if 'image' not in data or 'width' not in data or 'height' not in data:
+
+        if "image" not in data or "width" not in data or "height" not in data:
             return jsonify({"error": "Missing required fields"}), 400
 
         # Convert image data to integers if they're strings
         image_data = data["image"]
         if isinstance(image_data[0], str):
             image_data = [int(x) for x in image_data]
-        
+
         width = int(data["width"])
         height = int(data["height"])
-        
+
         # Convert image data to numpy array
         index = 0
         array = np.zeros((height, width))
@@ -98,17 +100,20 @@ def solve():
                     pixel_value = int(image_data[index])
                     array[y][x] = 1 if pixel_value > 128 else 0
                 except (ValueError, TypeError) as e:
-                    return jsonify({"error": f"Invalid pixel data at index {index}"}), 400
+                    return (
+                        jsonify({"error": f"Invalid pixel data at index {index}"}),
+                        400,
+                    )
                 index += 4
 
         begin = time.time()
-        
+
         vertices, black, vertice_matrix = get_vertices(array)
         edges = find_edges(array, vertices, vertice_matrix)
         program = generate_program(len(vertices), edges)
         solution = solve_graph(program)
         colored_map = color_map(vertices, solution, black)
-        
+
         end = time.time()
         processing_time = end - begin
 
@@ -133,12 +138,13 @@ def solve():
     except Exception as e:
         print(f"Error processing request: {str(e)}")
         import traceback
+
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 
 # Add a health check endpoint
-@app.route('/health', methods=['GET'])
+@app.route("/health", methods=["GET"])
 def health():
     return jsonify({"status": "healthy"})
 
