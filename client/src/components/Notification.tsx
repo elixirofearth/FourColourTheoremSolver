@@ -75,17 +75,19 @@ const Notification: React.FC<NotificationProps> = ({
           max-w-sm min-w-[300px]
         `}
       >
-        <div className="flex items-start space-x-3">
-          <span className="text-2xl flex-shrink-0 mt-0.5">{getIcon()}</span>
-          <div className="flex-1">
-            <p className="font-semibold text-white leading-tight">{message}</p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3 flex-1">
+            <span className="text-xl flex-shrink-0">{getIcon()}</span>
+            <p className="font-semibold text-white leading-relaxed">
+              {message}
+            </p>
           </div>
           <button
             onClick={() => {
               setIsAnimating(false);
               setTimeout(onClose, 300);
             }}
-            className="text-white/80 hover:text-white transition-colors duration-200 text-xl leading-none"
+            className="text-white/80 hover:text-white transition-colors duration-200 text-xl leading-none ml-3 flex-shrink-0"
           >
             ×
           </button>
