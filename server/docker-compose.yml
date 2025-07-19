@@ -57,13 +57,10 @@ services:
     environment:
       MONGO_URI: mongodb://admin:password@mongo:27017/?authSource=admin
       MONGO_DB: logs
-      RABBITMQ_HOST: rabbitmq
-      RABBITMQ_PORT: 5672
-      RABBITMQ_USERNAME: guest
-      RABBITMQ_PASSWORD: guest
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     depends_on:
       - mongo
-      - rabbitmq
+      - kafka
 
   # Keep the Python solver service as-is
   solver-service:
@@ -100,18 +97,34 @@ services:
     volumes:
       - ./db-data/postgres/:/var/lib/postgresql/data/
 
-  rabbitmq:
-    image: "rabbitmq:4.1-alpine"
+  zookeeper:
+    image: "confluentinc/cp-zookeeper:7.4.0"
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "2181:2181"
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-    healthcheck:
-      test: ["CMD", "rabbitmqctl", "status"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
     volumes:
-      - ./db-data/rabbitmq/:/var/lib/rabbitmq
+      - ./db-data/zookeeper/:/var/lib/zookeeper/data
+      - ./db-data/zookeeper-logs/:/var/lib/zookeeper/log
+
+  kafka:
+    image: "confluentinc/cp-kafka:7.4.0"
+    ports:
+      - "9092:9092"
+      - "9101:9101"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_JMX_PORT: 9101
+      KAFKA_JMX_HOSTNAME: localhost
+    depends_on:
+      - zookeeper
+    volumes:
+      - ./db-data/kafka/:/var/lib/kafka/data

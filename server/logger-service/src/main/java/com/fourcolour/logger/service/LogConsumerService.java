@@ -1,11 +1,11 @@
 package com.fourcolour.logger.service;
 
-import com.fourcolour.logger.config.RabbitMQConfig;
+import com.fourcolour.logger.config.KafkaConfig;
 import com.fourcolour.logger.entity.Log;
 import com.fourcolour.logger.repository.LogRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,19 +17,19 @@ public class LogConsumerService {
     @Autowired
     private LogRepository logRepository;
 
-    @RabbitListener(queues = RabbitMQConfig.AUTH_LOGS_QUEUE)
+    @KafkaListener(topics = KafkaConfig.AUTH_LOGS_TOPIC, groupId = "logger-service-group")
     public void handleAuthLog(Log logMessage) {
         logger.info("Processing auth log: {} for user: {}", logMessage.getEventType(), logMessage.getUserId());
         saveLog(logMessage);
     }
 
-    @RabbitListener(queues = RabbitMQConfig.MAP_COLORING_LOGS_QUEUE)
+    @KafkaListener(topics = KafkaConfig.MAP_COLORING_LOGS_TOPIC, groupId = "logger-service-group")
     public void handleMapColoringLog(Log logMessage) {
         logger.info("Processing map coloring log: {} for user: {}", logMessage.getEventType(), logMessage.getUserId());
         saveLog(logMessage);
     }
 
-    @RabbitListener(queues = RabbitMQConfig.MAP_STORAGE_LOGS_QUEUE)
+    @KafkaListener(topics = KafkaConfig.MAP_STORAGE_LOGS_TOPIC, groupId = "logger-service-group")
     public void handleMapStorageLog(Log logMessage) {
         logger.info("Processing map storage log: {} for user: {}", logMessage.getEventType(), logMessage.getUserId());
         saveLog(logMessage);

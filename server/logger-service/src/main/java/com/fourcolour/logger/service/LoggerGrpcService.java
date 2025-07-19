@@ -8,7 +8,7 @@ import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDateTime;
@@ -24,7 +24,7 @@ public class LoggerGrpcService extends LoggerServiceGrpc.LoggerServiceImplBase {
     private LogRepository logRepository;
 
     @Autowired
-    private RabbitTemplate rabbitTemplate;
+    private KafkaTemplate<String, Log> kafkaTemplate;
 
     @Override
     public void logEvent(LogRequest request, StreamObserver<LogResponse> responseObserver) {
@@ -52,11 +52,11 @@ public class LoggerGrpcService extends LoggerServiceGrpc.LoggerServiceImplBase {
                     request.getMetadataMap()
             );
 
-            // Publish to RabbitMQ
-            String exchange = getExchangeForService(request.getServiceName());
-            rabbitTemplate.convertAndSend(exchange, "", logEntity);
+            // Publish to Kafka
+            String topic = getTopicForService(request.getServiceName());
+            kafkaTemplate.send(topic, logEntity);
             
-            logger.info("Successfully published log to RabbitMQ exchange: {}", exchange);
+            logger.info("Successfully published log to Kafka topic: {}", topic);
 
             // Send success response
             LogResponse response = LogResponse.newBuilder()
@@ -81,7 +81,7 @@ public class LoggerGrpcService extends LoggerServiceGrpc.LoggerServiceImplBase {
         }
     }
 
-    private String getExchangeForService(String serviceName) {
+    private String getTopicForService(String serviceName) {
         switch (serviceName.toLowerCase()) {
             case "auth":
             case "authentication":
@@ -98,7 +98,7 @@ public class LoggerGrpcService extends LoggerServiceGrpc.LoggerServiceImplBase {
             case "map-storage-service":
                 return "map_storage_logs";
             default:
-                logger.warn("Unknown service: {}, using map_coloring_logs exchange", serviceName);
+                logger.warn("Unknown service: {}, using map_coloring_logs topic", serviceName);
                 return "map_coloring_logs";
         }
     }
