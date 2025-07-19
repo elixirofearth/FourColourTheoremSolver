@@ -30,6 +30,7 @@ services:
       DB_PASSWORD: password
       DB_NAME: users
       JWT_SECRET: mySecretKey123456789012345678901234567890
+      LOGGER_SERVICE_URL: static://logger-service:50001
     depends_on:
       - postgres
 
