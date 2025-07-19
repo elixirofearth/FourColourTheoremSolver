@@ -44,6 +44,7 @@ services:
     environment:
       MONGO_URI: mongodb://admin:password@mongo:27017/?authSource=admin
       MONGO_DB: mapstore
+      LOGGER_SERVICE_URL: static://logger-service:50001
     depends_on:
       - mongo
 
