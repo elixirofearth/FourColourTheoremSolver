@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { ProfileButton, SignInButton, SignOutButton } from "./Buttons";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { logoutUser } from "../store/authSlice";
-import { useNotification } from "../contexts/NotificationContext";
+import { useNotification } from "../hooks/useNotification";
 import { handleResetMap } from "../utils/sketchHandlers";
 
 export default function NavBar() {

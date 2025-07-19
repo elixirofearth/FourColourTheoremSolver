@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
-import { useNotification } from "../contexts/NotificationContext";
+import { useNotification } from "../hooks/useNotification";
 import { useAppSelector } from "../store/hooks";
 
 interface LinePoint {

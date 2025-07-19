@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useNotification } from "../contexts/NotificationContext";
+import { useNotification } from "../hooks/useNotification";
 import { useAppSelector } from "../store/hooks";
 import ConfirmationModal from "./ConfirmationModal";
 
