@@ -30,7 +30,7 @@ public class KafkaConfig {
     public static final String MAP_COLORING_LOGS_TOPIC = "map_coloring_logs";
     public static final String MAP_STORAGE_LOGS_TOPIC = "map_storage_logs";
 
-    @Value("${spring.kafka.bootstrap-servers:localhost:9092}")
+    @Value("${spring.kafka.bootstrap-servers:kafka:9092}")
     private String bootstrapServers;
 
     @Value("${spring.kafka.consumer.group-id:logger-service-group}")
@@ -77,7 +77,9 @@ public class KafkaConfig {
 
     @Bean
     public KafkaAdmin kafkaAdmin() {
-        return new KafkaAdmin(Map.of("bootstrap.servers", bootstrapServers));
+        Map<String, Object> configs = new HashMap<>();
+        configs.put("bootstrap.servers", bootstrapServers);
+        return new KafkaAdmin(configs);
     }
 
     @Bean
