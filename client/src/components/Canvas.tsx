@@ -83,12 +83,18 @@ const Canvas: React.FC = () => {
   };
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    // Don't allow drawing if a colored map is displayed
+    if (capturedImage) return;
+
     const pos = getMousePos(e);
     setStartPoint(pos);
     setIsDrawing(true);
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    // Don't allow drawing if a colored map is displayed
+    if (capturedImage) return;
+
     if (!isDrawing || !startPoint) return;
 
     const canvas = canvasRef.current;
@@ -126,6 +132,9 @@ const Canvas: React.FC = () => {
   };
 
   const handleMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    // Don't allow drawing if a colored map is displayed
+    if (capturedImage) return;
+
     if (!isDrawing || !startPoint) return;
 
     const endPoint = getMousePos(e);
@@ -247,6 +256,15 @@ const Canvas: React.FC = () => {
   // Export functions for external use
   React.useEffect(() => {
     window.handleColorMap = () => {
+      // Don't allow coloring if already colored
+      if (capturedImage) {
+        showNotification(
+          "Map is already colored! Reset to draw a new map.",
+          "warning"
+        );
+        return;
+      }
+
       setCaptureImage(true);
       console.log("Coloring map");
     };
@@ -348,7 +366,7 @@ const Canvas: React.FC = () => {
       onMouseLeave={handleMouseUp}
       style={{
         border: "1px solid #ccc",
-        cursor: "crosshair",
+        cursor: capturedImage ? "not-allowed" : "crosshair",
         display: "block",
       }}
     />
