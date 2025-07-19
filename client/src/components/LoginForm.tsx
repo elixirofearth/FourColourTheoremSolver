@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { loginUser, clearError } from "../store/authSlice";
-import { useNotification } from "../contexts/NotificationContext";
 
 const LoginForm: React.FC = () => {
   const [username, setUsername] = useState("");
@@ -10,7 +9,6 @@ const LoginForm: React.FC = () => {
   const [formError, setFormError] = useState("");
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const { showNotification } = useNotification();
   const { isLoading, error, isAuthenticated } = useAppSelector(
     (state) => state.auth
   );
@@ -43,7 +41,6 @@ const LoginForm: React.FC = () => {
       const result = await dispatch(loginUser({ email: username, password }));
 
       if (loginUser.fulfilled.match(result)) {
-        showNotification("Login successful!", "success");
         navigate("/");
       }
     } catch (err) {

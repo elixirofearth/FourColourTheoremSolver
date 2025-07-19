@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { registerUser, clearError } from "../store/authSlice";
-import { useNotification } from "../contexts/NotificationContext";
 
 const SignUpForm: React.FC = () => {
   const [name, setName] = useState("");
@@ -11,7 +10,6 @@ const SignUpForm: React.FC = () => {
   const [formError, setFormError] = useState("");
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const { showNotification } = useNotification();
   const { isLoading, error, isAuthenticated } = useAppSelector(
     (state) => state.auth
   );
@@ -44,7 +42,6 @@ const SignUpForm: React.FC = () => {
       const result = await dispatch(registerUser({ name, email, password }));
 
       if (registerUser.fulfilled.match(result)) {
-        showNotification("Account created successfully!", "success");
         navigate("/");
       }
     } catch (err) {
