@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
+import { useNotification } from "../contexts/NotificationContext";
 
 interface LinePoint {
   x: number;
@@ -24,6 +25,7 @@ const Canvas: React.FC = () => {
   const [downloadImage, setDownloadImage] = useState(false);
   const [capturedImage, setCapturedImage] = useState(false);
   const [matrix, setMatrix] = useState<number[][][]>([]);
+  const { showNotification } = useNotification();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -259,7 +261,7 @@ const Canvas: React.FC = () => {
 
     window.handleSaveMap = async () => {
       if (!capturedImage || !matrix.length) {
-        alert("Please color your map before saving!");
+        showNotification("Please color your map before saving!", "warning");
         return;
       }
 
@@ -267,7 +269,7 @@ const Canvas: React.FC = () => {
       const userId = localStorage.getItem("userId");
 
       if (!token || !userId) {
-        alert("Please login to save your map");
+        showNotification("Please login to save your map", "error");
         return;
       }
 
@@ -327,11 +329,11 @@ const Canvas: React.FC = () => {
         }
 
         const savedMap = await response.json();
-        alert("Map saved successfully!");
+        showNotification("Map saved successfully!", "success");
         return savedMap;
       } catch (error) {
         console.error("Error saving map:", error);
-        alert("Failed to save map. Please try again.");
+        showNotification("Failed to save map. Please try again.", "error");
       }
     };
   }, [capturedImage, matrix]);

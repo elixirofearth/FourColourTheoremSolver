@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useNotification } from "../contexts/NotificationContext";
+import ConfirmationModal from "./ConfirmationModal";
 
 interface Map {
   id: string;
@@ -9,11 +11,14 @@ interface Map {
 
 export default function Profile() {
   const navigate = useNavigate();
+  const { showNotification } = useNotification();
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [maps, setMaps] = useState<Map[] | null>(null); // Initialize as null
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [mapToDelete, setMapToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -77,17 +82,24 @@ export default function Profile() {
     fetchUserData();
   }, [navigate]);
 
-  const handleDeleteMap = async (mapId: string) => {
+  const handleDeleteClick = (mapId: string) => {
+    setMapToDelete(mapId);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!mapToDelete) return;
+
     const token = localStorage.getItem("token");
     const apiHost = import.meta.env.VITE_API_GATEWAY_URL;
 
     if (!token || !apiHost) {
-      setError("Missing authentication or API configuration");
+      showNotification("Missing authentication or API configuration", "error");
       return;
     }
 
     try {
-      const response = await fetch(`${apiHost}/api/v1/maps/${mapId}`, {
+      const response = await fetch(`${apiHost}/api/v1/maps/${mapToDelete}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -97,16 +109,17 @@ export default function Profile() {
       if (response.ok) {
         // Remove the deleted map from the state
         setMaps((prevMaps) =>
-          prevMaps ? prevMaps.filter((map) => map.id !== mapId) : []
+          prevMaps ? prevMaps.filter((map) => map.id !== mapToDelete) : []
         );
+        showNotification("Map deleted successfully!", "success");
         console.log("Map deleted successfully");
       } else {
         console.error("Error deleting map:", response.statusText);
-        setError("Error deleting map");
+        showNotification("Error deleting map", "error");
       }
     } catch (error) {
       console.error("Error deleting map:", error);
-      setError("Error deleting map");
+      showNotification("Error deleting map", "error");
     }
   };
 
@@ -186,7 +199,7 @@ export default function Profile() {
                       👁️ View
                     </button>
                     <button
-                      onClick={() => handleDeleteMap(map.id)}
+                      onClick={() => handleDeleteClick(map.id)}
                       className="flex-1 bg-gradient-to-r from-red-500 to-pink-600 text-white py-2 px-4 rounded-xl hover:from-red-600 hover:to-pink-700 transform hover:-translate-y-0.5 transition-all duration-300 font-semibold text-sm"
                     >
                       🗑️ Delete
@@ -214,6 +227,18 @@ export default function Profile() {
           )}
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Map"
+        message="Are you sure you want to delete this map? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+      />
     </div>
   );
 }
