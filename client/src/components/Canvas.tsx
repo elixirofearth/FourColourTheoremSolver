@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import { useNotification } from "../contexts/NotificationContext";
+import { useAppSelector } from "../store/hooks";
 
 interface LinePoint {
   x: number;
@@ -26,6 +27,7 @@ const Canvas: React.FC = () => {
   const [capturedImage, setCapturedImage] = useState(false);
   const [matrix, setMatrix] = useState<number[][][]>([]);
   const { showNotification } = useNotification();
+  const { token, user } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -177,7 +179,7 @@ const Canvas: React.FC = () => {
         width: w,
         height: h,
         imageLength: array_pixels.length,
-        userId: localStorage.getItem("userId"),
+        userId: user?.id,
       });
 
       const res = await fetch(`${apiHost}/api/v1/maps/color`, {
@@ -188,10 +190,10 @@ const Canvas: React.FC = () => {
           },
           height: h,
           width: w,
-          userId: localStorage.getItem("userId"),
+          userId: user?.id,
         }),
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       });
@@ -265,10 +267,7 @@ const Canvas: React.FC = () => {
         return;
       }
 
-      const token = localStorage.getItem("token");
-      const userId = localStorage.getItem("userId");
-
-      if (!token || !userId) {
+      if (!token || !user) {
         showNotification("Please login to save your map", "error");
         return;
       }
@@ -301,7 +300,7 @@ const Canvas: React.FC = () => {
         });
 
         const requestBody = {
-          userId: userId,
+          userId: user?.id,
           name: `Map ${new Date().toLocaleString()}`,
           imageData: imageData,
           matrix: formattedMatrix,

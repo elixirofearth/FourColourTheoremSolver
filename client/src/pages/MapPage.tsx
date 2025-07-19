@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useAppSelector } from "../store/hooks";
 
 interface MapData {
   id: string;
@@ -13,18 +14,18 @@ interface MapData {
 export default function MapPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { token, isAuthenticated } = useAppSelector((state) => state.auth);
   const [mapData, setMapData] = useState<MapData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchMap = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        navigate("/login");
-        return;
-      }
+    if (!isAuthenticated || !token) {
+      navigate("/login");
+      return;
+    }
 
+    const fetchMap = async () => {
       const apiHost = import.meta.env.VITE_API_GATEWAY_URL;
       if (!apiHost) {
         setError("API host not configured");
@@ -55,7 +56,7 @@ export default function MapPage() {
     if (id) {
       fetchMap();
     }
-  }, [id, navigate]);
+  }, [id, navigate, isAuthenticated, token]);
 
   if (loading) {
     return (

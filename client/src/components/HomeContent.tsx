@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAppSelector } from "../store/hooks";
 import Canvas from "./Canvas";
 import {
   handleColorMap,
@@ -11,18 +12,15 @@ import {
 export default function HomeContent() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
-  const [userName, setUserName] = useState("");
+  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
+    if (!isAuthenticated) {
       navigate("/login");
     } else {
       setIsLoading(false);
-      const storedUserName = localStorage.getItem("name");
-      setUserName(storedUserName || "User");
     }
-  }, [navigate]);
+  }, [isAuthenticated, navigate]);
 
   if (isLoading) {
     return (
@@ -45,7 +43,7 @@ export default function HomeContent() {
         {/* Welcome Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
-            Welcome back, {userName}! 🎨
+            Welcome back, {user?.name || "User"}! 🎨
           </h1>
           <p className="text-gray-600 text-lg md:text-xl max-w-2xl mx-auto">
             Ready to create some amazing maps? Use your mouse to draw and let

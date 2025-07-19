@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useNotification } from "../contexts/NotificationContext";
+import { useAppSelector } from "../store/hooks";
 import ConfirmationModal from "./ConfirmationModal";
 
 interface Map {
@@ -12,38 +13,30 @@ interface Map {
 export default function Profile() {
   const navigate = useNavigate();
   const { showNotification } = useNotification();
-  const [userName, setUserName] = useState("");
-  const [userEmail, setUserEmail] = useState("");
-  const [maps, setMaps] = useState<Map[] | null>(null); // Initialize as null
+  const { token, user, isAuthenticated } = useAppSelector(
+    (state) => state.auth
+  );
+  const [maps, setMaps] = useState<Map[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [mapToDelete, setMapToDelete] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!isAuthenticated || !token || !user) {
+      navigate("/login");
+      return;
+    }
+
     const fetchUserData = async () => {
-      const token = localStorage.getItem("token");
-      const userId = localStorage.getItem("userId");
-
-      if (!token || !userId) {
-        navigate("/login");
-        return;
-      }
-
       const apiHost = import.meta.env.VITE_API_GATEWAY_URL;
       if (!apiHost) {
         throw new Error("API host is not defined");
       }
 
-      const storedEmail = localStorage.getItem("email");
-      setUserEmail(storedEmail || "user@gmail.com");
-
-      const storedUserName = localStorage.getItem("name");
-      setUserName(storedUserName || "User");
-
       try {
         const response = await fetch(
-          `${apiHost}/api/v1/maps?userId=${userId}`,
+          `${apiHost}/api/v1/maps?userId=${user.id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -68,19 +61,19 @@ export default function Profile() {
         } else {
           console.error("Error fetching maps:", response.statusText);
           setError("Error fetching maps");
-          setMaps([]); // Set to empty array on error
+          setMaps([]);
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
         setError("Error fetching user data");
-        setMaps([]); // Set to empty array on error
+        setMaps([]);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchUserData();
-  }, [navigate]);
+  }, [navigate, isAuthenticated, token, user]);
 
   const handleDeleteClick = (mapId: string) => {
     setMapToDelete(mapId);
@@ -88,13 +81,11 @@ export default function Profile() {
   };
 
   const handleDeleteConfirm = async () => {
-    if (!mapToDelete) return;
+    if (!mapToDelete || !token) return;
 
-    const token = localStorage.getItem("token");
     const apiHost = import.meta.env.VITE_API_GATEWAY_URL;
-
-    if (!token || !apiHost) {
-      showNotification("Missing authentication or API configuration", "error");
+    if (!apiHost) {
+      showNotification("Missing API configuration", "error");
       return;
     }
 
@@ -107,7 +98,6 @@ export default function Profile() {
       });
 
       if (response.ok) {
-        // Remove the deleted map from the state
         setMaps((prevMaps) =>
           prevMaps ? prevMaps.filter((map) => map.id !== mapToDelete) : []
         );
@@ -120,6 +110,9 @@ export default function Profile() {
     } catch (error) {
       console.error("Error deleting map:", error);
       showNotification("Error deleting map", "error");
+    } finally {
+      setShowDeleteModal(false);
+      setMapToDelete(null);
     }
   };
 
@@ -149,12 +142,14 @@ export default function Profile() {
         <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl p-8 mb-8 border border-white/20">
           <div className="text-center">
             <div className="w-24 h-24 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mx-auto mb-4 flex items-center justify-center text-white text-3xl font-bold">
-              {userName.charAt(0).toUpperCase()}
+              {user?.name?.charAt(0).toUpperCase() || "U"}
             </div>
             <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
-              Welcome, {userName}!
+              Welcome, {user?.name || "User"}!
             </h1>
-            <p className="text-gray-600 text-lg">{userEmail}</p>
+            <p className="text-gray-600 text-lg">
+              {user?.email || "user@example.com"}
+            </p>
           </div>
         </div>
 
@@ -214,31 +209,31 @@ export default function Profile() {
               <h3 className="text-xl font-semibold text-gray-700 mb-2">
                 No maps yet!
               </h3>
-              <p className="text-gray-600 mb-6">
-                Start creating your first map to see it here.
+              <p className="text-gray-500 mb-6">
+                Start creating and coloring maps to see them here.
               </p>
               <button
                 onClick={() => navigate("/")}
-                className="bg-gradient-to-r from-purple-500 to-pink-600 text-white py-3 px-8 rounded-xl hover:from-purple-600 hover:to-pink-700 transform hover:-translate-y-1 hover:shadow-lg transition-all duration-300 font-semibold"
+                className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-600 hover:to-purple-700 transform hover:-translate-y-1 transition-all duration-300 font-semibold"
               >
-                ✨ Create Your First Map
+                🎨 Create Your First Map
               </button>
             </div>
           )}
         </div>
-      </div>
 
-      {/* Confirmation Modal */}
-      <ConfirmationModal
-        isOpen={showDeleteModal}
-        onClose={() => setShowDeleteModal(false)}
-        onConfirm={handleDeleteConfirm}
-        title="Delete Map"
-        message="Are you sure you want to delete this map? This action cannot be undone."
-        confirmText="Delete"
-        cancelText="Cancel"
-        type="danger"
-      />
+        {/* Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={handleDeleteConfirm}
+          title="Delete Map"
+          message="Are you sure you want to delete this map? This action cannot be undone."
+          confirmText="Delete"
+          cancelText="Cancel"
+          type="danger"
+        />
+      </div>
     </div>
   );
 }

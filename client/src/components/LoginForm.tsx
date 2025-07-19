@@ -1,45 +1,51 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { loginUser, clearError } from "../store/authSlice";
+import { useNotification } from "../contexts/NotificationContext";
 
 const LoginForm: React.FC = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const { showNotification } = useNotification();
+  const { isLoading, error, isAuthenticated } = useAppSelector(
+    (state) => state.auth
+  );
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/");
+    }
+  }, [isAuthenticated, navigate]);
+
+  // Handle error notifications
+  useEffect(() => {
+    if (error) {
+      showNotification(error, "error");
+      dispatch(clearError());
+    }
+  }, [error, showNotification, dispatch]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
 
-    const apiHost = import.meta.env.VITE_API_GATEWAY_URL;
-
-    if (!apiHost) {
-      throw new Error("API host is not defined in the environment variables");
+    if (!username || !password) {
+      showNotification("Please fill in all fields", "warning");
+      return;
     }
 
     try {
-      const response = await fetch(`${apiHost}/api/v1/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email: username, password: password }),
-      });
+      const result = await dispatch(loginUser({ email: username, password }));
 
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("name", data.name);
-        localStorage.setItem("userId", data.user_id);
-        localStorage.setItem("email", data.email);
-        console.log("Sign-in successful:", data);
+      if (loginUser.fulfilled.match(result)) {
+        showNotification("Login successful!", "success");
         navigate("/");
-      } else {
-        setError("Invalid username or password");
       }
-    } catch (error) {
-      console.error("Error during sign-in:", error);
-      setError("An error occurred during sign-in");
+    } catch (err) {
+      console.error("Login error:", err);
     }
   };
 
@@ -82,6 +88,7 @@ const LoginForm: React.FC = () => {
                 className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-200 transition-all duration-300 outline-none placeholder-gray-400"
                 placeholder="Enter your email"
                 required
+                disabled={isLoading}
               />
             </div>
 
@@ -100,20 +107,16 @@ const LoginForm: React.FC = () => {
                 className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-200 transition-all duration-300 outline-none placeholder-gray-400"
                 placeholder="Enter your password"
                 required
+                disabled={isLoading}
               />
             </div>
 
-            {error && (
-              <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg animate-shake">
-                <p className="text-red-700 text-sm font-medium">{error}</p>
-              </div>
-            )}
-
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-3 px-6 rounded-xl hover:from-blue-700 hover:to-purple-700 transform hover:-translate-y-1 hover:shadow-xl transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-200"
+              disabled={isLoading}
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-3 px-6 rounded-xl hover:from-blue-700 hover:to-purple-700 transform hover:-translate-y-1 hover:shadow-xl transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Sign In
+              {isLoading ? "Signing In..." : "Sign In"}
             </button>
 
             <div className="text-center pt-4">
