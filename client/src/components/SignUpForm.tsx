@@ -29,7 +29,11 @@ const SignUpForm: React.FC = () => {
       if (response.ok) {
         const data = await response.json();
         console.log("Sign-up successful:", data);
-        navigate("/login");
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("name", data.name);
+        localStorage.setItem("userId", data.user_id);
+        localStorage.setItem("email", data.email);
+        navigate("/");
       } else {
         const data = await response.json();
         setError(data.error);
