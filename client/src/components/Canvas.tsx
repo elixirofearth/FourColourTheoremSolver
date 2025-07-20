@@ -398,7 +398,7 @@ const Canvas: React.FC = () => {
         showNotification("Failed to save map. Please try again.", "error");
       }
     };
-  }, [capturedImage, matrix]);
+  }, [capturedImage, matrix, token, user, showNotification, navigate]);
 
   return (
     <canvas
