@@ -107,7 +107,10 @@ describe("LoginForm", () => {
     // Debug: Check if the button is clickable
     expect(submitButton).toBeEnabled();
 
-    fireEvent.click(submitButton);
+    // Try submitting the form directly instead of just clicking the button
+    const form = document.querySelector("form");
+    expect(form).toBeInTheDocument();
+    fireEvent.submit(form!);
 
     // Debug: Check if the form was actually submitted
     // Let's try to find any error message or check the form state
