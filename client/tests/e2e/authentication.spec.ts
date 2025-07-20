@@ -129,6 +129,21 @@ test.describe("Authentication Tests", () => {
       try {
         await expect(page).toHaveURL("/", { timeout: 10000 });
 
+        // Wait for authentication state to be set and UI to update
+        // Look for either the Sign Out button (authenticated) or Sign In button (not authenticated)
+        await expect(
+          page.locator("text=Sign Out").or(page.locator("text=Sign In"))
+        ).toBeVisible({ timeout: 15000 });
+
+        // If we see Sign In button, login failed
+        const signInButton = page.locator("text=Sign In");
+        if (await signInButton.isVisible()) {
+          throw new Error("Login failed - still showing Sign In button");
+        }
+
+        // Additional wait to ensure the Sign Out button is fully rendered
+        await page.waitForSelector("text=Sign Out", { timeout: 10000 });
+
         // Should see logout option in navigation (navbar is visible on home page)
         await expect(page.locator("text=Sign Out")).toBeVisible({
           timeout: 10000,
@@ -149,6 +164,20 @@ test.describe("Authentication Tests", () => {
       // Wait for redirect to home page
       try {
         await expect(page).toHaveURL("/", { timeout: 10000 });
+
+        // Wait for authentication state to be set and UI to update
+        await expect(
+          page.locator("text=Sign Out").or(page.locator("text=Sign In"))
+        ).toBeVisible({ timeout: 15000 });
+
+        // If we see Sign In button, login failed
+        const signInButton = page.locator("text=Sign In");
+        if (await signInButton.isVisible()) {
+          throw new Error("Login failed - still showing Sign In button");
+        }
+
+        // Additional wait to ensure the Sign Out button is fully rendered
+        await page.waitForSelector("text=Sign Out", { timeout: 10000 });
 
         // Click logout
         await page.click("text=Sign Out");
@@ -188,6 +217,20 @@ test.describe("Authentication Tests", () => {
       // Wait for redirect to home page
       try {
         await expect(page).toHaveURL("/", { timeout: 10000 });
+
+        // Wait for authentication state to be set and UI to update
+        await expect(
+          page.locator("text=Sign Out").or(page.locator("text=Sign In"))
+        ).toBeVisible({ timeout: 15000 });
+
+        // If we see Sign In button, login failed
+        const signInButton = page.locator("text=Sign In");
+        if (await signInButton.isVisible()) {
+          throw new Error("Login failed - still showing Sign In button");
+        }
+
+        // Additional wait to ensure the Profile button is fully rendered
+        await page.waitForSelector("text=Profile", { timeout: 10000 });
 
         // Navigate to profile using the Profile button in navbar
         await page.click("text=Profile");
