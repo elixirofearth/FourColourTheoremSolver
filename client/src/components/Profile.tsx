@@ -83,7 +83,7 @@ export default function Profile() {
     };
 
     fetchUserData();
-  }, [navigate, isAuthenticated, token, user]);
+  }, [navigate, isAuthenticated, user]);
 
   const handleDeleteClick = (mapId: string) => {
     setMapToDelete(mapId);

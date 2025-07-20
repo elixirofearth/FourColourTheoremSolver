@@ -120,6 +120,8 @@ export class AuthInterceptor {
       console.log("Server returned 401 - logging out user");
       store.dispatch(logoutUser());
       throw new Error("Authentication failed - please login again");
+    } else {
+      console.log("Server returned", response.status);
     }
 
     return response;

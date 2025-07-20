@@ -113,25 +113,43 @@ export const registerUser = createAsyncThunk(
   }
 );
 
+// Flag to prevent multiple simultaneous logout requests
+let isLoggingOut = false;
+
 export const logoutUser = createAsyncThunk(
   "auth/logout",
   async (_, { getState }) => {
+    // Prevent multiple simultaneous logout requests
+    if (isLoggingOut) {
+      console.log("Logout already in progress, skipping");
+      return;
+    }
+
+    isLoggingOut = true;
+
     try {
       const state = getState() as { auth: AuthState };
       const token = state.auth.token;
 
       if (token) {
         const apiHost = import.meta.env.VITE_API_GATEWAY_URL;
-        await fetch(`${apiHost}/api/v1/auth/logout`, {
+        const response = await fetch(`${apiHost}/api/v1/auth/logout`, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
+
+        // Log the response status for debugging
+        if (!response.ok) {
+          console.log(`Logout request returned status: ${response.status}`);
+        }
       }
     } catch (_error) {
       // Even if logout fails on server, we should still clear local state
       console.error("Logout error:", _error);
+    } finally {
+      isLoggingOut = false;
     }
   }
 );
