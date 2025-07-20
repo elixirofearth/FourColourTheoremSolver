@@ -49,11 +49,12 @@ export class AuthInterceptor {
 
     // If token is expired, logout immediately
     if (isTokenExpired(token)) {
+      console.log("Token is expired, logging out user");
       store.dispatch(logout());
       return null;
     }
 
-    // If token is expiring soon (within 1 hour), refresh it
+    // If token is expiring soon (within 1 hour) but not expired, refresh it
     if (isTokenExpiringSoon(token, 3600000)) {
       // 1 hour
       if (this.isRefreshing) {
@@ -66,18 +67,21 @@ export class AuthInterceptor {
       this.isRefreshing = true;
 
       try {
+        console.log("Token expiring soon, attempting refresh");
         const result = await store.dispatch(refreshToken());
         if (refreshToken.fulfilled.match(result)) {
           this.processQueue(null, result.payload.token);
           this.isRefreshing = false;
           return result.payload.token;
         } else {
+          console.log("Token refresh failed, logging out user");
           this.processQueue(new Error("Token refresh failed"));
           this.isRefreshing = false;
           store.dispatch(logout());
           return null;
         }
       } catch (error) {
+        console.log("Token refresh error, logging out user:", error);
         this.processQueue(
           error instanceof Error ? error : new Error("Unknown error")
         );
@@ -100,7 +104,7 @@ export class AuthInterceptor {
     let token = await this.checkAndRefreshToken();
 
     if (!token) {
-      throw new Error("No valid token available");
+      throw new Error("No valid token available - please login");
     }
 
     const response = await fetch(url, {
@@ -111,8 +115,17 @@ export class AuthInterceptor {
       },
     });
 
-    // If we get a 401, try to refresh the token and retry once
+    // If we get a 401, check if token is expired and handle accordingly
     if (response.status === 401) {
+      // Check if the current token is expired
+      const currentToken = store.getState().auth.token;
+      if (currentToken && isTokenExpired(currentToken)) {
+        console.log("Token is expired, logging out user");
+        store.dispatch(logout());
+        throw new Error("Token expired - please login again");
+      }
+
+      // If token is not expired, try to refresh it
       if (this.isRefreshing) {
         // Wait for the current refresh to complete
         token = await new Promise((resolve, reject) => {
@@ -122,16 +135,19 @@ export class AuthInterceptor {
         // Try to refresh the token
         this.isRefreshing = true;
         try {
+          console.log("Attempting token refresh after 401");
           const result = await store.dispatch(refreshToken());
           if (refreshToken.fulfilled.match(result)) {
             token = result.payload.token;
             this.processQueue(null, token);
           } else {
+            console.log("Token refresh failed after 401, logging out");
             this.processQueue(new Error("Token refresh failed"));
             store.dispatch(logout());
             throw new Error("Authentication failed");
           }
         } catch (error) {
+          console.log("Token refresh error after 401:", error);
           this.processQueue(
             error instanceof Error ? error : new Error("Unknown error")
           );

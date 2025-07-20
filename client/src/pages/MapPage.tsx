@@ -45,7 +45,24 @@ export default function MapPage() {
         } else {
           setError("Failed to load map");
         }
-      } catch {
+      } catch (error) {
+        console.error("Error loading map:", error);
+
+        // Handle authentication errors
+        if (error instanceof Error) {
+          if (
+            error.message.includes("Authentication failed") ||
+            error.message.includes("Token expired") ||
+            error.message.includes("No valid token available")
+          ) {
+            // Note: We can't use showNotification here since it's not available
+            // The error will be handled by the error state display
+            setError("Session expired. Please login again.");
+            setTimeout(() => navigate("/login"), 2000);
+            return;
+          }
+        }
+
         setError("Error loading map");
       } finally {
         setLoading(false);

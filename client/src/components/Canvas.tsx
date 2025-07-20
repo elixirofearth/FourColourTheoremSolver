@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from "react";
 import { useNotification } from "../hooks/useNotification";
 import { useAppSelector } from "../store/hooks";
 import { authInterceptor } from "../utils/authInterceptor";
+import { useNavigate } from "react-router-dom";
 
 interface LinePoint {
   x: number;
@@ -29,6 +30,7 @@ const Canvas: React.FC = () => {
   const [matrix, setMatrix] = useState<number[][][]>([]);
   const { showNotification } = useNotification();
   const { token, user } = useAppSelector((state) => state.auth);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -221,6 +223,21 @@ const Canvas: React.FC = () => {
       setCapturedImage(true);
     } catch (error) {
       console.error("Error in getData:", error);
+
+      // Handle authentication errors
+      if (error instanceof Error) {
+        if (
+          error.message.includes("Authentication failed") ||
+          error.message.includes("Token expired") ||
+          error.message.includes("No valid token available")
+        ) {
+          showNotification("Session expired. Please login again.", "error");
+          navigate("/login");
+          return;
+        }
+      }
+
+      showNotification("Failed to color map. Please try again.", "error");
       throw error;
     }
   }
@@ -355,6 +372,20 @@ const Canvas: React.FC = () => {
         return savedMap;
       } catch (error) {
         console.error("Error saving map:", error);
+
+        // Handle authentication errors
+        if (error instanceof Error) {
+          if (
+            error.message.includes("Authentication failed") ||
+            error.message.includes("Token expired") ||
+            error.message.includes("No valid token available")
+          ) {
+            showNotification("Session expired. Please login again.", "error");
+            navigate("/login");
+            return;
+          }
+        }
+
         showNotification("Failed to save map. Please try again.", "error");
       }
     };

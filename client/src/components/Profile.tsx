@@ -61,6 +61,20 @@ export default function Profile() {
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
+
+        // Handle authentication errors
+        if (error instanceof Error) {
+          if (
+            error.message.includes("Authentication failed") ||
+            error.message.includes("Token expired") ||
+            error.message.includes("No valid token available")
+          ) {
+            showNotification("Session expired. Please login again.", "error");
+            navigate("/login");
+            return;
+          }
+        }
+
         setError("Error fetching user data");
         setMaps([]);
       } finally {
@@ -105,6 +119,20 @@ export default function Profile() {
       }
     } catch (error) {
       console.error("Error deleting map:", error);
+
+      // Handle authentication errors
+      if (error instanceof Error) {
+        if (
+          error.message.includes("Authentication failed") ||
+          error.message.includes("Token expired") ||
+          error.message.includes("No valid token available")
+        ) {
+          showNotification("Session expired. Please login again.", "error");
+          navigate("/login");
+          return;
+        }
+      }
+
       showNotification("Error deleting map", "error");
     } finally {
       setShowDeleteModal(false);
