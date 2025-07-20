@@ -67,7 +67,7 @@ test.describe("Notification and Error Handling Tests", () => {
     }) => {
       await page.goto("/signup");
       await page.fill('input[name="name"]', "Test User");
-      await page.fill('input[type="text"]', "existing@example.com");
+      await page.fill('input[type="email"]', "existing@example.com");
       await page.fill('input[type="password"]', "password123");
       await page.click('button[type="submit"]');
 
@@ -229,7 +229,7 @@ test.describe("Notification and Error Handling Tests", () => {
     test("should show loading state during signup", async ({ page }) => {
       await page.goto("/signup");
       await page.fill('input[name="name"]', "Test User");
-      await page.fill('input[type="text"]', "newuser@example.com");
+      await page.fill('input[type="email"]', "newuser@example.com");
       await page.fill('input[type="password"]', "password123");
       await page.click('button[type="submit"]');
 

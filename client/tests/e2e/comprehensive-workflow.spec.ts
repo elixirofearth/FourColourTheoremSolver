@@ -81,7 +81,7 @@ test.describe("Comprehensive User Workflow", () => {
   test("error handling workflow", async ({ page }) => {
     // Test login with wrong credentials
     await page.goto("/login");
-    await page.fill('input[type="email"]', "wrong@example.com");
+    await page.fill('input[type="text"]', "wrong@example.com");
     await page.fill('input[type="password"]', "wrongpassword");
     await page.click('button[type="submit"]');
 
@@ -196,7 +196,7 @@ test.describe("Comprehensive User Workflow", () => {
 
     // Try to login
     await page.goto("/login");
-    await page.fill('input[type="email"]', "test@example.com");
+    await page.fill('input[type="text"]', "test@example.com");
     await page.fill('input[type="password"]', "password123");
     await page.click('button[type="submit"]');
 
@@ -214,9 +214,9 @@ test.describe("Comprehensive User Workflow", () => {
 
     // Test form navigation with keyboard
     await page.keyboard.press("Tab");
-    await page.fill("test@example.com");
+    await page.fill('input[type="text"]', "test@example.com");
     await page.keyboard.press("Tab");
-    await page.fill("password123");
+    await page.fill('input[type="password"]', "password123");
     await page.keyboard.press("Enter");
 
     // Should attempt login
