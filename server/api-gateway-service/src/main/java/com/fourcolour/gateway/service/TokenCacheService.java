@@ -94,7 +94,16 @@ public class TokenCacheService {
                 return false;
             }
             
-            Long count = (Long) currentCount;
+            // Handle both Integer and Long types from Redis
+            long count;
+            if (currentCount instanceof Integer) {
+                count = ((Integer) currentCount).longValue();
+            } else if (currentCount instanceof Long) {
+                count = (Long) currentCount;
+            } else {
+                count = Long.parseLong(currentCount.toString());
+            }
+            
             logger.debug("Current request count for IP {}: {}", ipAddress, count);
             
             if (count >= MAX_REQUESTS_PER_MINUTE) {
@@ -120,7 +129,18 @@ public class TokenCacheService {
         try {
             String key = RATE_LIMIT_PREFIX + ipAddress;
             Object count = redisTemplate.opsForValue().get(key);
-            return count != null ? ((Long) count).intValue() : 0;
+            if (count == null) {
+                return 0;
+            }
+            
+            // Handle both Integer and Long types from Redis
+            if (count instanceof Integer) {
+                return (Integer) count;
+            } else if (count instanceof Long) {
+                return ((Long) count).intValue();
+            } else {
+                return Integer.parseInt(count.toString());
+            }
         } catch (Exception e) {
             logger.warn("Failed to get request count: {}", e.getMessage());
             return 0;
