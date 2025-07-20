@@ -101,7 +101,7 @@ export class AuthInterceptor {
     url: string,
     options: RequestInit = {}
   ): Promise<Response> {
-    let token = await this.checkAndRefreshToken();
+    const token = await this.checkAndRefreshToken();
 
     if (!token) {
       throw new Error("No valid token available - please login");
@@ -115,59 +115,11 @@ export class AuthInterceptor {
       },
     });
 
-    // If we get a 401, check if token is expired and handle accordingly
+    // If we get a 401, the server rejected our token - logout the user
     if (response.status === 401) {
-      // Check if the current token is expired
-      const currentToken = store.getState().auth.token;
-      if (currentToken && isTokenExpired(currentToken)) {
-        console.log("Token is expired, logging out user");
-        store.dispatch(logoutUser());
-        throw new Error("Token expired - please login again");
-      }
-
-      // If token is not expired, try to refresh it
-      if (this.isRefreshing) {
-        // Wait for the current refresh to complete
-        token = await new Promise((resolve, reject) => {
-          this.failedQueue.push({ resolve, reject });
-        });
-      } else {
-        // Try to refresh the token
-        this.isRefreshing = true;
-        try {
-          console.log("Attempting token refresh after 401");
-          const result = await store.dispatch(refreshToken());
-          if (refreshToken.fulfilled.match(result)) {
-            token = result.payload.token;
-            this.processQueue(null, token);
-          } else {
-            console.log("Token refresh failed after 401, logging out");
-            this.processQueue(new Error("Token refresh failed"));
-            store.dispatch(logoutUser());
-            throw new Error("Authentication failed");
-          }
-        } catch (error) {
-          console.log("Token refresh error after 401:", error);
-          this.processQueue(
-            error instanceof Error ? error : new Error("Unknown error")
-          );
-          store.dispatch(logoutUser());
-          throw new Error("Authentication failed");
-        } finally {
-          this.isRefreshing = false;
-        }
-      }
-
-      // Retry the original request with the new token
-      if (token) {
-        return fetch(url, {
-          ...options,
-          headers: {
-            ...options.headers,
-            Authorization: `Bearer ${token}`,
-          },
-        });
-      }
+      console.log("Server returned 401 - logging out user");
+      store.dispatch(logoutUser());
+      throw new Error("Authentication failed - please login again");
     }
 
     return response;
