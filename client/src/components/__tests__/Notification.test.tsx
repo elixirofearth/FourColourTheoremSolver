@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { screen, fireEvent, waitFor, act } from "@testing-library/react";
+import { screen, fireEvent, act } from "@testing-library/react";
 import { render } from "../../test/test-utils";
 import Notification, { type NotificationProps } from "../Notification";
 
@@ -135,7 +135,7 @@ describe("Notification", () => {
     expect(screen.getByText("×")).toBeInTheDocument();
   });
 
-  it("calls onClose when close button is clicked", () => {
+  it("calls onClose when close button is clicked", async () => {
     const onClose = vi.fn();
     render(<Notification {...defaultProps} onClose={onClose} />);
 
@@ -143,6 +143,11 @@ describe("Notification", () => {
     fireEvent.click(closeButton);
 
     // The close button should call onClose after a delay
+    // Since we're using fake timers, we need to advance them
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
+
     expect(onClose).toHaveBeenCalled();
   });
 
@@ -155,12 +160,7 @@ describe("Notification", () => {
       vi.advanceTimersByTime(4300);
     });
 
-    await waitFor(
-      () => {
-        expect(onClose).toHaveBeenCalled();
-      },
-      { timeout: 10000 }
-    );
+    expect(onClose).toHaveBeenCalled();
   });
 
   it("auto-closes after custom duration", async () => {
@@ -174,12 +174,7 @@ describe("Notification", () => {
       vi.advanceTimersByTime(2300);
     });
 
-    await waitFor(
-      () => {
-        expect(onClose).toHaveBeenCalled();
-      },
-      { timeout: 10000 }
-    );
+    expect(onClose).toHaveBeenCalled();
   });
 
   it("does not render when not visible", () => {

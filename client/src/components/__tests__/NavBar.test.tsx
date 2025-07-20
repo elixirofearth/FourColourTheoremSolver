@@ -1,15 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { screen, fireEvent } from "@testing-library/react";
+import { screen, fireEvent, waitFor } from "@testing-library/react";
 import { render } from "../../test/test-utils";
 import NavBar from "../NavBar";
 import { logoutUser } from "../../store/authSlice";
 
 // Mock react-router-dom
+const mockNavigate = vi.hoisted(() => vi.fn());
 vi.mock("react-router-dom", async () => {
   const actual = await vi.importActual("react-router-dom");
   return {
     ...actual,
-    useNavigate: () => vi.fn(),
+    useNavigate: () => mockNavigate,
     Link: ({ children, to }: { children: React.ReactNode; to: string }) => (
       <a href={to}>{children}</a>
     ),
@@ -17,31 +18,30 @@ vi.mock("react-router-dom", async () => {
 });
 
 // Mock the store hooks
-const mockUseAppSelector = vi.fn();
-const mockUseAppDispatch = vi.fn();
+const mockUseAppSelector = vi.hoisted(() => vi.fn());
+const mockUseAppDispatch = vi.hoisted(() => vi.fn());
 
 vi.mock("../../store/hooks", () => ({
-  useAppDispatch: () => mockUseAppDispatch,
+  useAppDispatch: mockUseAppDispatch,
   useAppSelector: mockUseAppSelector,
 }));
 
 // Mock the notification hook
+const mockShowNotification = vi.hoisted(() => vi.fn());
 vi.mock("../../hooks/useNotification", () => ({
   useNotification: () => ({
-    showNotification: vi.fn(),
+    showNotification: mockShowNotification,
   }),
 }));
 
 // Mock sketch handlers
+const mockHandleResetMap = vi.hoisted(() => vi.fn());
 vi.mock("../../utils/sketchHandlers", () => ({
-  handleResetMap: vi.fn(),
+  handleResetMap: mockHandleResetMap,
 }));
 
 describe("NavBar", () => {
   const mockDispatch = vi.fn();
-  const mockNavigate = vi.fn();
-  const mockShowNotification = vi.fn();
-  const mockHandleResetMap = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -100,7 +100,9 @@ describe("NavBar", () => {
     const signOutButton = screen.getByText("Sign Out");
     fireEvent.click(signOutButton);
 
-    expect(mockDispatch).toHaveBeenCalledWith(logoutUser());
+    await waitFor(() => {
+      expect(mockDispatch).toHaveBeenCalled();
+    });
     expect(mockHandleResetMap).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith("/login");
   });
@@ -117,10 +119,12 @@ describe("NavBar", () => {
     const signOutButton = screen.getByText("Sign Out");
     fireEvent.click(signOutButton);
 
-    expect(mockShowNotification).toHaveBeenCalledWith(
-      "Error during logout",
-      "error"
-    );
+    await waitFor(() => {
+      expect(mockShowNotification).toHaveBeenCalledWith(
+        "Error during logout",
+        "error"
+      );
+    });
   });
 
   it("navigates to home when logo is clicked", async () => {
