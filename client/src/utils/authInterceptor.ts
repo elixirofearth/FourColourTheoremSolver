@@ -1,5 +1,5 @@
 import { store } from "../store/store";
-import { refreshToken, logout } from "../store/authSlice";
+import { refreshToken, logoutUser } from "../store/authSlice";
 import { isTokenExpiringSoon, isTokenExpired } from "./tokenUtils";
 
 /**
@@ -50,7 +50,7 @@ export class AuthInterceptor {
     // If token is expired, logout immediately
     if (isTokenExpired(token)) {
       console.log("Token is expired, logging out user");
-      store.dispatch(logout());
+      store.dispatch(logoutUser());
       return null;
     }
 
@@ -77,7 +77,7 @@ export class AuthInterceptor {
           console.log("Token refresh failed, logging out user");
           this.processQueue(new Error("Token refresh failed"));
           this.isRefreshing = false;
-          store.dispatch(logout());
+          store.dispatch(logoutUser());
           return null;
         }
       } catch (error) {
@@ -86,7 +86,7 @@ export class AuthInterceptor {
           error instanceof Error ? error : new Error("Unknown error")
         );
         this.isRefreshing = false;
-        store.dispatch(logout());
+        store.dispatch(logoutUser());
         return null;
       }
     }
@@ -121,7 +121,7 @@ export class AuthInterceptor {
       const currentToken = store.getState().auth.token;
       if (currentToken && isTokenExpired(currentToken)) {
         console.log("Token is expired, logging out user");
-        store.dispatch(logout());
+        store.dispatch(logoutUser());
         throw new Error("Token expired - please login again");
       }
 
@@ -143,7 +143,7 @@ export class AuthInterceptor {
           } else {
             console.log("Token refresh failed after 401, logging out");
             this.processQueue(new Error("Token refresh failed"));
-            store.dispatch(logout());
+            store.dispatch(logoutUser());
             throw new Error("Authentication failed");
           }
         } catch (error) {
@@ -151,7 +151,7 @@ export class AuthInterceptor {
           this.processQueue(
             error instanceof Error ? error : new Error("Unknown error")
           );
-          store.dispatch(logout());
+          store.dispatch(logoutUser());
           throw new Error("Authentication failed");
         } finally {
           this.isRefreshing = false;
