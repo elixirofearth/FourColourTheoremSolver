@@ -11,10 +11,13 @@ services:
       COLORING_SERVICE_URL: http://solver-service:8082
       AUTHENTICATION_SERVICE_URL: http://authentication-service:8081
       MAP_STORAGE_SERVICE_URL: http://map-storage-service:8083
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
     depends_on:
       - authentication-service
       - map-storage-service
       - solver-service
+      - redis
 
   authentication-service:
     build:
@@ -30,7 +33,7 @@ services:
       DB_PASSWORD: password
       DB_NAME: users
       JWT_SECRET: mySecretKey123456789012345678901234567890
-      LOGGER_SERVICE_URL: static://logger-service:50001
+      LOGGER_SERVICE_URL: logger-service:50001
     depends_on:
       - postgres
 
@@ -44,7 +47,7 @@ services:
     environment:
       MONGO_URI: mongodb://admin:password@mongo:27017/?authSource=admin
       MONGO_DB: mapstore
-      LOGGER_SERVICE_URL: static://logger-service:50001
+      LOGGER_SERVICE_URL: logger-service:50001
     depends_on:
       - mongo
 
@@ -78,6 +81,22 @@ services:
       PORT: 8082
 
   # Infrastructure services (updated to latest versions)
+  redis:
+    image: "redis:8-alpine"
+    ports:
+      - "6379:6379"
+    restart: always
+    volumes:
+      - ./db-data/redis/:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    environment:
+      - REDIS_PASSWORD=
+
   mongo:
     image: "mongo:8.0"
     ports:
