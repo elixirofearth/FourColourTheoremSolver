@@ -79,7 +79,7 @@ test.describe("Map Functionality Tests", () => {
     test("should save map with name", async ({ page }) => {
       // First login
       await page.goto("/login");
-      await page.fill('input[type="email"]', "test@example.com");
+      await page.fill('input[type="text"]', "test@example.com");
       await page.fill('input[type="password"]', "password123");
       await page.click('button[type="submit"]');
 
@@ -112,7 +112,7 @@ test.describe("Map Functionality Tests", () => {
     test("should show saved maps in profile", async ({ page }) => {
       // First login
       await page.goto("/login");
-      await page.fill('input[type="email"]', "test@example.com");
+      await page.fill('input[type="text"]', "test@example.com");
       await page.fill('input[type="password"]', "password123");
       await page.click('button[type="submit"]');
 
@@ -126,7 +126,7 @@ test.describe("Map Functionality Tests", () => {
     test("should display map details", async ({ page }) => {
       // First login
       await page.goto("/login");
-      await page.fill('input[type="email"]', "test@example.com");
+      await page.fill('input[type="text"]', "test@example.com");
       await page.fill('input[type="password"]', "password123");
       await page.click('button[type="submit"]');
 
@@ -145,7 +145,7 @@ test.describe("Map Functionality Tests", () => {
     test("should allow map deletion", async ({ page }) => {
       // First login
       await page.goto("/login");
-      await page.fill('input[type="email"]', "test@example.com");
+      await page.fill('input[type="text"]', "test@example.com");
       await page.fill('input[type="password"]', "password123");
       await page.click('button[type="submit"]');
 
@@ -168,7 +168,7 @@ test.describe("Map Functionality Tests", () => {
     test("should cancel map deletion", async ({ page }) => {
       // First login
       await page.goto("/login");
-      await page.fill('input[type="email"]', "test@example.com");
+      await page.fill('input[type="text"]', "test@example.com");
       await page.fill('input[type="password"]', "password123");
       await page.click('button[type="submit"]');
 
@@ -193,7 +193,7 @@ test.describe("Map Functionality Tests", () => {
     test("should apply four color theorem algorithm", async ({ page }) => {
       // First login
       await page.goto("/login");
-      await page.fill('input[type="email"]', "test@example.com");
+      await page.fill('input[type="text"]', "test@example.com");
       await page.fill('input[type="password"]', "password123");
       await page.click('button[type="submit"]');
 
@@ -229,7 +229,7 @@ test.describe("Map Functionality Tests", () => {
     test("should handle coloring errors", async ({ page }) => {
       // First login
       await page.goto("/login");
-      await page.fill('input[type="email"]', "test@example.com");
+      await page.fill('input[type="text"]', "test@example.com");
       await page.fill('input[type="password"]', "password123");
       await page.click('button[type="submit"]');
 
