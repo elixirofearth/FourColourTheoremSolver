@@ -38,26 +38,58 @@ public class GatewayController {
     // Auth routes (unprotected)
     @PostMapping("/api/v1/auth/register")
     public ResponseEntity<String> register(@RequestBody String body, HttpServletRequest request) {
+        // Check rate limiting
+        if (isRateLimited(request)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("{\"error\":\"Rate limit exceeded. Please try again later.\"}");
+        }
         return forwardToService("auth", "/auth/register", HttpMethod.POST, body, request);
     }
 
     @PostMapping("/api/v1/auth/login")
     public ResponseEntity<String> login(@RequestBody String body, HttpServletRequest request) {
+        // Check rate limiting
+        if (isRateLimited(request)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("{\"error\":\"Rate limit exceeded. Please try again later.\"}");
+        }
         return forwardToService("auth", "/auth/login", HttpMethod.POST, body, request);
     }
 
     @PostMapping("/api/v1/auth/logout")
     public ResponseEntity<String> logout(HttpServletRequest request) {
+        // Check rate limiting
+        if (isRateLimited(request)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("{\"error\":\"Rate limit exceeded. Please try again later.\"}");
+        }
+        
+        // Invalidate cached token
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && !authHeader.trim().isEmpty()) {
+            proxyService.invalidateCachedToken(authHeader);
+        }
+        
         return forwardToService("auth", "/auth/logout", HttpMethod.POST, null, request);
     }
 
     @PostMapping("/api/v1/auth/refresh")
     public ResponseEntity<String> refreshToken(HttpServletRequest request) {
+        // Check rate limiting
+        if (isRateLimited(request)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("{\"error\":\"Rate limit exceeded. Please try again later.\"}");
+        }
         return forwardToService("auth", "/auth/refresh", HttpMethod.POST, null, request);
     }
 
     @PostMapping("/api/v1/auth/verify")
     public ResponseEntity<String> verifyToken(HttpServletRequest request) {
+        // Check rate limiting
+        if (isRateLimited(request)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("{\"error\":\"Rate limit exceeded. Please try again later.\"}");
+        }
         return forwardToService("auth", "/auth/verify", HttpMethod.POST, null, request);
     }
 
@@ -65,6 +97,12 @@ public class GatewayController {
     @PostMapping("/api/v1/maps/color")
     public ResponseEntity<String> colorMap(@RequestBody ColoringRequest coloringRequest, 
                                           HttpServletRequest request) {
+        // Check rate limiting
+        if (isRateLimited(request)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("{\"error\":\"Rate limit exceeded. Please try again later.\"}");
+        }
+        
         // Check authentication
         String authHeader = request.getHeader("Authorization");
         if (!isAuthenticated(authHeader)) {
@@ -97,6 +135,12 @@ public class GatewayController {
     // Map storage routes (protected)
     @PostMapping("/api/v1/maps")
     public ResponseEntity<String> createMap(@RequestBody String body, HttpServletRequest request) {
+        // Check rate limiting
+        if (isRateLimited(request)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("{\"error\":\"Rate limit exceeded. Please try again later.\"}");
+        }
+        
         if (!isAuthenticated(request.getHeader("Authorization"))) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("{\"error\":\"Authentication required\"}");
@@ -106,6 +150,12 @@ public class GatewayController {
 
     @GetMapping("/api/v1/maps")
     public ResponseEntity<String> getMaps(HttpServletRequest request) {
+        // Check rate limiting
+        if (isRateLimited(request)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("{\"error\":\"Rate limit exceeded. Please try again later.\"}");
+        }
+        
         if (!isAuthenticated(request.getHeader("Authorization"))) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("{\"error\":\"Authentication required\"}");
@@ -118,6 +168,12 @@ public class GatewayController {
 
     @GetMapping("/api/v1/maps/{id}")
     public ResponseEntity<String> getMap(@PathVariable String id, HttpServletRequest request) {
+        // Check rate limiting
+        if (isRateLimited(request)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("{\"error\":\"Rate limit exceeded. Please try again later.\"}");
+        }
+        
         if (!isAuthenticated(request.getHeader("Authorization"))) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("{\"error\":\"Authentication required\"}");
@@ -128,6 +184,12 @@ public class GatewayController {
     @PutMapping("/api/v1/maps/{id}")
     public ResponseEntity<String> updateMap(@PathVariable String id, @RequestBody String body, 
                                            HttpServletRequest request) {
+        // Check rate limiting
+        if (isRateLimited(request)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("{\"error\":\"Rate limit exceeded. Please try again later.\"}");
+        }
+        
         if (!isAuthenticated(request.getHeader("Authorization"))) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("{\"error\":\"Authentication required\"}");
@@ -137,6 +199,12 @@ public class GatewayController {
 
     @DeleteMapping("/api/v1/maps/{id}")
     public ResponseEntity<String> deleteMap(@PathVariable String id, HttpServletRequest request) {
+        // Check rate limiting
+        if (isRateLimited(request)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("{\"error\":\"Rate limit exceeded. Please try again later.\"}");
+        }
+        
         if (!isAuthenticated(request.getHeader("Authorization"))) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("{\"error\":\"Authentication required\"}");
@@ -187,5 +255,24 @@ public class GatewayController {
             logger.warn("Authentication check failed: {}", e.getMessage());
             return false;
         }
+    }
+
+    private boolean isRateLimited(HttpServletRequest request) {
+        String ipAddress = getClientIpAddress(request);
+        return proxyService.isRateLimited(ipAddress);
+    }
+
+    private String getClientIpAddress(HttpServletRequest request) {
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isEmpty() && !"unknown".equalsIgnoreCase(xForwardedFor)) {
+            return xForwardedFor.split(",")[0].trim();
+        }
+        
+        String xRealIp = request.getHeader("X-Real-IP");
+        if (xRealIp != null && !xRealIp.isEmpty() && !"unknown".equalsIgnoreCase(xRealIp)) {
+            return xRealIp;
+        }
+        
+        return request.getRemoteAddr();
     }
 } 

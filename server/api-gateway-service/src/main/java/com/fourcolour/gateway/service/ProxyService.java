@@ -2,11 +2,11 @@ package com.fourcolour.gateway.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-
 
 @Service
 public class ProxyService {
@@ -14,6 +14,9 @@ public class ProxyService {
     private static final Logger logger = LoggerFactory.getLogger(ProxyService.class);
 
     private final RestTemplate restTemplate;
+
+    @Autowired
+    private TokenCacheService tokenCacheService;
 
     @Value("${services.coloring.url:http://solver-service}")
     private String coloringServiceUrl;
@@ -113,6 +116,19 @@ public class ProxyService {
     }
 
     public ResponseEntity<String> verifyToken(String token) {
+        // First, check if we have a cached result
+        Boolean cachedResult = tokenCacheService.getCachedTokenValidation(token);
+        if (cachedResult != null) {
+            logger.debug("Using cached token validation result");
+            if (cachedResult) {
+                return ResponseEntity.ok("{\"valid\":true}");
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("{\"error\":\"Invalid token\"}");
+            }
+        }
+
+        // If not cached, verify with authentication service
         String url = authServiceUrl + "/auth/verify";
         
         HttpHeaders headers = new HttpHeaders();
@@ -122,12 +138,30 @@ public class ProxyService {
         HttpEntity<String> entity = new HttpEntity<>(headers);
         
         try {
-            return restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+            
+            // Cache the result
+            boolean isValid = response.getStatusCode() == HttpStatus.OK;
+            tokenCacheService.cacheToken(token, isValid);
+            
+            return response;
         } catch (Exception e) {
             logger.error("Token verification failed: {}", e.getMessage());
+            
+            // Cache the negative result
+            tokenCacheService.cacheToken(token, false);
+            
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("{\"error\":\"Invalid token\"}");
         }
+    }
+
+    public void invalidateCachedToken(String token) {
+        tokenCacheService.invalidateToken(token);
+    }
+
+    public boolean isRateLimited(String ipAddress) {
+        return tokenCacheService.isRateLimited(ipAddress);
     }
 
     private String getServiceUrl(String serviceName) {

@@ -5,21 +5,31 @@ spring:
   application:
     name: api-gateway-service
 
+  # Redis Configuration
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    timeout: 2000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+        max-wait: -1ms
+
+# Service URLs
 services:
   coloring:
-    url: ${COLORING_SERVICE_URL:http://localhost:8082}
+    url: ${COLORING_SERVICE_URL:http://solver-service:8082}
   authentication:
-    url: ${AUTHENTICATION_SERVICE_URL:http://localhost:8081}
+    url: ${AUTHENTICATION_SERVICE_URL:http://authentication-service:8081}
   map-storage:
-    url: ${MAP_STORAGE_SERVICE_URL:http://localhost:8083}
+    url: ${MAP_STORAGE_SERVICE_URL:http://map-storage-service:8083}
 
-grpc:
-  client:
-    logger-service:
-      address: ${LOGGER_SERVICE_URL:static://localhost:50001}
-      negotiationType: plaintext
-
+# Logging
 logging:
   level:
-    com.fourcolour.gateway: INFO
-    org.springframework.web: DEBUG
+    com.fourcolour.gateway: DEBUG
+    org.springframework.data.redis: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
