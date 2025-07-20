@@ -168,8 +168,8 @@ public class AuthenticationService {
 
         Session session = sessionOpt.get();
         
-        // Check if the session is within grace period (5 minutes after expiration)
-        LocalDateTime gracePeriod = session.getExpiresAt().plusMinutes(5);
+        // Check if the session is within grace period (2 minutes after expiration)
+        LocalDateTime gracePeriod = session.getExpiresAt().plusMinutes(2);
         if (LocalDateTime.now().isAfter(gracePeriod)) {
             // Session is too old, delete it and throw error
             sessionRepository.deleteByToken(cleanToken);
