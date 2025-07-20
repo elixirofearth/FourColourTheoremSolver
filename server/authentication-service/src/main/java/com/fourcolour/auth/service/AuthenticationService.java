@@ -160,13 +160,21 @@ public class AuthenticationService {
     public TokenResponse refreshToken(String oldToken) {
         String cleanToken = oldToken.startsWith("Bearer ") ? oldToken.substring(7) : oldToken;
         
-        // Find session
-        Optional<Session> sessionOpt = sessionRepository.findByTokenAndNotExpired(cleanToken, LocalDateTime.now());
+        // First, try to find the session by token (regardless of expiration)
+        Optional<Session> sessionOpt = sessionRepository.findByToken(cleanToken);
         if (!sessionOpt.isPresent()) {
-            throw new RuntimeException("Invalid or expired token");
+            throw new RuntimeException("Invalid token");
         }
 
         Session session = sessionOpt.get();
+        
+        // Check if the session is within grace period (5 minutes after expiration)
+        LocalDateTime gracePeriod = session.getExpiresAt().plusMinutes(5);
+        if (LocalDateTime.now().isAfter(gracePeriod)) {
+            // Session is too old, delete it and throw error
+            sessionRepository.deleteByToken(cleanToken);
+            throw new RuntimeException("Token expired and grace period exceeded");
+        }
         
         // Find user
         Optional<User> userOpt = userRepository.findById(session.getUserId());

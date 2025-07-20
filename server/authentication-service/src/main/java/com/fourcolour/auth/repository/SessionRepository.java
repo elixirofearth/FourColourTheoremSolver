@@ -24,4 +24,9 @@ public interface SessionRepository extends JpaRepository<Session, Integer> {
     @Modifying
     @Transactional
     void deleteByUserId(Integer userId);
+    
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM Session s WHERE s.expiresAt < :now")
+    void deleteExpiredSessions(LocalDateTime now);
 } 

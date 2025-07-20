@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAppSelector } from "../store/hooks";
+import { authInterceptor } from "../utils/authInterceptor";
 
 interface MapData {
   id: string;
@@ -34,11 +35,9 @@ export default function MapPage() {
       }
 
       try {
-        const response = await fetch(`${apiHost}/api/v1/maps/${id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await authInterceptor.makeAuthenticatedRequest(
+          `${apiHost}/api/v1/maps/${id}`
+        );
 
         if (response.ok) {
           const data = await response.json();

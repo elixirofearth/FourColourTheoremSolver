@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useNotification } from "../hooks/useNotification";
 import { useAppSelector } from "../store/hooks";
+import { authInterceptor } from "../utils/authInterceptor";
 import ConfirmationModal from "./ConfirmationModal";
 
 interface Map {
@@ -35,13 +36,8 @@ export default function Profile() {
       }
 
       try {
-        const response = await fetch(
-          `${apiHost}/api/v1/maps?userId=${user.id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+        const response = await authInterceptor.makeAuthenticatedRequest(
+          `${apiHost}/api/v1/maps?userId=${user.id}`
         );
 
         if (response.ok) {
@@ -90,12 +86,12 @@ export default function Profile() {
     }
 
     try {
-      const response = await fetch(`${apiHost}/api/v1/maps/${mapToDelete}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await authInterceptor.makeAuthenticatedRequest(
+        `${apiHost}/api/v1/maps/${mapToDelete}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (response.ok) {
         setMaps((prevMaps) =>

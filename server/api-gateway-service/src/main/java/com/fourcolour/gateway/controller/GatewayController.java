@@ -51,6 +51,16 @@ public class GatewayController {
         return forwardToService("auth", "/auth/logout", HttpMethod.POST, null, request);
     }
 
+    @PostMapping("/api/v1/auth/refresh")
+    public ResponseEntity<String> refreshToken(HttpServletRequest request) {
+        return forwardToService("auth", "/auth/refresh", HttpMethod.POST, null, request);
+    }
+
+    @PostMapping("/api/v1/auth/verify")
+    public ResponseEntity<String> verifyToken(HttpServletRequest request) {
+        return forwardToService("auth", "/auth/verify", HttpMethod.POST, null, request);
+    }
+
     // Map coloring route (protected)
     @PostMapping("/api/v1/maps/color")
     public ResponseEntity<String> colorMap(@RequestBody ColoringRequest coloringRequest, 

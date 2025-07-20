@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { useNotification } from "../hooks/useNotification";
 import { useAppSelector } from "../store/hooks";
+import { authInterceptor } from "../utils/authInterceptor";
 
 interface LinePoint {
   x: number;
@@ -191,21 +192,23 @@ const Canvas: React.FC = () => {
         userId: user?.id,
       });
 
-      const res = await fetch(`${apiHost}/api/v1/maps/color`, {
-        method: "POST",
-        body: JSON.stringify({
-          image: {
-            data: array_pixels,
+      const res = await authInterceptor.makeAuthenticatedRequest(
+        `${apiHost}/api/v1/maps/color`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            image: {
+              data: array_pixels,
+            },
+            height: h,
+            width: w,
+            userId: user?.id,
+          }),
+          headers: {
+            "Content-Type": "application/json",
           },
-          height: h,
-          width: w,
-          userId: user?.id,
-        }),
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+        }
+      );
 
       if (!res.ok) {
         const errorText = await res.text();
@@ -328,14 +331,16 @@ const Canvas: React.FC = () => {
 
         console.log("Request body:", JSON.stringify(requestBody));
 
-        const response = await fetch(`${apiHost}/api/v1/maps`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(requestBody),
-        });
+        const response = await authInterceptor.makeAuthenticatedRequest(
+          `${apiHost}/api/v1/maps`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(requestBody),
+          }
+        );
 
         if (!response.ok) {
           const errorText = await response.text();
