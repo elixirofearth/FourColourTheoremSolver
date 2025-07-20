@@ -96,8 +96,11 @@ test.describe("Map Functionality Tests", () => {
         await page.mouse.up();
       }
 
-      // Save map with name
-      await page.fill('input[placeholder="Enter map name"]', "Test Map");
+      // Color the map first
+      await page.click("text=Color Map");
+      await page.waitForTimeout(5000); // Wait for coloring to complete
+
+      // Save map
       await page.click("text=Save Map");
 
       // Should show success message

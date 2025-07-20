@@ -78,8 +78,9 @@ export class TestHelpers {
   /**
    * Save a map with a name
    */
-  async saveMap(name: string = "Test Map") {
-    await this.page.fill('input[placeholder="Enter map name"]', name);
+  async saveMap() {
+    // Note: The current implementation doesn't ask for a name
+    // It generates the name automatically
     await this.page.click("text=Save Map");
 
     // Wait for save operation to complete

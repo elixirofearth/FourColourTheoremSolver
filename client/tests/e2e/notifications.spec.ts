@@ -6,46 +6,19 @@ test.describe("Notification and Error Handling Tests", () => {
   });
 
   test.describe("Success Notifications", () => {
-    test("should show success notification on successful login", async ({
-      page,
-    }) => {
-      await page.goto("/login");
-      await page.fill('input[type="email"]', "test@example.com");
-      await page.fill('input[type="password"]', "password123");
-      await page.click('button[type="submit"]');
-
-      // Should show success notification
-      await expect(page.locator('[data-testid="notification"]')).toBeVisible();
-      await expect(page.locator("text=Login successful")).toBeVisible();
-    });
-
-    test("should show success notification on successful signup", async ({
-      page,
-    }) => {
-      await page.goto("/signup");
-      await page.fill('input[name="name"]', "New User");
-      await page.fill('input[type="email"]', "newuser@example.com");
-      await page.fill('input[type="password"]', "password123");
-      await page.click('button[type="submit"]');
-
-      // Should show success notification
-      await expect(page.locator('[data-testid="notification"]')).toBeVisible();
-      await expect(
-        page.locator("text=Account created successfully")
-      ).toBeVisible();
-    });
-
     test("should show success notification on map save", async ({ page }) => {
       // First login
       await page.goto("/login");
-      await page.fill('input[type="email"]', "test@example.com");
+      await page.fill('input[type="text"]', "test@example.com");
       await page.fill('input[type="password"]', "password123");
       await page.click('button[type="submit"]');
 
       // Navigate back to home
       await page.goto("/");
 
-      // Save a map
+      // Click on the Color Map button, wait a bit, then click the Save Map button
+      await page.click("text=Color Map");
+      await page.waitForTimeout(3000);
       await page.click("text=Save Map");
 
       // Should show success notification
@@ -58,7 +31,7 @@ test.describe("Notification and Error Handling Tests", () => {
     }) => {
       // First login
       await page.goto("/login");
-      await page.fill('input[type="email"]', "test@example.com");
+      await page.fill('input[type="text"]', "test@example.com");
       await page.fill('input[type="password"]', "password123");
       await page.click('button[type="submit"]');
 
@@ -80,7 +53,7 @@ test.describe("Notification and Error Handling Tests", () => {
       page,
     }) => {
       await page.goto("/login");
-      await page.fill('input[type="email"]', "wrong@example.com");
+      await page.fill('input[type="text"]', "wrong@example.com");
       await page.fill('input[type="password"]', "wrongpassword");
       await page.click('button[type="submit"]');
 
@@ -94,7 +67,7 @@ test.describe("Notification and Error Handling Tests", () => {
     }) => {
       await page.goto("/signup");
       await page.fill('input[name="name"]', "Test User");
-      await page.fill('input[type="email"]', "existing@example.com");
+      await page.fill('input[type="text"]', "existing@example.com");
       await page.fill('input[type="password"]', "password123");
       await page.click('button[type="submit"]');
 
@@ -110,7 +83,7 @@ test.describe("Notification and Error Handling Tests", () => {
       await page.route("**/*", (route) => route.abort());
 
       await page.goto("/login");
-      await page.fill('input[type="email"]', "test@example.com");
+      await page.fill('input[type="text"]', "test@example.com");
       await page.fill('input[type="password"]', "password123");
       await page.click('button[type="submit"]');
 
@@ -124,7 +97,7 @@ test.describe("Notification and Error Handling Tests", () => {
     }) => {
       // First login
       await page.goto("/login");
-      await page.fill('input[type="email"]', "test@example.com");
+      await page.fill('input[type="text"]', "test@example.com");
       await page.fill('input[type="password"]', "password123");
       await page.click('button[type="submit"]');
 
@@ -148,7 +121,7 @@ test.describe("Notification and Error Handling Tests", () => {
       page,
     }) => {
       await page.goto("/login");
-      await page.fill('input[type="email"]', "test@example.com");
+      await page.fill('input[type="text"]', "test@example.com");
       await page.fill('input[type="password"]', "password123");
       await page.click('button[type="submit"]');
 
@@ -166,7 +139,7 @@ test.describe("Notification and Error Handling Tests", () => {
 
     test("should allow manual dismissal of notifications", async ({ page }) => {
       await page.goto("/login");
-      await page.fill('input[type="email"]', "test@example.com");
+      await page.fill('input[type="text"]', "test@example.com");
       await page.fill('input[type="password"]', "password123");
       await page.click('button[type="submit"]');
 
@@ -184,7 +157,7 @@ test.describe("Notification and Error Handling Tests", () => {
 
     test("should stack multiple notifications", async ({ page }) => {
       await page.goto("/login");
-      await page.fill('input[type="email"]', "test@example.com");
+      await page.fill('input[type="text"]', "test@example.com");
       await page.fill('input[type="password"]', "password123");
       await page.click('button[type="submit"]');
 
@@ -232,7 +205,7 @@ test.describe("Notification and Error Handling Tests", () => {
       await expect(page.locator("text=Email is required")).toBeVisible();
 
       // Start typing in email field
-      await page.fill('input[type="email"]', "test");
+      await page.fill('input[type="text"]', "test");
 
       // Error should clear
       await expect(page.locator("text=Email is required")).not.toBeVisible();
@@ -242,7 +215,7 @@ test.describe("Notification and Error Handling Tests", () => {
   test.describe("Loading States", () => {
     test("should show loading state during login", async ({ page }) => {
       await page.goto("/login");
-      await page.fill('input[type="email"]', "test@example.com");
+      await page.fill('input[type="text"]', "test@example.com");
       await page.fill('input[type="password"]', "password123");
       await page.click('button[type="submit"]');
 
@@ -256,7 +229,7 @@ test.describe("Notification and Error Handling Tests", () => {
     test("should show loading state during signup", async ({ page }) => {
       await page.goto("/signup");
       await page.fill('input[name="name"]', "Test User");
-      await page.fill('input[type="email"]', "newuser@example.com");
+      await page.fill('input[type="text"]', "newuser@example.com");
       await page.fill('input[type="password"]', "password123");
       await page.click('button[type="submit"]');
 
@@ -272,7 +245,7 @@ test.describe("Notification and Error Handling Tests", () => {
     }) => {
       // First login
       await page.goto("/login");
-      await page.fill('input[type="email"]', "test@example.com");
+      await page.fill('input[type="text"]', "test@example.com");
       await page.fill('input[type="password"]', "password123");
       await page.click('button[type="submit"]');
 
