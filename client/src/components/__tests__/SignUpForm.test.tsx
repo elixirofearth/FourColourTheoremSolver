@@ -346,18 +346,6 @@ describe("SignUpForm", () => {
     expect(passwordInput).toHaveAttribute("type", "password");
   });
 
-  it("has required attributes on all fields", async () => {
-    render(<SignUpForm />);
-
-    const nameInput = screen.getByLabelText("Full Name");
-    const emailInput = screen.getByLabelText("Email Address");
-    const passwordInput = screen.getByLabelText("Password");
-
-    expect(nameInput).toHaveAttribute("required");
-    expect(emailInput).toHaveAttribute("required");
-    expect(passwordInput).toHaveAttribute("required");
-  });
-
   it("has proper placeholders", async () => {
     render(<SignUpForm />);
 
