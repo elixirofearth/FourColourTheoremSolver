@@ -2,6 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAppSelector } from "../store/hooks";
 import { authInterceptor } from "../utils/authInterceptor";
+import { useNotification } from "../hooks/useNotification";
 
 interface MapData {
   id: string;
@@ -16,6 +17,7 @@ export default function MapPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { token, isAuthenticated } = useAppSelector((state) => state.auth);
+  const { showNotification } = useNotification();
   const [mapData, setMapData] = useState<MapData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -55,14 +57,13 @@ export default function MapPage() {
             error.message.includes("Token expired") ||
             error.message.includes("No valid token available")
           ) {
-            // Note: We can't use showNotification here since it's not available
-            // The error will be handled by the error state display
-            setError("Session expired. Please login again.");
-            setTimeout(() => navigate("/login"), 2000);
+            showNotification("Session expired. Please login again.", "error");
+            navigate("/login");
             return;
           }
         }
 
+        showNotification("Error loading map", "error");
         setError("Error loading map");
       } finally {
         setLoading(false);
