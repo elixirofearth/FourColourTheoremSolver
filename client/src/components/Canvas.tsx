@@ -295,6 +295,15 @@ const Canvas: React.FC = () => {
     };
 
     window.handleDownloadMap = () => {
+      // Check if canvas is blank (no lines drawn and no colored image)
+      if (lines.length === 0 && !capturedImage) {
+        showNotification(
+          "Cannot download blank canvas. Please draw and color a map first.",
+          "warning"
+        );
+        return;
+      }
+
       setDownloadImage(true);
       console.log("Downloading map image");
     };
