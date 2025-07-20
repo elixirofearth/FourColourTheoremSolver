@@ -86,7 +86,6 @@ const LoginForm: React.FC = () => {
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-200 transition-all duration-300 outline-none placeholder-gray-400"
                 placeholder="Enter your email"
-                required
                 disabled={isLoading}
               />
             </div>
@@ -105,7 +104,6 @@ const LoginForm: React.FC = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-200 transition-all duration-300 outline-none placeholder-gray-400"
                 placeholder="Enter your password"
-                required
                 disabled={isLoading}
               />
             </div>

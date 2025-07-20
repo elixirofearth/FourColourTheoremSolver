@@ -87,7 +87,6 @@ const SignUpForm: React.FC = () => {
                 onChange={(e) => setName(e.target.value)}
                 className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-200 transition-all duration-300 outline-none placeholder-gray-400"
                 placeholder="Enter your full name"
-                required
                 disabled={isLoading}
               />
             </div>
@@ -106,7 +105,6 @@ const SignUpForm: React.FC = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-200 transition-all duration-300 outline-none placeholder-gray-400"
                 placeholder="Enter your email"
-                required
                 disabled={isLoading}
               />
             </div>
@@ -125,7 +123,6 @@ const SignUpForm: React.FC = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-200 transition-all duration-300 outline-none placeholder-gray-400"
                 placeholder="Create a secure password"
-                required
                 disabled={isLoading}
               />
             </div>
