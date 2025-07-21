@@ -47,6 +47,7 @@ test.describe("Notification and Error Handling Tests", () => {
       await page.click('button:has-text("Save Map")');
       await expect(page.locator('[data-testid="notification"]')).toBeVisible();
       await expect(page.locator("text=Map saved successfully!")).toBeVisible();
+      await page.waitForTimeout(5000);
 
       // Navigate to profile
       await page.click("text=Profile");
