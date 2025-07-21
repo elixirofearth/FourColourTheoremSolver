@@ -56,7 +56,6 @@ export const loginUser = createAsyncThunk(
       }
 
       const data = await response.json();
-      console.log("Login success response:", data);
       return data;
     } catch (_error) {
       console.error("Login failed:", _error);
@@ -104,7 +103,6 @@ export const registerUser = createAsyncThunk(
       }
 
       const data = await response.json();
-      console.log("Registration success response:", data);
       return data;
     } catch (_error) {
       console.error("Registration failed:", _error);

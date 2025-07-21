@@ -187,13 +187,6 @@ const Canvas: React.FC = () => {
     }
 
     try {
-      console.log("Sending request with:", {
-        width: w,
-        height: h,
-        imageLength: array_pixels.length,
-        userId: user?.id,
-      });
-
       const res = await authInterceptor.makeAuthenticatedRequest(
         `${apiHost}/api/v1/maps/color`,
         {
@@ -338,15 +331,6 @@ const Canvas: React.FC = () => {
           row.map((cell) => Number(cell))
         );
 
-        console.log("Matrix structure:", {
-          type: typeof formattedMatrix,
-          isArray: Array.isArray(formattedMatrix),
-          length: formattedMatrix.length,
-          firstRow: formattedMatrix[0],
-          firstElement: formattedMatrix[0][0],
-          firstElementType: typeof formattedMatrix[0][0],
-        });
-
         const requestBody = {
           userId: user?.id,
           name: `Map ${new Date().toLocaleString()}`,
@@ -355,8 +339,6 @@ const Canvas: React.FC = () => {
           width: canvas.width,
           height: canvas.height,
         };
-
-        console.log("Request body:", JSON.stringify(requestBody));
 
         const response = await authInterceptor.makeAuthenticatedRequest(
           `${apiHost}/api/v1/maps`,

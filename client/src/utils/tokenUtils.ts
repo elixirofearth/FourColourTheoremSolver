@@ -65,12 +65,6 @@ export const isTokenExpired = (token: string): boolean => {
   // Log the current time, decoded expiration time (all in readable format), and whether the token is expired
   console.log("currentTime", new Date(currentTime * 1000).toISOString());
   console.log("decoded.exp", new Date(decoded.exp * 1000).toISOString());
-  console.log(
-    "isTokenExpired",
-    decoded.exp < currentTime,
-    decoded.exp,
-    currentTime
-  );
   return decoded.exp < currentTime;
 };
 

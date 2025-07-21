@@ -42,16 +42,12 @@ export default function Profile() {
 
         if (response.ok) {
           const data = await response.json();
-          console.log("Maps fetched:", data);
 
           if (data === null || data === undefined) {
-            console.log("No data received, setting maps to empty array");
             setMaps([]);
           } else if (Array.isArray(data)) {
-            console.log("Data is array, setting maps:", data);
             setMaps(data);
           } else {
-            console.log("Data is not array, converting to array:", data);
             setMaps([data]);
           }
         } else {
