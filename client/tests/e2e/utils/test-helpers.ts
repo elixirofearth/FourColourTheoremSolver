@@ -1,7 +1,11 @@
-import { Page, expect } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect } from "@playwright/test";
 
 export class TestHelpers {
-  constructor(private page: Page) {}
+  private page: Page;
+  constructor(page: Page) {
+    this.page = page;
+  }
 
   /**
    * Login with provided credentials
