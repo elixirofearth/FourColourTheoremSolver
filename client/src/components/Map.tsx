@@ -73,7 +73,7 @@ export default function Map() {
     if (id) {
       fetchMap();
     }
-  }, [id, navigate, isAuthenticated, showNotification, token]);
+  }, [id, navigate, isAuthenticated, showNotification]);
 
   if (loading) {
     return (
