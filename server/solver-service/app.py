@@ -25,6 +25,7 @@ CORS(app)
 
 # Add logging configuration
 LOGGER_URL = os.getenv("LOGGER_SERVICE_URL")  # gRPC service address
+print(f"LOGGER_URL: {LOGGER_URL}")
 
 
 def log_event(user_id, event_type, description, severity=1, metadata=None):
@@ -378,4 +379,5 @@ def color_map(vertices, solution, black):
 
 if __name__ == "__main__":
     port = os.getenv("PORT")
-    app.run(port=(port or 8082))
+    print(f"Starting solver service on port {port}")
+    app.run(port=int(port))
