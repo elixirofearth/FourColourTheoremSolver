@@ -186,6 +186,153 @@ describe("LoginForm", () => {
 });
 ```
 
+## End-to-End Testing
+
+This project includes comprehensive end-to-end tests using Playwright to ensure the application works correctly from a user's perspective.
+
+### E2E Test Structure
+
+The E2E tests are located in `tests/e2e/` and cover the following areas:
+
+- **Authentication Tests** (`authentication.spec.ts`): Login, signup, and authentication flows
+- **Map Functionality Tests** (`map-functionality.spec.ts`): Canvas interaction and map creation
+- **Navigation Tests** (`navigation.spec.ts`): Navigation between pages and URL handling
+- **Notification Tests** (`notifications.spec.ts`): Success, warning, and error notifications
+
+### Running E2E Tests
+
+```bash
+# Install Playwright browsers (first time only)
+npx playwright install
+
+# Run all E2E tests
+npm run test:e2e
+
+# Run E2E tests with UI
+npm run test:e2e:ui
+
+# Run specific E2E test file
+npx playwright test tests/e2e/authentication.spec.ts
+
+# Run E2E tests in headed mode (see browser)
+npx playwright test --headed
+```
+
+### E2E Test Features
+
+#### Authentication Tests
+
+- **Login Flow**: Form validation, successful login, incorrect credentials
+- **Signup Flow**: Form validation, successful registration, duplicate email handling
+- **Session Management**: Token persistence, logout functionality
+
+#### Map Functionality Tests
+
+- **Canvas Interaction**: Drawing capabilities, mouse events
+- **Map Creation**: Color map generation, save functionality
+- **Map Viewing**: Profile page map display, map details
+
+#### Navigation Tests
+
+- **Route Protection**: Authentication-based redirects
+- **Navigation Bar**: Conditional visibility, navigation links
+- **URL Handling**: Direct URL access, page refresh behavior
+
+#### Notification Tests
+
+- **Success Notifications**: Map save/delete confirmations
+- **Warning Notifications**: Validation warnings, incomplete actions
+- **Error Notifications**: API errors, network failures
+
+### E2E Test Configuration
+
+The E2E tests use Playwright with the following configuration:
+
+- **Browser**: Chromium (Chrome-based)
+- **Base URL**: `http://localhost:5173`
+- **Parallel Execution**: Disabled for stability
+- **Retries**: 2 retries on CI, 0 locally
+- **Screenshots**: Captured on test failure
+- **Videos**: Recorded on test failure
+- **Traces**: Collected on retry
+
+### E2E Test Best Practices
+
+1. **Test User Journeys**: Focus on complete user workflows
+2. **Realistic Data**: Use realistic test data and scenarios
+3. **Wait Strategies**: Use proper wait conditions for async operations
+4. **Error Handling**: Test both success and failure scenarios
+5. **Cross-Browser**: Ensure compatibility across different browsers
+6. **Mobile Testing**: Test responsive design on mobile viewports
+
+### E2E Test Examples
+
+#### Authentication Test Example
+
+```typescript
+test("should handle successful login", async ({ page }) => {
+  await page.goto("/login");
+
+  await page.fill('input[type="text"]', "test@example.com");
+  await page.fill('input[type="password"]', "password123");
+  await page.click('button[type="submit"]');
+
+  await expect(page).toHaveURL("/", { timeout: 10000 });
+});
+```
+
+#### Map Functionality Test Example
+
+```typescript
+test("should allow drawing on canvas", async ({ page }) => {
+  // Login first
+  await page.goto("/login");
+  await page.fill('input[type="text"]', "test@example.com");
+  await page.fill('input[type="password"]', "password123");
+  await page.click('button[type="submit"]');
+
+  const canvas = page.locator("canvas").first();
+  const canvasBox = await canvas.boundingBox();
+
+  // Draw a line
+  await page.mouse.move(canvasBox.x + 100, canvasBox.y + 100);
+  await page.mouse.down();
+  await page.mouse.move(canvasBox.x + 200, canvasBox.y + 200);
+  await page.mouse.up();
+
+  await expect(canvas).toBeVisible();
+});
+```
+
+### E2E Test Reports
+
+After running E2E tests, you can view detailed reports:
+
+```bash
+# Open HTML report
+npx playwright show-report
+
+# Generate report in CI
+npx playwright test --reporter=html
+```
+
+The HTML report includes:
+
+- Test results and execution times
+- Screenshots of failed tests
+- Video recordings of test runs
+- Trace files for debugging
+- Performance metrics
+
+### Continuous Integration
+
+E2E tests are configured to run in CI environments with:
+
+- Automatic browser installation
+- Parallel test execution (when stable)
+- Retry logic for flaky tests
+- Artifact collection for debugging
+
 ## Key Components
 
 ### Authentication

@@ -1,237 +1,96 @@
 # Four Colour Theorem Solver - Spring Boot Backend
 
-This is a Spring Boot migration of the original Go microservices backend. It maintains the same API contracts and functionality while leveraging the Spring Boot ecosystem.
+A Spring Boot microservices backend for the Four Colour Theorem Solver application.
 
 ## Architecture
 
-The system consists of 5 Spring Boot microservices plus the original Python solver service:
+5 Spring Boot microservices + Python solver:
 
-### Spring Boot Services
-
-1. **API Gateway Service** (`port 8080`)
-
-   - Main entry point for all requests
-   - Handles CORS and request routing
-   - Implements authentication middleware
-   - Routes requests to appropriate services
-
-2. **Authentication Service** (`port 8081`)
-
-   - User registration and login
-   - JWT token generation and validation
-   - Session management with PostgreSQL
-   - Password hashing with BCrypt
-
-3. **Map Storage Service** (`port 8083`)
-
-   - CRUD operations for maps
-   - MongoDB integration
-   - Map metadata and image data storage
-
-4. **Logger Service** (`port 8084`, gRPC `port 50001`)
-
-   - gRPC-based centralized logging
-   - RabbitMQ message queuing
-   - MongoDB log storage
-   - Event tracking across all services
-
-5. **Solver Service** (`port 8082`) - **Original Python service**
-   - Graph coloring algorithms using ASP
-   - Image processing and segmentation
-   - Four-color theorem implementation
+- **API Gateway** (`8080`) - Main entry point, routing, authentication, Redis caching
+- **Authentication Service** (`8081`) - User auth, JWT tokens, PostgreSQL
+- **Map Storage Service** (`8083`) - CRUD operations, MongoDB
+- **Logger Service** (`8084`, gRPC `50001`) - Centralized logging, Kafka messaging
+- **Solver Service** (`8082`) - Python service for graph coloring algorithms
 
 ### Infrastructure
 
 - **PostgreSQL**: User data and sessions
-- **MongoDB**: Map storage, metadata, and logs
-- **RabbitMQ**: Message queuing for log events
+- **MongoDB**: Map storage and logs
+- **Redis**: Caching and session storage
+- **Kafka**: Message queuing for logs
+- **Zookeeper**: Kafka coordination
 
-## Getting Started
+## Quick Start
 
 ### Prerequisites
 
-Before running the application locally, ensure you have the following installed:
+- Java 21+, Maven 3.8+, Docker Desktop, Python 3.8+
 
-- **Java 21+**: [Download OpenJDK](https://openjdk.org/projects/jdk/21/)
-- **Maven 3.8+**: [Download Maven](https://maven.apache.org/download.cgi)
-- **Docker Desktop**: [Download Docker](https://www.docker.com/products/docker-desktop/)
-- **Python 3.8+**: For the solver service (if running without Docker)
-- **Git**: For cloning the repository
-
-Verify your installations:
+### Fastest Setup
 
 ```bash
-java --version
-mvn --version
-docker --version
-python --version
-```
-
-### Quick Start (Recommended)
-
-The fastest way to get everything running:
-
-```bash
-# 1. Navigate to the spring_server directory
-cd spring_server
-
-# 2. Build all services
+cd server
 make build
-
-# 3. Start everything with Docker Compose
 make up
-
-# 4. Verify all services are running
-make logs
 ```
 
-Access the application at `http://localhost:8080`
+Access at `http://localhost:8080`
 
-### Local Development Setup
+## Development Setup
 
-For development work where you want to run services individually:
-
-#### Step 1: Clone and Build
+### 1. Build Project
 
 ```bash
-# Clone the repository (if not already done)
-git clone <repository-url>
-cd FourColourTheoremSolver/spring_server
-
-# Build the entire project
+cd server
 mvn clean install
 ```
 
-#### Step 2: Start Infrastructure Services
-
-Start the required databases and message queue:
+### 2. Start Infrastructure
 
 ```bash
-# Start PostgreSQL, MongoDB, and RabbitMQ
-docker-compose up -d postgres mongo rabbitmq
-
-# Verify they're running
-docker-compose ps
+docker-compose up -d postgres mongo redis zookeeper kafka
 ```
 
-Wait for all services to be healthy (usually 30-60 seconds).
-
-#### Step 3: Set Environment Variables (Optional)
-
-For local development, default values work, but you can customize:
+### 3. Start Services (in order)
 
 ```bash
-# PostgreSQL (Authentication Service)
-export DB_HOST=localhost
-export DB_PORT=5432
-export DB_USER=postgres
-export DB_PASSWORD=password
-export DB_NAME=users
-export JWT_SECRET=your-secret-key-here
+# Terminal 1 - Logger Service
+cd logger-service && mvn spring-boot:run
 
-# MongoDB (Map Storage & Logger Services)
-export MONGO_URI=mongodb://localhost:27017
-export MONGO_DB_MAPS=mapstore
-export MONGO_DB_LOGS=logs
-
-# RabbitMQ (Logger Service)
-export RABBITMQ_HOST=localhost
-export RABBITMQ_PORT=5672
-export RABBITMQ_USERNAME=guest
-export RABBITMQ_PASSWORD=guest
-
-# Service URLs (API Gateway)
-export AUTHENTICATION_SERVICE_URL=http://localhost:8081
-export MAP_STORAGE_SERVICE_URL=http://localhost:8083
-export COLORING_SERVICE_URL=http://localhost:8082
-export LOGGER_SERVICE_URL=http://localhost:50001
-```
-
-#### Step 4: Start Services in Order
-
-**Important**: Start services in this order due to dependencies:
-
-```bash
-# Terminal 1 - Logger Service (other services depend on this)
-cd logger-service
-mvn spring-boot:run
-
-# Wait for "gRPC server started on port 50001" message
-```
-
-```bash
 # Terminal 2 - Authentication Service
-cd authentication-service
-mvn spring-boot:run
+cd authentication-service && mvn spring-boot:run
 
-# Wait for "Started AuthenticationServiceApplication" message
-```
-
-```bash
 # Terminal 3 - Map Storage Service
-cd map-storage-service
-mvn spring-boot:run
+cd map-storage-service && mvn spring-boot:run
 
-# Wait for "Started MapStorageServiceApplication" message
-```
-
-```bash
 # Terminal 4 - Solver Service (Python)
-cd solver-service
-# Install dependencies (first time only)
-pip install -r requirements.txt
-python app.py
+cd solver-service && python app.py
 
-# Wait for "Solver service running on port 8082" message
+# Terminal 5 - API Gateway
+cd api-gateway-service && mvn spring-boot:run
 ```
 
-```bash
-# Terminal 5 - API Gateway (start last)
-cd api-gateway-service
-mvn spring-boot:run
-
-# Wait for "Started ApiGatewayServiceApplication" message
-```
-
-#### Step 5: Verify Everything is Running
-
-Check that all services are responding:
+### 4. Verify Setup
 
 ```bash
-# Check comprehensive health (all services at once)
+# Check all services
 curl http://localhost:8080/healthcheck/services
 
-# Check individual service health
-curl http://localhost:8080/healthcheck               # API Gateway
-curl http://localhost:8081/auth/healthcheck          # Authentication
-curl http://localhost:8083/api/v1/maps/healthcheck   # Map Storage
-curl http://localhost:8084/healthcheck               # Logger Service
-curl http://localhost:8082/health                    # Solver Service
-
-# Test basic functionality
+# Test registration
 curl -X POST http://localhost:8080/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{"username":"test","email":"test@example.com","password":"password123"}'
 ```
 
-## Health Check System
+## Health Checks
 
-The system includes a comprehensive health check mechanism that allows you to verify the status of all services from a single endpoint. This is particularly useful for monitoring, load balancers, and ensuring system reliability.
-
-### Health Check Endpoints
-
-#### Comprehensive Health Check (Recommended)
-
-**Endpoint**: `GET /healthcheck/services`  
-**URL**: `http://localhost:8080/healthcheck/services`
-
-This endpoint checks the health of all critical services through the API Gateway:
+### Comprehensive Health Check
 
 ```bash
-curl -X GET http://localhost:8080/healthcheck/services
+curl http://localhost:8080/healthcheck/services
 ```
 
-**Response when all services are healthy (HTTP 200):**
+**Response (200 OK):**
 
 ```json
 {
@@ -242,295 +101,14 @@ curl -X GET http://localhost:8080/healthcheck/services
 }
 ```
 
-**Response when any service is down (HTTP 503):**
-
-```json
-{
-  "gateway": "OK",
-  "authentication-service": "FAIL - I/O error on GET request...",
-  "map-storage-service": "OK",
-  "solver-service": "OK"
-}
-```
-
-#### Individual Service Health Checks
-
-Each service also provides its own health check endpoint:
+### Individual Service Checks
 
 ```bash
-# API Gateway basic health
-curl -X GET http://localhost:8080/healthcheck
-
-# Authentication Service
-curl -X GET http://localhost:8081/auth/healthcheck
-
-# Map Storage Service
-curl -X GET http://localhost:8083/api/v1/maps/healthcheck
-
-# Logger Service
-curl -X GET http://localhost:8084/healthcheck
-
-# Solver Service
-curl -X GET http://localhost:8082/health
-```
-
-All individual endpoints return `OK` when healthy and appropriate error messages when unhealthy.
-
-### Health Check Features
-
-- ✅ **Comprehensive Monitoring**: Single endpoint checks all services
-- ✅ **Proper HTTP Status Codes**: Returns 200 for healthy, 503 for unhealthy
-- ✅ **Detailed Error Messages**: Shows which service failed and why
-- ✅ **Real-time Connectivity Testing**: Actually calls each service's health endpoint
-- ✅ **JSON Response Format**: Easy to parse programmatically
-- ✅ **Logging**: All health checks are logged for debugging
-
-### Testing Health Check System
-
-#### Test All Services Healthy
-
-```bash
-# Should return HTTP 200 with all services "OK"
-curl -X GET http://localhost:8080/healthcheck/services
-
-# Check status code
-curl -I http://localhost:8080/healthcheck/services
-```
-
-#### Test Error Handling
-
-```bash
-# Stop a service to test failure detection
-docker compose stop authentication-service
-
-# Should return HTTP 503 with authentication-service marked as "FAIL"
-curl -X GET http://localhost:8080/healthcheck/services
-
-# Check status code (should be 503)
-curl -I http://localhost:8080/healthcheck/services
-
-# Restart the service
-docker compose start authentication-service
-
-# Should return to HTTP 200
-curl -X GET http://localhost:8080/healthcheck/services
-```
-
-#### Test Individual Services
-
-```bash
-# Test each service individually
-curl -X GET http://localhost:8081/auth/healthcheck          # Should return "OK"
-curl -X GET http://localhost:8083/api/v1/maps/healthcheck   # Should return "OK"
-curl -X GET http://localhost:8082/health                    # Should return {"status":"healthy"}
-```
-
-### Integration with Monitoring
-
-The health check system is designed to integrate with:
-
-- **Load Balancers**: Use `/healthcheck/services` for health checks
-- **Monitoring Systems**: Parse JSON responses for alerting
-- **CI/CD Pipelines**: Verify deployment success
-- **Service Mesh**: Integrate with service discovery
-
-### Troubleshooting Health Checks
-
-If health checks are failing:
-
-1. **Check Service Logs**:
-
-   ```bash
-   docker compose logs [service-name]
-   ```
-
-2. **Verify Service Status**:
-
-   ```bash
-   docker compose ps
-   ```
-
-3. **Test Individual Services**:
-
-   ```bash
-   curl -X GET http://localhost:8081/auth/healthcheck
-   ```
-
-4. **Check Network Connectivity**:
-   ```bash
-   # Test internal Docker network
-   docker exec -it spring_server-api-gateway-service-1 curl http://authentication-service:8081/auth/healthcheck
-   ```
-
-### Alternative: IDE Setup
-
-For development in IntelliJ IDEA or Eclipse:
-
-1. **Import the project**: Open the `pom.xml` in the spring_server directory
-2. **Configure Run Configurations**: Create separate run configurations for each service
-3. **Set Working Directory**: Ensure each service runs from its own module directory
-4. **Start Infrastructure**: Use `docker-compose up -d postgres mongo rabbitmq`
-5. **Run Services**: Start each service using your IDE's run configurations
-
-### Docker Deployment
-
-For production-like environment or if you prefer containers:
-
-#### Full Docker Setup
-
-```bash
-# Build and start all services
-docker-compose up --build
-
-# Or run in background
-docker-compose up -d --build
-
-# View logs
-docker-compose logs -f
-
-# Stop services
-docker-compose down
-```
-
-#### Partial Docker Setup (Infrastructure Only)
-
-Run infrastructure in Docker but services locally:
-
-```bash
-# Start only databases and RabbitMQ
-docker-compose up -d postgres mongo rabbitmq
-
-# Then run Spring services locally as described above
-```
-
-### Using the Makefile
-
-The project includes a Makefile for common operations:
-
-```bash
-# Build all services
-make build
-
-# Start everything
-make up
-
-# Start in background
-make up_build
-
-# View logs
-make logs
-
-# Stop everything
-make down
-
-# Clean containers and images
-make clean
-
-# Run tests
-make test
-```
-
-### Quick Health Check Commands
-
-For quick system verification:
-
-```bash
-# Check all services at once (recommended)
-curl http://localhost:8080/healthcheck/services
-
-# Check if API Gateway can reach all services
-curl -I http://localhost:8080/healthcheck/services  # Should return 200
-
-# Individual service checks
 curl http://localhost:8080/healthcheck               # API Gateway
 curl http://localhost:8081/auth/healthcheck          # Authentication
 curl http://localhost:8083/api/v1/maps/healthcheck   # Map Storage
 curl http://localhost:8082/health                    # Solver Service
 ```
-
-### Troubleshooting
-
-#### Common Issues
-
-**Service won't start - Port already in use:**
-
-```bash
-# Find what's using the port
-lsof -i :8080  # Replace with your port
-# Kill the process or use different ports
-```
-
-**Database connection issues:**
-
-```bash
-# Check if PostgreSQL is running
-docker-compose ps postgres
-# Check logs
-docker-compose logs postgres
-# Restart if needed
-docker-compose restart postgres
-```
-
-**gRPC connection errors:**
-
-```bash
-# Ensure logger service is running first
-# Check gRPC port is not blocked
-telnet localhost 50001
-```
-
-**Maven build failures:**
-
-```bash
-# Clear local repository and rebuild
-rm -rf ~/.m2/repository/com/fourcolour
-mvn clean install -U
-```
-
-**Health check failures:**
-
-```bash
-# Check which services are failing
-curl http://localhost:8080/healthcheck/services
-
-# Test individual services
-curl http://localhost:8081/auth/healthcheck
-curl http://localhost:8083/api/v1/maps/healthcheck
-curl http://localhost:8082/health
-
-# Check service logs for errors
-docker-compose logs [service-name]
-```
-
-#### Service Startup Order Issues
-
-If services fail to connect to each other:
-
-1. Stop all services
-2. Start infrastructure: `docker-compose up -d postgres mongo rabbitmq`
-3. Wait 30 seconds for databases to initialize
-4. Start logger service first (other services depend on it)
-5. Start remaining services in any order
-
-#### Log Files and Debugging
-
-```bash
-# View service logs
-docker-compose logs [service-name]
-
-# Follow logs in real-time
-docker-compose logs -f [service-name]
-
-# Spring Boot debug mode
-mvn spring-boot:run -Dspring-boot.run.jvmArguments="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005"
-```
-
-### Development Tips
-
-1. **Hot Reload**: Use `spring-boot-devtools` dependency for automatic restarts
-2. **Database Tools**: Connect to PostgreSQL at `localhost:5432` and MongoDB at `localhost:27017`
-3. **API Testing**: Use tools like Postman or curl to test endpoints
-4. **Log Monitoring**: Check RabbitMQ management UI at `http://localhost:15672` (guest/guest)
 
 ## API Endpoints
 
@@ -540,195 +118,178 @@ mvn spring-boot:run -Dspring-boot.run.jvmArguments="-Xdebug -Xrunjdwp:transport=
 - `POST /api/v1/auth/login` - User login
 - `POST /api/v1/auth/logout` - User logout
 
-### Map Operations (via Gateway, protected)
+### Map Operations (protected)
 
-- `POST /api/v1/maps/color` - Color a map using the solver
+- `POST /api/v1/maps/color` - Color a map
 - `POST /api/v1/maps` - Save a map
-- `GET /api/v1/maps?userId={id}` - Get maps for user
+- `GET /api/v1/maps?userId={id}` - Get user maps
 - `GET /api/v1/maps/{id}` - Get specific map
 - `DELETE /api/v1/maps/{id}` - Delete a map
 
-### Configuration
+## Configuration
 
-Each service can be configured via environment variables:
+### Environment Variables
 
 #### Authentication Service
 
-- `DB_HOST`: PostgreSQL host (default: localhost)
-- `DB_PORT`: PostgreSQL port (default: 5432)
-- `DB_USER`: Database username (default: postgres)
-- `DB_PASSWORD`: Database password (default: password)
-- `DB_NAME`: Database name (default: users)
-- `JWT_SECRET`: JWT signing secret
-- `LOGGER_SERVICE_URL`: Logger service gRPC endpoint
+- `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`
+- `JWT_SECRET`, `LOGGER_SERVICE_URL`
 
 #### Map Storage Service
 
-- `MONGO_URI`: MongoDB connection string
-- `MONGO_DB`: MongoDB database name (default: mapstore)
-- `LOGGER_SERVICE_URL`: Logger service gRPC endpoint
+- `MONGO_URI`, `MONGO_DB`, `LOGGER_SERVICE_URL`
 
 #### Logger Service
 
-- `MONGO_URI`: MongoDB connection string for logs
-- `MONGO_DB`: MongoDB database name (default: logs)
-- `RABBITMQ_HOST`: RabbitMQ host
-- `RABBITMQ_PORT`: RabbitMQ port
-- `RABBITMQ_USERNAME`: RabbitMQ username
-- `RABBITMQ_PASSWORD`: RabbitMQ password
+- `MONGO_URI`, `MONGO_DB`, `KAFKA_BOOTSTRAP_SERVERS`
+- `KAFKA_GROUP_ID`
 
 #### API Gateway Service
 
-- `COLORING_SERVICE_URL`: Solver service URL
-- `AUTHENTICATION_SERVICE_URL`: Auth service URL
-- `MAP_STORAGE_SERVICE_URL`: Map storage service URL
+- `COLORING_SERVICE_URL`, `AUTHENTICATION_SERVICE_URL`, `MAP_STORAGE_SERVICE_URL`
+- `REDIS_HOST`, `REDIS_PORT`
+
+## Docker Deployment
+
+### Full Setup
+
+```bash
+docker-compose up --build
+```
+
+### Infrastructure Only
+
+```bash
+docker-compose up -d postgres mongo redis zookeeper kafka
+# Then run Spring services locally
+```
+
+## Makefile Commands
+
+```bash
+make build      # Build all services
+make up         # Start everything
+make up_build   # Start in background
+make logs       # View logs
+make down       # Stop everything
+make clean      # Clean containers/images
+make test       # Run tests
+
+# Individual service builds
+make build_gateway
+make build_auth
+make build_map_storage
+make build_logger
+
+# Individual service runs
+make run_logger_service
+make run_solver_service
+make run_map_storage_service
+make run_api_gateway_service
+make run_authentication_service
+```
+
+## Troubleshooting
+
+### Common Issues
+
+**Port conflicts:**
+
+```bash
+lsof -i :8080  # Find process using port
+```
+
+**Database connection:**
+
+```bash
+docker-compose ps postgres
+docker-compose logs postgres
+```
+
+**Kafka connection:**
+
+```bash
+docker-compose ps kafka
+docker-compose logs kafka
+```
+
+**Health check failures:**
+
+```bash
+curl http://localhost:8080/healthcheck/services
+docker-compose logs [service-name]
+```
+
+### Service Startup Order
+
+1. Infrastructure: `docker-compose up -d postgres mongo redis zookeeper kafka`
+2. Logger Service (other services depend on it)
+3. Remaining services in any order
+
+### Development Tips
+
+- Use `spring-boot-devtools` for hot reload
+- Connect to PostgreSQL: `localhost:5432`, MongoDB: `localhost:27017`
+- Redis: `localhost:6379`
+- Kafka: `localhost:9092`
 
 ## Key Features
 
-### Security
-
-- JWT-based authentication with session tracking
-- Password hashing using BCrypt
-- Authorization middleware for protected endpoints
-- CORS configuration for frontend integration
-
-### Data Persistence
-
-- PostgreSQL for user data with JPA/Hibernate
-- MongoDB for map storage with Spring Data MongoDB
-- MongoDB for centralized logging
-- Automatic schema creation and migration
-
-### Centralized Logging
-
-- gRPC-based logger service for high-performance logging
-- RabbitMQ queuing with automatic exchange/queue setup
-- Structured event logging across all services
-- MongoDB storage for log persistence and querying
-
-### Error Handling
-
-- Comprehensive exception handling
-- Consistent error response format
-- Request validation with Bean Validation
-
-### Messaging & Communication
-
-- gRPC for high-performance inter-service communication
-- RabbitMQ for reliable message queuing
-- RestTemplate for HTTP service communication
-
-## Migration from Go Services
-
-This Spring Boot backend is a direct migration from the original Go services with:
-
-✅ **Identical API contracts** - Same endpoints, request/response formats
-✅ **Same database schemas** - PostgreSQL and MongoDB structures preserved  
-✅ **Compatible authentication** - JWT tokens work across systems
-✅ **CORS support** - Frontend integration unchanged
-✅ **Docker deployment** - Same port mappings and service names
-✅ **Complete logging** - gRPC logger service with RabbitMQ and MongoDB
-
-### Differences from Go Version
-
-- Uses Spring Boot auto-configuration instead of manual setup
-- JPA/Hibernate for database operations instead of raw SQL
-- Spring Data MongoDB instead of Go MongoDB driver
-- RestTemplate for service communication instead of Go HTTP client
-- Spring Security for password hashing instead of Go bcrypt
-- gRPC Spring Boot starter instead of manual gRPC setup
-- Spring AMQP for RabbitMQ instead of Go AMQP
-
-## Logging Events
-
-The system logs the following events:
-
-### Authentication Service
-
-- `user_registered` - New user registration
-- `user_login` - Successful login
-- `login_failed` - Failed login attempts
-- `user_logout` - User logout
-- `session_created` - New session creation
-- `token_refreshed` - Token refresh
-
-### Map Storage Service
-
-- `map_created` - New map saved
-- `map_deleted` - Map deletion
-
-### Solver Service
-
-- `map_coloring_completed` - Map coloring process completed
+- **Security**: JWT authentication, BCrypt password hashing, CORS
+- **Data Persistence**: PostgreSQL (users), MongoDB (maps/logs)
+- **Caching**: Redis for session storage and API caching
+- **Centralized Logging**: gRPC logger service with Kafka messaging
+- **Error Handling**: Comprehensive exception handling
+- **Monitoring**: Health checks, structured logging
+- **Shared Code**: Common module with DTOs and shared services
 
 ## Testing
-
-Run tests for all services:
 
 ```bash
 mvn test
 ```
 
-## Monitoring
+## Migration from Go
 
-- Health checks available at `/healthcheck` for each service
-- gRPC health checks for logger service
-- Centralized logging via logger service
-- Spring Boot Actuator endpoints can be enabled for production monitoring
-- Logs available via Docker: `docker-compose logs -f [service-name]`
+This Spring Boot backend maintains:
 
-## Future Enhancements
-
-- [x] Complete gRPC logger service integration
-- [x] RabbitMQ message queuing for logs
-- [x] Comprehensive health check system with monitoring
-- [ ] Add Spring Boot Actuator for monitoring
-- [ ] Implement service discovery with Eureka
-- [ ] Add distributed tracing with Zipkin
-- [ ] Kubernetes deployment manifests
-- [ ] Integration tests with Testcontainers
-- [ ] Log analytics and search capabilities
+- ✅ Identical API contracts
+- ✅ Same database schemas
+- ✅ Compatible authentication
+- ✅ CORS support
+- ✅ Docker deployment
+- ✅ Complete logging system
 
 ## Quick Reference
 
-### Essential Health Check Commands
+### Essential Commands
 
 ```bash
-# Check all services at once (recommended)
+# Health check
 curl http://localhost:8080/healthcheck/services
 
-# Individual service health checks
-curl http://localhost:8080/healthcheck               # API Gateway
-curl http://localhost:8081/auth/healthcheck          # Authentication
-curl http://localhost:8083/api/v1/maps/healthcheck   # Map Storage
-curl http://localhost:8082/health                    # Solver Service
-```
-
-### Key Docker Commands
-
-```bash
 # Start all services
 docker-compose up -d --build
-
-# Check service status
-docker-compose ps
 
 # View logs
 docker-compose logs -f [service-name]
 
-# Stop all services
+# Stop services
 docker-compose down
 ```
 
-### Troubleshooting
+### Service URLs
 
-```bash
-# Check health status
-curl http://localhost:8080/healthcheck/services
+- API Gateway: `http://localhost:8080`
+- Authentication: `http://localhost:8081`
+- Map Storage: `http://localhost:8083`
+- Solver: `http://localhost:8082`
+- Logger: `http://localhost:8084` (gRPC: `50001`)
 
-# Restart failed service
-docker-compose restart [service-name]
+### Infrastructure URLs
 
-# Check logs for errors
-docker-compose logs [service-name]
-```
+- PostgreSQL: `localhost:5432`
+- MongoDB: `localhost:27017`
+- Redis: `localhost:6379`
+- Kafka: `localhost:9092`
+- Zookeeper: `localhost:2181`
