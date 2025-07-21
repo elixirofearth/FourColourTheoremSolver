@@ -24,7 +24,7 @@ app = Flask(__name__)
 CORS(app)
 
 # Add logging configuration
-LOGGER_URL = "logger-service:50001"  # gRPC service address
+LOGGER_URL = os.getenv("LOGGER_SERVICE_URL")  # gRPC service address
 
 
 def log_event(user_id, event_type, description, severity=1, metadata=None):
@@ -378,4 +378,4 @@ def color_map(vertices, solution, black):
 
 if __name__ == "__main__":
     port = os.getenv("PORT")
-    app.run(port=(port or 1000))
+    app.run(port=(port or 8082))

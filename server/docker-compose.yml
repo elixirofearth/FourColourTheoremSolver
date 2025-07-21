@@ -78,6 +78,7 @@ services:
     ports:
       - "8082:8082"
     environment:
+      LOGGER_SERVICE_URL: logger-service:50001
       PORT: 8082
 
   # Infrastructure services (updated to latest versions)
