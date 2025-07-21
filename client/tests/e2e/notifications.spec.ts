@@ -36,12 +36,25 @@ test.describe("Notification and Error Handling Tests", () => {
       await page.fill('input[type="password"]', "password123");
       await page.click('button[type="submit"]');
 
+      // Check if the user is in the home page
+      await expect(page).toHaveURL("/");
+
+      // Create a map first by drawing and coloring
+      await expect(page.locator('button:has-text("Color Map")')).toBeVisible();
+      await page.click('button:has-text("Color Map")');
+      await page.waitForTimeout(5000); // Wait for coloring to complete
+      await expect(page.locator('button:has-text("Save Map")')).toBeVisible();
+      await page.click('button:has-text("Save Map")');
+      await expect(page.locator('[data-testid="notification"]')).toBeVisible();
+      await expect(page.locator("text=Map saved successfully!")).toBeVisible();
+
       // Navigate to profile
       await page.click("text=Profile");
 
       // Delete a map
       await page.click('button:has-text("Delete")');
-      await page.click('button:has-text("Confirm")');
+      await expect(page.locator("text=Are you sure")).toBeVisible();
+      await page.locator('[data-testid="confirm-button"]').click();
 
       // Should show success notification
       await expect(page.locator('[data-testid="notification"]')).toBeVisible();
@@ -50,7 +63,7 @@ test.describe("Notification and Error Handling Tests", () => {
       ).toBeVisible();
     });
 
-    test("show show warning notification when trying to save map without coloring the map", async ({
+    test("show warning notification when trying to save map without coloring the map", async ({
       page,
     }) => {
       // First login
@@ -68,6 +81,30 @@ test.describe("Notification and Error Handling Tests", () => {
       await expect(page.locator('[data-testid="notification"]')).toBeVisible();
       await expect(
         page.locator("text=Please color your map before saving!")
+      ).toBeVisible();
+    });
+
+    test("show warning notification when trying to download map without coloring the map", async ({
+      page,
+    }) => {
+      // First login
+      await page.goto("/login");
+      await page.fill('input[type="text"]', "test@example.com");
+      await page.fill('input[type="password"]', "password123");
+      await page.click('button[type="submit"]');
+
+      // Check if the user is in the home page
+      await expect(page).toHaveURL("/");
+
+      // Click on the Download Map button
+      await expect(page.locator('button:has-text("Download")')).toBeVisible();
+      await page.click('button:has-text("Download")');
+      // Should show warning notification
+      await expect(page.locator('[data-testid="notification"]')).toBeVisible();
+      await expect(
+        page.locator(
+          "text=Cannot download blank canvas. Please draw and color a map first."
+        )
       ).toBeVisible();
     });
   });

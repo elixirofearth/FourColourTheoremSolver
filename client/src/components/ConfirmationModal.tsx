@@ -50,7 +50,10 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+    <div
+      className="fixed inset-0 z-50 overflow-y-auto"
+      data-testid="confirmation-modal"
+    >
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300"
@@ -86,6 +89,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                   onClose();
                 }}
                 className={`flex-1 bg-gradient-to-r ${getConfirmButtonColors()} text-white py-3 px-4 rounded-xl transition-all duration-300 font-semibold focus:outline-none focus:ring-4 transform hover:-translate-y-0.5 hover:shadow-lg`}
+                data-testid="confirm-button"
               >
                 {confirmText}
               </button>

@@ -159,10 +159,12 @@ test.describe("Map Functionality Tests", () => {
       await expect(page.locator("text=Are you sure?")).toBeVisible();
 
       // Confirm deletion
-      await page.click("text=Yes, Delete");
+      await page.click("text=Delete");
 
       // Should show success message
-      await expect(page.locator("text=Map deleted successfully")).toBeVisible();
+      await expect(
+        page.locator("text=Map deleted successfully!")
+      ).toBeVisible();
     });
 
     test("should cancel map deletion", async ({ page }) => {

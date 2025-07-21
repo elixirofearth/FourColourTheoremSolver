@@ -49,7 +49,7 @@ test.describe("Comprehensive User Workflow", () => {
 
     await page.click("text=Delete");
     await expect(page.locator("text=Are you sure?")).toBeVisible();
-    await page.click("text=Yes, Delete");
+    await page.click("text=Delete");
     await helpers.expectNotification("Map deleted successfully!");
 
     // Verify map is no longer visible
@@ -181,7 +181,7 @@ test.describe("Comprehensive User Workflow", () => {
     // Delete one map
     await page.locator("text=Delete").first().click();
     await expect(page.locator("text=Are you sure?")).toBeVisible();
-    await page.click("text=Yes, Delete");
+    await page.click("text=Delete");
     await helpers.expectNotification("Map deleted successfully!");
 
     // Verify maps are still visible (just fewer of them)
