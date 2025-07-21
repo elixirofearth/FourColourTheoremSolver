@@ -221,6 +221,7 @@ const Canvas: React.FC = () => {
       const data = await res.json();
       setMatrix(data);
       setCapturedImage(true);
+      showNotification("Map colored successfully!", "success");
     } catch (error) {
       console.error("Error in getData:", error);
 
