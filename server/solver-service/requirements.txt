@@ -4,7 +4,6 @@ numpy>=1.23.2,<2.0.0
 pandas>=2.0.0
 matplotlib>=3.7.0
 scikit-image>=0.24.0
-clingo==5.7.1
 grpcio==1.70.0
 grpcio-tools==1.70.0
 gunicorn==22.0.0

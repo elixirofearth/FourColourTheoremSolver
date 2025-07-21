@@ -7,8 +7,6 @@ WORKDIR /app
 # Install system dependencies required for scientific packages and protobuf compiler
 RUN apt-get update && apt-get install -y \
     build-essential \
-    clang \
-    gringo \
     protobuf-compiler \
     && rm -rf /var/lib/apt/lists/*
 
@@ -20,7 +18,7 @@ RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
 # Create necessary directories
-RUN mkdir -p asp_program proto/logs
+RUN mkdir -p proto/logs
 
 # Copy proto files first
 COPY solver-service/proto/logs/logger.proto proto/logs/
@@ -35,11 +33,6 @@ RUN python -m grpc_tools.protoc \
     --grpc_python_out=. \
     proto/logs/logger.proto
 
-# Copy ASP program files
-COPY solver-service/asp_program/program.lp asp_program/
-COPY solver-service/asp_program/colors.lp asp_program/
-COPY solver-service/asp_program/graph.lp asp_program/
-
 # Copy the rest of the application code
 COPY solver-service .
 
@@ -49,6 +42,7 @@ ENV PORT=8082
 
 # Expose the ports the app runs on
 EXPOSE ${PORT}
+
 ENV PYTHONPATH=/app
 
 # Command to run the application

@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 import os
-import clingo
 import skimage as ski
 from skimage import io, segmentation, color
 import matplotlib.pyplot as plt
@@ -17,6 +16,8 @@ from google.protobuf.timestamp_pb2 import Timestamp
 from datetime import datetime
 import proto.logs.logger_pb2 as logger_pb2
 import proto.logs.logger_pb2_grpc as logger_pb2_grpc
+from collections import defaultdict, deque
+import random
 
 # app instance
 app = Flask(__name__)
@@ -110,8 +111,7 @@ def solve():
 
         vertices, black, vertice_matrix = get_vertices(array)
         edges = find_edges(array, vertices, vertice_matrix)
-        program = generate_program(len(vertices), edges)
-        solution = solve_graph(program)
+        solution = solve_graph_csp(len(vertices), edges)
         colored_map = color_map(vertices, solution, black)
 
         end = time.time()
@@ -218,38 +218,141 @@ def find_edges(image, vertices, vertice_matrix):
     return edges
 
 
-def generate_program(num_vertices, edges):
-    program = ""
-    for vertex in range(num_vertices):
-        program += "vertex(" + str(vertex) + ")."
-    for edge in edges:
-        program += "edge(" + str(edge[0]) + "," + str(edge[1]) + ")."
-    return program
+class GraphColoringCSP:
+    def __init__(self, num_vertices, edges):
+        self.num_vertices = num_vertices
+        self.colors = ["red", "green", "blue", "yellow"]
+        self.adjacency_list = defaultdict(list)
+
+        # Build adjacency list from edges
+        for u, v in edges:
+            self.adjacency_list[u].append(v)
+            self.adjacency_list[v].append(u)
+
+        # Initialize domains and assignment
+        self.domains = {i: self.colors.copy() for i in range(num_vertices)}
+        self.assignment = {}
+
+    def is_consistent(self, vertex, color):
+        """Check if assigning color to vertex is consistent with current assignment"""
+        for neighbor in self.adjacency_list[vertex]:
+            if neighbor in self.assignment and self.assignment[neighbor] == color:
+                return False
+        return True
+
+    def forward_check(self, vertex, color):
+        """Apply forward checking - remove conflicting values from neighboring domains"""
+        removed_values = defaultdict(list)
+
+        for neighbor in self.adjacency_list[vertex]:
+            if neighbor not in self.assignment and color in self.domains[neighbor]:
+                self.domains[neighbor].remove(color)
+                removed_values[neighbor].append(color)
+
+                # If any domain becomes empty, this is not viable
+                if not self.domains[neighbor]:
+                    return None, removed_values
+
+        return True, removed_values
+
+    def restore_domains(self, removed_values):
+        """Restore removed values to domains (for backtracking)"""
+        for vertex, colors in removed_values.items():
+            self.domains[vertex].extend(colors)
+
+    def select_unassigned_variable(self):
+        """Choose next variable using MRV (Minimum Remaining Values) heuristic"""
+        unassigned = [v for v in range(self.num_vertices) if v not in self.assignment]
+        if not unassigned:
+            return None
+
+        # Choose variable with smallest domain
+        return min(unassigned, key=lambda v: len(self.domains[v]))
+
+    def order_domain_values(self, vertex):
+        """Order domain values using LCV (Least Constraining Value) heuristic"""
+
+        def count_conflicts(color):
+            conflicts = 0
+            for neighbor in self.adjacency_list[vertex]:
+                if neighbor not in self.assignment and color in self.domains[neighbor]:
+                    conflicts += 1
+            return conflicts
+
+        return sorted(self.domains[vertex], key=count_conflicts)
+
+    def backtrack_search(self):
+        """Main backtracking search algorithm with constraint propagation"""
+        if len(self.assignment) == self.num_vertices:
+            return self.assignment
+
+        vertex = self.select_unassigned_variable()
+        if vertex is None:
+            return self.assignment
+
+        for color in self.order_domain_values(vertex):
+            if self.is_consistent(vertex, color):
+                # Make assignment
+                self.assignment[vertex] = color
+                original_domain = self.domains[vertex].copy()
+                self.domains[vertex] = [color]
+
+                # Apply forward checking
+                fc_result, removed_values = self.forward_check(vertex, color)
+
+                if fc_result is not None:  # No domain became empty
+                    result = self.backtrack_search()
+                    if result:
+                        return result
+
+                # Backtrack
+                del self.assignment[vertex]
+                self.domains[vertex] = original_domain
+                self.restore_domains(removed_values)
+
+        return None
+
+    def solve(self):
+        """Solve the graph coloring problem"""
+        result = self.backtrack_search()
+        if result:
+            return {str(k): v for k, v in result.items()}
+        else:
+            # Fallback to greedy coloring if CSP fails
+            return self.greedy_coloring()
+
+    def greedy_coloring(self):
+        """Fallback greedy coloring algorithm"""
+        coloring = {}
+        vertices = list(range(self.num_vertices))
+        # Shuffle for better average performance
+        random.shuffle(vertices)
+
+        for vertex in vertices:
+            used_colors = set()
+            for neighbor in self.adjacency_list[vertex]:
+                if neighbor in coloring:
+                    used_colors.add(coloring[neighbor])
+
+            # Find first available color
+            for color in self.colors:
+                if color not in used_colors:
+                    coloring[vertex] = color
+                    break
+
+        return {str(k): v for k, v in coloring.items()}
 
 
-def solve_graph(graph):
-    with open("./asp_program/program.lp", "r") as file:
-        program = file.read()
-    with open("./asp_program/colors.lp", "r") as file:
-        colors = file.read()
+def solve_graph_csp(num_vertices, edges):
+    """Solve graph coloring using constraint satisfaction approach"""
+    if num_vertices == 0:
+        return {}
 
-    ctl = clingo.Control()
-    ctl.add("pro", [], program + colors + graph)
-    ctl.ground([("pro", [])])
-    ctl.configuration.solve.models = "1"  # max number of models to calculate, 0 for all
-    models = []
-    with ctl.solve(yield_=True) as handle:
-        for model in handle:
-            # select all atoms which would be shown in program output
-            models.append(model.symbols(shown=True))
-    model = models[0]
-    list_models = list()
-    graph = dict()
-    for atom in model:
-        vertex = str(atom.arguments[0])
-        color = str(atom.arguments[1])
-        graph[vertex] = color
-    return graph
+    csp = GraphColoringCSP(num_vertices, edges)
+    solution = csp.solve()
+
+    print(f"Solved graph with {num_vertices} vertices and {len(edges)} edges")
+    return solution
 
 
 def color_map(vertices, solution, black):
