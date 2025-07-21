@@ -31,7 +31,7 @@ test.describe("Comprehensive User Workflow", () => {
     await page.click("text=Color Map");
     await page.waitForTimeout(5000); // Wait for coloring to complete
     await helpers.saveMap();
-    await helpers.expectNotification("Map saved successfully");
+    await helpers.expectNotification("Map saved successfully!");
 
     // Step 4: View the map in profile
     await helpers.goToProfile();
@@ -50,7 +50,7 @@ test.describe("Comprehensive User Workflow", () => {
     await page.click("text=Delete");
     await expect(page.locator("text=Are you sure?")).toBeVisible();
     await page.click("text=Yes, Delete");
-    await helpers.expectNotification("Map deleted successfully");
+    await helpers.expectNotification("Map deleted successfully!");
 
     // Verify map is no longer visible
     await expect(page.locator("text=My First Map")).not.toBeVisible();
@@ -73,7 +73,7 @@ test.describe("Comprehensive User Workflow", () => {
 
     // Save the colored map
     await helpers.saveMap();
-    await helpers.expectNotification("Map saved successfully");
+    await helpers.expectNotification("Map saved successfully!");
   });
 
   test("error handling workflow", async ({ page }) => {
@@ -156,21 +156,21 @@ test.describe("Comprehensive User Workflow", () => {
     await page.click("text=Color Map");
     await page.waitForTimeout(5000); // Wait for coloring to complete
     await helpers.saveMap();
-    await helpers.expectNotification("Map saved successfully");
+    await helpers.expectNotification("Map saved successfully!");
 
     // Create second map
     await helpers.drawOnCanvas(200, 200, 300, 300);
     await page.click("text=Color Map");
     await page.waitForTimeout(5000); // Wait for coloring to complete
     await helpers.saveMap();
-    await helpers.expectNotification("Map saved successfully");
+    await helpers.expectNotification("Map saved successfully!");
 
     // Create third map
     await helpers.drawOnCanvas(100, 100, 250, 250);
     await page.click("text=Color Map");
     await page.waitForTimeout(5000); // Wait for coloring to complete
     await helpers.saveMap();
-    await helpers.expectNotification("Map saved successfully");
+    await helpers.expectNotification("Map saved successfully!");
 
     // View all maps in profile
     await helpers.goToProfile();
@@ -182,7 +182,7 @@ test.describe("Comprehensive User Workflow", () => {
     await page.locator("text=Delete").first().click();
     await expect(page.locator("text=Are you sure?")).toBeVisible();
     await page.click("text=Yes, Delete");
-    await helpers.expectNotification("Map deleted successfully");
+    await helpers.expectNotification("Map deleted successfully!");
 
     // Verify maps are still visible (just fewer of them)
     await expect(page.locator("text=Your Saved Maps")).toBeVisible();

@@ -62,7 +62,7 @@ const Notification: React.FC<NotificationProps> = ({
   };
 
   return (
-    <div className="fixed top-4 right-4 z-50">
+    <div className="fixed top-4 right-4 z-50" data-testid="notification">
       <div
         className={`
           bg-gradient-to-r ${getColors()} text-white px-6 py-4 rounded-2xl shadow-2xl border-2

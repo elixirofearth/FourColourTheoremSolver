@@ -13,15 +13,18 @@ test.describe("Notification and Error Handling Tests", () => {
       await page.fill('input[type="password"]', "password123");
       await page.click('button[type="submit"]');
 
-      // Navigate back to home
-      await page.goto("/");
+      // Check if the user is in the home page
+      await expect(page).toHaveURL("/");
 
       // Click on the Color Map button, wait a bit, then click the Save Map button
-      await page.click("text=Color Map");
-      await page.click("text=Save Map");
+      await expect(page.locator('button:has-text("Color Map")')).toBeVisible();
+      await page.click('button:has-text("Color Map")');
+      await page.waitForTimeout(5000); // Wait for coloring to complete
+      await expect(page.locator('button:has-text("Save Map")')).toBeVisible();
+      await page.click('button:has-text("Save Map")');
       // Should show success notification
       await expect(page.locator('[data-testid="notification"]')).toBeVisible();
-      await expect(page.locator("text=Map saved successfully")).toBeVisible();
+      await expect(page.locator("text=Map saved successfully!")).toBeVisible();
     });
 
     test("should show success notification on map deletion", async ({
@@ -37,12 +40,14 @@ test.describe("Notification and Error Handling Tests", () => {
       await page.click("text=Profile");
 
       // Delete a map
-      await page.click("text=Delete");
-      await page.click("text=Yes, Delete");
+      await page.click('button:has-text("Delete")');
+      await page.click('button:has-text("Confirm")');
 
       // Should show success notification
       await expect(page.locator('[data-testid="notification"]')).toBeVisible();
-      await expect(page.locator("text=Map deleted successfully")).toBeVisible();
+      await expect(
+        page.locator("text=Map deleted successfully!")
+      ).toBeVisible();
     });
 
     test("show show warning notification when trying to save map without coloring the map", async ({
@@ -54,11 +59,11 @@ test.describe("Notification and Error Handling Tests", () => {
       await page.fill('input[type="password"]', "password123");
       await page.click('button[type="submit"]');
 
-      // Navigate back to home
-      await page.goto("/");
+      // Check if the user is in the home page
+      await expect(page).toHaveURL("/");
 
-      // Click on the Color Map button, wait a bit, then click the Save Map button
-      await page.click("text=Save Map");
+      // Click on the Save Map button
+      await page.click('button:has-text("Save Map")');
       // Should show warning notification
       await expect(page.locator('[data-testid="notification"]')).toBeVisible();
       await expect(

@@ -104,7 +104,7 @@ test.describe("Map Functionality Tests", () => {
       await page.click("text=Save Map");
 
       // Should show success message
-      await expect(page.locator("text=Map saved successfully")).toBeVisible();
+      await expect(page.locator("text=Map saved successfully!")).toBeVisible();
     });
   });
 
