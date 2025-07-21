@@ -32,7 +32,7 @@ https://github.com/user-attachments/assets/a47dd6c6-5942-4e85-88b4-317cf4bb7f8b
 - **Map Storage Service** (REST) - CRUD operations, MongoDB
 - **Logger Service** (gRPC & AMQP) - Centralized logging, Kafka messaging
 - **Solver Service** (REST) - Python Flask service for graph coloring algorithms
-- **Testing**: JUnit5 + Mockito + Spring Boot Test + Playwright E2E
+- **Testing**: JUnit5 + Mockito + Spring Boot Test + DataJpaTest + RestAssured
 
 ### Infrastructure
 
