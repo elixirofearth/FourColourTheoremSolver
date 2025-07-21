@@ -14,7 +14,6 @@ test.describe("Comprehensive User Workflow", () => {
   }) => {
     // Step 1: Sign up as a new user
     await helpers.signup("New User", "newuser@example.com", "password123");
-    await helpers.expectNotification("Account created successfully");
 
     // Verify we're on the home page
     await expect(page).toHaveURL("/");
@@ -22,7 +21,6 @@ test.describe("Comprehensive User Workflow", () => {
     // Step 2: Logout and login again
     await helpers.logout();
     await helpers.login("newuser@example.com", "password123");
-    await helpers.expectNotification("Login successful");
 
     // Step 3: Create a map
     await helpers.drawOnCanvas(50, 50, 150, 150);

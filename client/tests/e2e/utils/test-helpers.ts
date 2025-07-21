@@ -15,7 +15,7 @@ export class TestHelpers {
     password: string = "password123"
   ) {
     await this.page.goto("/login");
-    await this.page.fill('input[type="email"]', email);
+    await this.page.fill('input[type="text"]', email);
     await this.page.fill('input[type="password"]', password);
     await this.page.click('button[type="submit"]');
 
@@ -32,7 +32,7 @@ export class TestHelpers {
     password: string = "password123"
   ) {
     await this.page.goto("/signup");
-    await this.page.fill('input[name="name"]', name);
+    await this.page.fill('input[name="text"]', name);
     await this.page.fill('input[type="email"]', email);
     await this.page.fill('input[type="password"]', password);
     await this.page.click('button[type="submit"]');

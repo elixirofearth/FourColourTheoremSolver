@@ -62,7 +62,7 @@ test.describe("Notification and Error Handling Tests", () => {
       // Should show warning notification
       await expect(page.locator('[data-testid="notification"]')).toBeVisible();
       await expect(
-        page.locator("text=Please color the map before saving")
+        page.locator("text=Please color your map before saving!")
       ).toBeVisible();
     });
   });
