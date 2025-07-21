@@ -153,6 +153,72 @@ const Canvas: React.FC = () => {
     setCapturedImage(false);
   };
 
+  const getData = React.useCallback(
+    async (array_pixels: number[], w: number, h: number) => {
+      const apiHost = import.meta.env.VITE_API_GATEWAY_URL;
+
+      if (!apiHost) {
+        throw new Error("API host is not defined in the environment variables");
+      }
+
+      try {
+        console.log("Sending request with:", {
+          width: w,
+          height: h,
+          imageLength: array_pixels.length,
+          userId: user?.id,
+        });
+
+        const res = await authInterceptor.makeAuthenticatedRequest(
+          `${apiHost}/api/v1/maps/color`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              image: {
+                data: array_pixels,
+              },
+              height: h,
+              width: w,
+              userId: user?.id,
+            }),
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error("Server response:", res.status, errorText);
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+
+        const data = await res.json();
+        setMatrix(data);
+        setCapturedImage(true);
+      } catch (error) {
+        console.error("Error in getData:", error);
+
+        // Handle authentication errors
+        if (error instanceof Error) {
+          if (
+            error.message.includes("Authentication failed") ||
+            error.message.includes("Token expired") ||
+            error.message.includes("No valid token available")
+          ) {
+            showNotification("Session expired. Please login again.", "error");
+            navigate("/login");
+            return;
+          }
+        }
+
+        showNotification("Failed to color map. Please try again.", "error");
+        throw error;
+      }
+    },
+    [user?.id, showNotification, navigate]
+  );
+
   // Handle image capture
   useEffect(() => {
     if (captureImage) {
@@ -169,7 +235,7 @@ const Canvas: React.FC = () => {
       getData(array_pixels, 500, 500);
       setCaptureImage(false);
     }
-  }, [captureImage]);
+  }, [captureImage, getData]);
 
   // Handle image download
   useEffect(() => {
@@ -178,69 +244,6 @@ const Canvas: React.FC = () => {
       setDownloadImage(false);
     }
   }, [downloadImage]);
-
-  async function getData(array_pixels: number[], w: number, h: number) {
-    const apiHost = import.meta.env.VITE_API_GATEWAY_URL;
-
-    if (!apiHost) {
-      throw new Error("API host is not defined in the environment variables");
-    }
-
-    try {
-      console.log("Sending request with:", {
-        width: w,
-        height: h,
-        imageLength: array_pixels.length,
-        userId: user?.id,
-      });
-
-      const res = await authInterceptor.makeAuthenticatedRequest(
-        `${apiHost}/api/v1/maps/color`,
-        {
-          method: "POST",
-          body: JSON.stringify({
-            image: {
-              data: array_pixels,
-            },
-            height: h,
-            width: w,
-            userId: user?.id,
-          }),
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error("Server response:", res.status, errorText);
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-
-      const data = await res.json();
-      setMatrix(data);
-      setCapturedImage(true);
-    } catch (error) {
-      console.error("Error in getData:", error);
-
-      // Handle authentication errors
-      if (error instanceof Error) {
-        if (
-          error.message.includes("Authentication failed") ||
-          error.message.includes("Token expired") ||
-          error.message.includes("No valid token available")
-        ) {
-          showNotification("Session expired. Please login again.", "error");
-          navigate("/login");
-          return;
-        }
-      }
-
-      showNotification("Failed to color map. Please try again.", "error");
-      throw error;
-    }
-  }
 
   function displayColoredMap(
     ctx: CanvasRenderingContext2D,
@@ -398,7 +401,15 @@ const Canvas: React.FC = () => {
         showNotification("Failed to save map. Please try again.", "error");
       }
     };
-  }, [capturedImage, matrix, token, user, showNotification, navigate]);
+  }, [
+    capturedImage,
+    matrix,
+    token,
+    user,
+    showNotification,
+    navigate,
+    lines.length,
+  ]);
 
   return (
     <canvas
