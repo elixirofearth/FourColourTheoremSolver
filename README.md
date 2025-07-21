@@ -88,7 +88,3 @@ The algorithm ensures that:
 
 - Andy Tran ([anhquoctran006@gmail.com](mailto:anhquoctran006@gmail.com))
 - Riley Kinahan ([rdkinaha@ualberta.ca](mailto:rdkinaha@ualberta.ca))
-
-```
-
-```
