@@ -59,7 +59,7 @@ class LoggerSecurityTest {
 
         loggerGrpcService.logEvent(maliciousRequest, responseObserver);
 
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("map_coloring_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -79,7 +79,7 @@ class LoggerSecurityTest {
 
         loggerGrpcService.logEvent(maliciousRequest, responseObserver);
 
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("map_coloring_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -99,7 +99,7 @@ class LoggerSecurityTest {
 
         loggerGrpcService.logEvent(maliciousRequest, responseObserver);
 
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("map_coloring_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -119,7 +119,7 @@ class LoggerSecurityTest {
 
         loggerGrpcService.logEvent(maliciousRequest, responseObserver);
 
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("map_coloring_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -139,7 +139,7 @@ class LoggerSecurityTest {
 
         loggerGrpcService.logEvent(xssRequest, responseObserver);
 
-        verify(kafkaTemplate).send("map_coloring_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("map_coloring_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -159,7 +159,7 @@ class LoggerSecurityTest {
 
         loggerGrpcService.logEvent(xssRequest, responseObserver);
 
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("map_coloring_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -179,7 +179,7 @@ class LoggerSecurityTest {
 
         loggerGrpcService.logEvent(xssRequest, responseObserver);
 
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("map_coloring_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -199,7 +199,7 @@ class LoggerSecurityTest {
 
         loggerGrpcService.logEvent(xssRequest, responseObserver);
 
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("map_coloring_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -219,7 +219,7 @@ class LoggerSecurityTest {
 
         loggerGrpcService.logEvent(maliciousRequest, responseObserver);
 
-        verify(kafkaTemplate).send("map_coloring_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("map_coloring_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -239,7 +239,7 @@ class LoggerSecurityTest {
 
         loggerGrpcService.logEvent(maliciousRequest, responseObserver);
 
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("map_coloring_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -259,7 +259,7 @@ class LoggerSecurityTest {
 
         loggerGrpcService.logEvent(maliciousRequest, responseObserver);
 
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("map_coloring_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -279,7 +279,7 @@ class LoggerSecurityTest {
 
         loggerGrpcService.logEvent(maliciousRequest, responseObserver);
 
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("map_coloring_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -300,7 +300,7 @@ class LoggerSecurityTest {
 
         loggerGrpcService.logEvent(longRequest, responseObserver);
 
-        verify(kafkaTemplate).send("map_coloring_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("map_coloring_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -321,7 +321,7 @@ class LoggerSecurityTest {
 
         loggerGrpcService.logEvent(longRequest, responseObserver);
 
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("map_coloring_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -342,7 +342,7 @@ class LoggerSecurityTest {
 
         loggerGrpcService.logEvent(longRequest, responseObserver);
 
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("map_coloring_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -363,7 +363,7 @@ class LoggerSecurityTest {
 
         loggerGrpcService.logEvent(longRequest, responseObserver);
 
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("map_coloring_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -383,7 +383,7 @@ class LoggerSecurityTest {
 
         loggerGrpcService.logEvent(maliciousRequest, responseObserver);
 
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("map_coloring_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -403,7 +403,7 @@ class LoggerSecurityTest {
 
         loggerGrpcService.logEvent(unicodeRequest, responseObserver);
 
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("map_coloring_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -423,7 +423,7 @@ class LoggerSecurityTest {
 
         loggerGrpcService.logEvent(emptyRequest, responseObserver);
 
-        verify(kafkaTemplate).send("map_coloring_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("map_coloring_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -443,7 +443,7 @@ class LoggerSecurityTest {
 
         loggerGrpcService.logEvent(nullRequest, responseObserver);
 
-        verify(kafkaTemplate).send("map_coloring_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("map_coloring_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -463,7 +463,7 @@ class LoggerSecurityTest {
 
         loggerGrpcService.logEvent(negativeRequest, responseObserver);
 
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("map_coloring_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -483,7 +483,7 @@ class LoggerSecurityTest {
 
         loggerGrpcService.logEvent(zeroRequest, responseObserver);
 
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("map_coloring_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -503,7 +503,7 @@ class LoggerSecurityTest {
 
         loggerGrpcService.logEvent(highRequest, responseObserver);
 
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("map_coloring_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -523,7 +523,7 @@ class LoggerSecurityTest {
 
         loggerGrpcService.logEvent(invalidRequest, responseObserver);
 
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("map_coloring_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -549,7 +549,7 @@ class LoggerSecurityTest {
 
         loggerGrpcService.logEvent(largeRequest, responseObserver);
 
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("map_coloring_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -572,7 +572,7 @@ class LoggerSecurityTest {
 
         loggerGrpcService.logEvent(maliciousRequest, responseObserver);
 
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("map_coloring_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -611,7 +611,7 @@ class LoggerSecurityTest {
         }
 
         // Verify that all requests were processed
-        verify(kafkaTemplate, times(numberOfThreads)).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate, times(numberOfThreads)).send(eq("map_coloring_logs"), any(Log.class));
         verify(responseObserver, times(numberOfThreads)).onNext(any(LogResponse.class));
         verify(responseObserver, times(numberOfThreads)).onCompleted();
     }
@@ -634,7 +634,7 @@ class LoggerSecurityTest {
 
         loggerGrpcService.logEvent(sensitiveRequest, responseObserver);
 
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("map_coloring_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
