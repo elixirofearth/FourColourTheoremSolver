@@ -60,7 +60,7 @@ class LoggerGrpcServiceTest {
 
         loggerGrpcService.logEvent(testLogRequest, responseObserver);
 
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("auth_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
         verify(responseObserver, never()).onError(any());
@@ -81,7 +81,7 @@ class LoggerGrpcServiceTest {
 
         loggerGrpcService.logEvent(authRequest, responseObserver);
 
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("auth_logs"), any(Log.class));
     }
 
     @Test
@@ -99,7 +99,7 @@ class LoggerGrpcServiceTest {
 
         loggerGrpcService.logEvent(mapColoringRequest, responseObserver);
 
-        verify(kafkaTemplate).send("map_coloring_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("map_coloring_logs"), any(Log.class));
     }
 
     @Test
@@ -117,7 +117,7 @@ class LoggerGrpcServiceTest {
 
         loggerGrpcService.logEvent(mapStorageRequest, responseObserver);
 
-        verify(kafkaTemplate).send("map_storage_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("map_storage_logs"), any(Log.class));
     }
 
     @Test
@@ -135,7 +135,7 @@ class LoggerGrpcServiceTest {
 
         loggerGrpcService.logEvent(unknownRequest, responseObserver);
 
-        verify(kafkaTemplate).send("map_coloring_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("map_coloring_logs"), any(Log.class));
     }
 
     @Test
@@ -153,7 +153,7 @@ class LoggerGrpcServiceTest {
 
         loggerGrpcService.logEvent(invalidTimestampRequest, responseObserver);
 
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("auth_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -173,7 +173,7 @@ class LoggerGrpcServiceTest {
 
         loggerGrpcService.logEvent(nullRequest, responseObserver);
 
-        verify(kafkaTemplate).send("map_coloring_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("map_coloring_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -185,7 +185,7 @@ class LoggerGrpcServiceTest {
 
         loggerGrpcService.logEvent(testLogRequest, responseObserver);
 
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("auth_logs"), any(Log.class));
         verify(responseObserver).onNext(argThat(response -> 
             !response.getSuccess() && response.getMessage().contains("Failed to publish log")));
         verify(responseObserver).onCompleted();
@@ -207,7 +207,7 @@ class LoggerGrpcServiceTest {
 
         loggerGrpcService.logEvent(longRequest, responseObserver);
 
-        verify(kafkaTemplate).send("map_coloring_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("map_coloring_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -227,7 +227,7 @@ class LoggerGrpcServiceTest {
 
         loggerGrpcService.logEvent(longRequest, responseObserver);
 
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("auth_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -247,7 +247,7 @@ class LoggerGrpcServiceTest {
 
         loggerGrpcService.logEvent(longRequest, responseObserver);
 
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("auth_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -267,7 +267,7 @@ class LoggerGrpcServiceTest {
 
         loggerGrpcService.logEvent(longRequest, responseObserver);
 
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("auth_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -292,7 +292,7 @@ class LoggerGrpcServiceTest {
 
         loggerGrpcService.logEvent(largeRequest, responseObserver);
 
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("auth_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -312,7 +312,7 @@ class LoggerGrpcServiceTest {
 
         loggerGrpcService.logEvent(specialRequest, responseObserver);
 
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("auth_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -332,7 +332,7 @@ class LoggerGrpcServiceTest {
 
         loggerGrpcService.logEvent(unicodeRequest, responseObserver);
 
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("auth_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -352,7 +352,7 @@ class LoggerGrpcServiceTest {
 
         loggerGrpcService.logEvent(negativeRequest, responseObserver);
 
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("auth_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -372,7 +372,7 @@ class LoggerGrpcServiceTest {
 
         loggerGrpcService.logEvent(zeroRequest, responseObserver);
 
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("auth_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -392,7 +392,7 @@ class LoggerGrpcServiceTest {
 
         loggerGrpcService.logEvent(highRequest, responseObserver);
 
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("auth_logs"), any(Log.class));
         verify(responseObserver).onNext(any(LogResponse.class));
         verify(responseObserver).onCompleted();
     }
@@ -415,7 +415,7 @@ class LoggerGrpcServiceTest {
 
             loggerGrpcService.logEvent(request, responseObserver);
 
-            verify(kafkaTemplate).send("auth_logs", any(Log.class));
+            verify(kafkaTemplate).send(eq("auth_logs"), any(Log.class));
             reset(kafkaTemplate);
         }
     }
@@ -438,7 +438,7 @@ class LoggerGrpcServiceTest {
 
             loggerGrpcService.logEvent(request, responseObserver);
 
-            verify(kafkaTemplate).send("map_coloring_logs", any(Log.class));
+            verify(kafkaTemplate).send(eq("map_coloring_logs"), any(Log.class));
             reset(kafkaTemplate);
         }
     }
@@ -461,7 +461,7 @@ class LoggerGrpcServiceTest {
 
             loggerGrpcService.logEvent(request, responseObserver);
 
-            verify(kafkaTemplate).send("map_storage_logs", any(Log.class));
+            verify(kafkaTemplate).send(eq("map_storage_logs"), any(Log.class));
             reset(kafkaTemplate);
         }
     }
