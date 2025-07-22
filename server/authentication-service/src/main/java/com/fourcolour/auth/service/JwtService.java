@@ -9,6 +9,7 @@ import javax.crypto.SecretKey;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.UUID;
 
 @Service
 public class JwtService {
@@ -31,6 +32,7 @@ public class JwtService {
                 .setSubject(userId.toString())
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
+                .setId(UUID.randomUUID().toString()) // Add unique ID to prevent duplicates
                 .signWith(getSigningKey())
                 .compact();
     }

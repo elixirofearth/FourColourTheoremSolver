@@ -15,7 +15,7 @@ public class Session {
     @Column(name = "user_id", nullable = false)
     private Integer userId;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true, nullable = false, length = 2000)
     @NotBlank
     private String token;
 
