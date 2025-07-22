@@ -1,7 +1,8 @@
 spring:
   data:
     mongodb:
-      uri: mongodb://localhost:27017/testdb
+      host: localhost
+      port: 0
       database: testdb
       auto-index-creation: true
   jpa:
