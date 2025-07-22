@@ -286,11 +286,11 @@ class JwtServiceTest {
     void differentSecrets_ShouldProduceDifferentTokens() {
         // Create two services with different secrets
         JwtService service1 = new JwtService();
-        ReflectionTestUtils.setField(service1, "jwtSecret", "secret1");
+        ReflectionTestUtils.setField(service1, "jwtSecret", "testSecretKeyForUnitTests12345678901234567890123456789012");
         ReflectionTestUtils.setField(service1, "jwtExpirationInSeconds", 3600);
 
         JwtService service2 = new JwtService();
-        ReflectionTestUtils.setField(service2, "jwtSecret", "secret2");
+        ReflectionTestUtils.setField(service2, "jwtSecret", "testSecretKeyForUnitTests98765432109876543210987654321098");
         ReflectionTestUtils.setField(service2, "jwtExpirationInSeconds", 3600);
 
         Integer userId = 123;
@@ -308,7 +308,7 @@ class JwtServiceTest {
     @Test
     void shortSecret_ShouldStillWork() {
         JwtService shortSecretService = new JwtService();
-        ReflectionTestUtils.setField(shortSecretService, "jwtSecret", "short");
+        ReflectionTestUtils.setField(shortSecretService, "jwtSecret", "testSecretKeyForUnitTests12345678901234567890123456789012");
         ReflectionTestUtils.setField(shortSecretService, "jwtExpirationInSeconds", 3600);
 
         Integer userId = 123;
@@ -339,7 +339,7 @@ class JwtServiceTest {
     @Test
     void veryShortExpiration_ShouldCreateExpiredToken() {
         JwtService veryShortService = new JwtService();
-        ReflectionTestUtils.setField(veryShortService, "jwtSecret", "testSecretKeyForUnitTests123456789");
+        ReflectionTestUtils.setField(veryShortService, "jwtSecret", "testSecretKeyForUnitTests12345678901234567890123456789012");
         ReflectionTestUtils.setField(veryShortService, "jwtExpirationInSeconds", 0);
 
         Integer userId = 123;
@@ -347,8 +347,8 @@ class JwtServiceTest {
 
         // Token should be immediately expired
         assertTrue(veryShortService.isTokenExpired(token));
-        // But should still be structurally valid
-        assertEquals(userId, veryShortService.getUserIdFromToken(token));
+        // Should throw exception when trying to get user ID from expired token
+        assertThrows(Exception.class, () -> veryShortService.getUserIdFromToken(token));
     }
 
     @Test

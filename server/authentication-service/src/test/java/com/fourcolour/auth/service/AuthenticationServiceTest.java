@@ -253,55 +253,55 @@ class AuthenticationServiceTest {
     @Test
     void verifyToken_WithValidToken_ShouldReturnTrue() {
         String token = "Bearer jwt-token";
-        when(sessionRepository.findByTokenAndNotExpired("jwt-token", any(LocalDateTime.class)))
+        when(sessionRepository.findByTokenAndNotExpired(eq("jwt-token"), any(LocalDateTime.class)))
                 .thenReturn(Optional.of(testSession));
         when(jwtService.validateToken("jwt-token")).thenReturn(true);
 
         boolean result = authenticationService.verifyToken(token);
 
         assertTrue(result);
-        verify(sessionRepository).findByTokenAndNotExpired("jwt-token", any(LocalDateTime.class));
+        verify(sessionRepository).findByTokenAndNotExpired(eq("jwt-token"), any(LocalDateTime.class));
         verify(jwtService).validateToken("jwt-token");
     }
 
     @Test
     void verifyToken_WithExpiredSession_ShouldReturnFalse() {
         String token = "Bearer jwt-token";
-        when(sessionRepository.findByTokenAndNotExpired("jwt-token", any(LocalDateTime.class)))
+        when(sessionRepository.findByTokenAndNotExpired(eq("jwt-token"), any(LocalDateTime.class)))
                 .thenReturn(Optional.empty());
 
         boolean result = authenticationService.verifyToken(token);
 
         assertFalse(result);
-        verify(sessionRepository).findByTokenAndNotExpired("jwt-token", any(LocalDateTime.class));
+        verify(sessionRepository).findByTokenAndNotExpired(eq("jwt-token"), any(LocalDateTime.class));
         verify(jwtService, never()).validateToken(anyString());
     }
 
     @Test
     void verifyToken_WithInvalidJwt_ShouldReturnFalse() {
         String token = "Bearer jwt-token";
-        when(sessionRepository.findByTokenAndNotExpired("jwt-token", any(LocalDateTime.class)))
+        when(sessionRepository.findByTokenAndNotExpired(eq("jwt-token"), any(LocalDateTime.class)))
                 .thenReturn(Optional.of(testSession));
         when(jwtService.validateToken("jwt-token")).thenReturn(false);
 
         boolean result = authenticationService.verifyToken(token);
 
         assertFalse(result);
-        verify(sessionRepository).findByTokenAndNotExpired("jwt-token", any(LocalDateTime.class));
+        verify(sessionRepository).findByTokenAndNotExpired(eq("jwt-token"), any(LocalDateTime.class));
         verify(jwtService).validateToken("jwt-token");
     }
 
     @Test
     void verifyToken_WithTokenWithoutBearer_ShouldWork() {
         String token = "jwt-token";
-        when(sessionRepository.findByTokenAndNotExpired("jwt-token", any(LocalDateTime.class)))
+        when(sessionRepository.findByTokenAndNotExpired(eq("jwt-token"), any(LocalDateTime.class)))
                 .thenReturn(Optional.of(testSession));
         when(jwtService.validateToken("jwt-token")).thenReturn(true);
 
         boolean result = authenticationService.verifyToken(token);
 
         assertTrue(result);
-        verify(sessionRepository).findByTokenAndNotExpired("jwt-token", any(LocalDateTime.class));
+        verify(sessionRepository).findByTokenAndNotExpired(eq("jwt-token"), any(LocalDateTime.class));
         verify(jwtService).validateToken("jwt-token");
     }
 
@@ -511,13 +511,13 @@ class AuthenticationServiceTest {
     @Test
     void verifyToken_WithEmptyToken_ShouldReturnFalse() {
         String token = "";
-        when(sessionRepository.findByTokenAndNotExpired("", any(LocalDateTime.class)))
+        when(sessionRepository.findByTokenAndNotExpired(eq(""), any(LocalDateTime.class)))
                 .thenReturn(Optional.empty());
 
         boolean result = authenticationService.verifyToken(token);
 
         assertFalse(result);
-        verify(sessionRepository).findByTokenAndNotExpired("", any(LocalDateTime.class));
+        verify(sessionRepository).findByTokenAndNotExpired(eq(""), any(LocalDateTime.class));
     }
 
     @Test
