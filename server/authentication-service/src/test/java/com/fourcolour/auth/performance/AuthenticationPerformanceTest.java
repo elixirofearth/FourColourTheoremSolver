@@ -48,8 +48,8 @@ class AuthenticationPerformanceTest {
     @Test
     void jwtTokenGeneration_UnderConcurrentLoad_ShouldHandleCorrectly() throws InterruptedException {
         JwtService realJwtService = new JwtService();
-        // Use reflection to set JWT secret
-        org.springframework.test.util.ReflectionTestUtils.setField(realJwtService, "jwtSecret", "testSecretKey123456789");
+        // Use a 256-bit (32 character) secret key for HMAC-SHA algorithms
+        org.springframework.test.util.ReflectionTestUtils.setField(realJwtService, "jwtSecret", "testSecretKey12345678901234567890123456789012");
         org.springframework.test.util.ReflectionTestUtils.setField(realJwtService, "jwtExpirationInSeconds", 3600);
 
         AtomicInteger successfulGenerations = new AtomicInteger(0);
@@ -98,7 +98,8 @@ class AuthenticationPerformanceTest {
     @Test
     void jwtTokenValidation_UnderConcurrentLoad_ShouldMaintainPerformance() throws InterruptedException {
         JwtService realJwtService = new JwtService();
-        org.springframework.test.util.ReflectionTestUtils.setField(realJwtService, "jwtSecret", "testSecretKey123456789");
+        // Use a 256-bit (32 character) secret key for HMAC-SHA algorithms
+        org.springframework.test.util.ReflectionTestUtils.setField(realJwtService, "jwtSecret", "testSecretKey12345678901234567890123456789012");
         org.springframework.test.util.ReflectionTestUtils.setField(realJwtService, "jwtExpirationInSeconds", 3600);
 
         // Pre-generate tokens for validation
@@ -291,7 +292,8 @@ class AuthenticationPerformanceTest {
     @Test
     void memoryUsage_UnderContinuousLoad_ShouldRemainStable() throws InterruptedException {
         JwtService realJwtService = new JwtService();
-        org.springframework.test.util.ReflectionTestUtils.setField(realJwtService, "jwtSecret", "testSecretKey123456789");
+        // Use a 256-bit (32 character) secret key for HMAC-SHA algorithms
+        org.springframework.test.util.ReflectionTestUtils.setField(realJwtService, "jwtSecret", "testSecretKey12345678901234567890123456789012");
         org.springframework.test.util.ReflectionTestUtils.setField(realJwtService, "jwtExpirationInSeconds", 3600);
 
         Runtime runtime = Runtime.getRuntime();
