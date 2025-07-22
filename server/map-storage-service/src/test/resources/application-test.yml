@@ -1,0 +1,30 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/testdb
+      database: testdb
+      auto-index-creation: true
+  jpa:
+    show-sql: false
+  task:
+    scheduling:
+      enabled: false
+
+logging:
+  level:
+    org.springframework.web: WARN
+    org.springframework.data.mongodb: WARN
+    com.fourcolour.mapstorage: DEBUG
+
+server:
+  tomcat:
+    threads:
+      max: 200
+      min-spare: 10
+    accept-count: 100
+
+# Test-specific configurations
+test:
+  mongodb:
+    embedded: true
+    version: 4.0.21
