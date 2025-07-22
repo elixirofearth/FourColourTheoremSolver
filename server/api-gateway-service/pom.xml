@@ -116,8 +116,6 @@
             </exclusions>
         </dependency>
         
-
-
         <!-- Test Dependencies -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -173,14 +171,6 @@
             <scope>test</scope>
         </dependency>
         
-        <!-- REST Assured for API Testing -->
-        <dependency>
-            <groupId>io.rest-assured</groupId>
-            <artifactId>rest-assured</artifactId>
-            <version>5.3.0</version>
-            <scope>test</scope>
-        </dependency>
-        
         <!-- JMeter for Load Testing -->
         <dependency>
             <groupId>org.apache.jmeter</groupId>
@@ -225,22 +215,6 @@
                     <artifactId>groovy-sql</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
-        
-        <!-- TestContainers for Integration Testing -->
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <version>1.19.3</version>
-            <scope>test</scope>
-        </dependency>
-
-        <!-- WireMock for API Mocking -->
-        <dependency>
-            <groupId>org.wiremock</groupId>
-            <artifactId>wiremock</artifactId>
-            <version>3.4.2</version>
-            <scope>test</scope>
         </dependency>
 
         <!-- Apache Groovy (newer version) for compatibility -->
