@@ -28,7 +28,7 @@ public class TestUtils {
 
     public static Map<String, Object> createValidUserRegistration() {
         return Map.of(
-                "username", "testuser",
+                "name", "testuser",
                 "email", "test@example.com",
                 "password", "password123"
         );

@@ -125,14 +125,14 @@ class GatewayIntegrationTest {
     @DisplayName("End-to-end registration should work with mocked auth service")
     void endToEndRegistration_ShouldWorkWithMockedAuthService() throws Exception {
         String requestBody = objectMapper.writeValueAsString(
-                Map.of("username", "testuser", "email", "test@example.com", "password", "password123")
+                Map.of("name", "testuser", "email", "test@example.com", "password", "password123")
         );
 
         // Mock auth service response
         mockServer.expect(requestTo("http://auth-service:8081/auth/register"))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andRespond(withSuccess("{\"id\":1,\"username\":\"testuser\"}", MediaType.APPLICATION_JSON));
+                .andRespond(withSuccess("{\"id\":1,\"name\":\"testuser\"}", MediaType.APPLICATION_JSON));
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -158,7 +158,7 @@ class GatewayIntegrationTest {
         mockServer.expect(requestTo("http://auth-service:8081/auth/login"))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andRespond(withSuccess("{\"token\":\"jwt-token-here\",\"user\":{\"id\":1,\"username\":\"testuser\"}}", MediaType.APPLICATION_JSON));
+                .andRespond(withSuccess("{\"token\":\"jwt-token-here\",\"user\":{\"id\":1,\"name\":\"testuser\"}}", MediaType.APPLICATION_JSON));
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -461,7 +461,7 @@ class GatewayIntegrationTest {
     @DisplayName("Service failure should return appropriate error")
     void serviceFailure_ShouldReturnAppropriateError() throws Exception {
         String requestBody = objectMapper.writeValueAsString(
-                Map.of("username", "testuser", "email", "test@example.com", "password", "password123")
+                Map.of("name", "testuser", "email", "test@example.com", "password", "password123")
         );
 
         // Mock auth service to return 500 error

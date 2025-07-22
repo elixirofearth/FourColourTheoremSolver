@@ -79,7 +79,7 @@ curl http://localhost:8080/healthcheck/services
 # Test registration
 curl -X POST http://localhost:8080/api/v1/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"username":"test","email":"test@example.com","password":"password123"}'
+  -d '{"name":"test","email":"test@example.com","password":"password123"}'
 ```
 
 ## Health Checks

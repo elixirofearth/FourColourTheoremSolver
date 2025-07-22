@@ -72,8 +72,8 @@ class GatewayControllerTest {
 
     @Test
     void register_WithValidRequest_ShouldForwardToAuthService() {
-        String requestBody = "{\"username\":\"test\",\"email\":\"test@example.com\",\"password\":\"password123\"}";
-        ResponseEntity<String> expectedResponse = ResponseEntity.ok("{\"id\":1,\"username\":\"test\"}");
+        String requestBody = "{\"name\":\"test\",\"email\":\"test@example.com\",\"password\":\"password123\"}";
+        ResponseEntity<String> expectedResponse = ResponseEntity.ok("{\"id\":1,\"name\":\"test\"}");
         
         when(proxyService.isRateLimited(anyString())).thenReturn(false);
         when(proxyService.forwardRequest(eq("auth"), eq("/auth/register"), eq(HttpMethod.POST), 
@@ -83,14 +83,14 @@ class GatewayControllerTest {
         ResponseEntity<String> response = gatewayController.register(requestBody, request);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("{\"id\":1,\"username\":\"test\"}", response.getBody());
+        assertEquals("{\"id\":1,\"name\":\"test\"}", response.getBody());
         verify(proxyService).forwardRequest(eq("auth"), eq("/auth/register"), eq(HttpMethod.POST), 
                                            any(HttpHeaders.class), eq(requestBody));
     }
 
     @Test
     void register_WhenRateLimited_ShouldReturnTooManyRequests() {
-        String requestBody = "{\"username\":\"test\",\"email\":\"test@example.com\",\"password\":\"password123\"}";
+        String requestBody = "{\"name\":\"test\",\"email\":\"test@example.com\",\"password\":\"password123\"}";
         
         when(proxyService.isRateLimited(anyString())).thenReturn(true);
 

@@ -96,7 +96,7 @@ class GatewaySecurityTest {
 
     @Test
     void xssAttempt_ShouldBeHandledSafely() {
-        String xssPayload = "{\"username\":\"<script>alert('xss')</script>\",\"email\":\"test@example.com\",\"password\":\"password\"}";
+        String xssPayload = "{\"name\":\"<script>alert('xss')</script>\",\"email\":\"test@example.com\",\"password\":\"password\"}";
         when(proxyService.isRateLimited(anyString())).thenReturn(false);
         when(proxyService.forwardRequest(anyString(), anyString(), any(), any(), eq(xssPayload)))
                 .thenReturn(ResponseEntity.badRequest().body("{\"error\":\"Invalid characters in input\"}"));
@@ -194,7 +194,7 @@ class GatewaySecurityTest {
 
     @Test
     void unicodeInjection_ShouldBeHandledSafely() {
-        String unicodeInput = "{\"username\":\"\\u003Cscript\\u003Ealert('xss')\\u003C/script\\u003E\",\"email\":\"test@example.com\",\"password\":\"password\"}";
+        String unicodeInput = "{\"name\":\"\\u003Cscript\\u003Ealert('xss')\\u003C/script\\u003E\",\"email\":\"test@example.com\",\"password\":\"password\"}";
         when(proxyService.isRateLimited(anyString())).thenReturn(false);
         when(proxyService.forwardRequest(anyString(), anyString(), any(), any(), eq(unicodeInput)))
                 .thenReturn(ResponseEntity.badRequest().body("{\"error\":\"Invalid input\"}"));
