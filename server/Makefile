@@ -38,6 +38,42 @@ test:
 	mvn test
 	@echo "Done!"
 
+## test_solver: run tests for the solver service
+test_solver:
+	@echo "Running tests for solver service..."
+	cd solver-service && source venv/bin/activate && python -m pytest tests/
+	@echo "Done!"
+
+## test_common: run tests for the common service
+test_common:
+	@echo "Running tests for common service..."
+	cd common && mvn test
+	@echo "Done!"
+
+## test_api_gateway: run tests for the API gateway service
+test_api_gateway:
+	@echo "Running tests for API gateway service..."
+	cd api-gateway-service && mvn test
+	@echo "Done!"
+
+## test_authentication: run tests for the authentication service
+test_authentication:
+	@echo "Running tests for authentication service..."
+	cd authentication-service && mvn test
+	@echo "Done!"
+
+## test_map_storage: run tests for the map storage service
+test_map_storage:
+	@echo "Running tests for map storage service..."
+	cd map-storage-service && mvn test
+	@echo "Done!"
+
+## test_logger: run tests for the logger service
+test_logger:
+	@echo "Running tests for logger service..."
+	cd logger-service && mvn test
+	@echo "Done!"
+
 ## build_gateway: builds the API gateway service
 build_gateway:
 	@echo "Building API gateway service..."
