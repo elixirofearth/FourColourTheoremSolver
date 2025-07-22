@@ -1,0 +1,51 @@
+server:
+  port: 0 # Use random available port for tests
+
+spring:
+  application:
+    name: authentication-service-test
+
+  # H2 Database Configuration for tests
+  datasource:
+    url: jdbc:h2:mem:testdb
+    username: sa
+    password: password
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+
+  # H2 Console (for debugging tests if needed)
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+app:
+  jwt:
+    secret: testSecretKeyForUnitTests123456789
+    expiration: 3600 # 1 hour in seconds
+
+grpc:
+  client:
+    logger-service:
+      address: logger-service:50001
+      negotiationType: plaintext
+
+# Logging for tests
+logging:
+  level:
+    com.fourcolour.auth: INFO
+    org.springframework.security: WARN
+    org.springframework.web: WARN
+    org.hibernate.SQL: WARN
+    root: WARN
+
+# Disable scheduling for tests
+spring.task.scheduling.enabled: false
