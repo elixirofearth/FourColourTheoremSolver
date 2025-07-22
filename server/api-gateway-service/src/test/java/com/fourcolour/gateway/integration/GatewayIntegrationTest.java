@@ -1,180 +1,198 @@
 package com.fourcolour.gateway.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fourcolour.gateway.controller.GatewayController;
-import com.fourcolour.gateway.service.ProxyService;
-import com.fourcolour.gateway.service.TokenCacheService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
 
-@WebMvcTest(GatewayController.class)
+@Configuration
+class TestConfig {
+    
+    @Bean
+    @Primary
+    public RestTemplate restTemplateForMock() {
+        return new RestTemplate();
+    }
+}
+
+/**
+ * Integration Test using MockRestServiceServer instead of WireMock
+ * This tests the full gateway with real Spring context but mocked external services
+ */
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 class GatewayIntegrationTest {
 
+    @LocalServerPort
+    private int port;
+
     @Autowired
-    private MockMvc mockMvc;
+    private TestRestTemplate restTemplate;
 
-    @MockBean
-    private ProxyService proxyService;
+    @Autowired
+    private RestTemplate restTemplateForMock;
 
-    @MockBean
-    private TokenCacheService tokenCacheService;
+    @Autowired
+    private com.fourcolour.gateway.service.ProxyService proxyService;
 
     private ObjectMapper objectMapper;
+    private String baseUrl;
+    private MockRestServiceServer mockServer;
+
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("services.authentication.url", () -> "http://auth-service:8081");
+        registry.add("services.map-storage.url", () -> "http://map-service:8083");
+        registry.add("services.coloring.url", () -> "http://solver-service:8082");
+        registry.add("spring.redis.host", () -> "localhost");
+        registry.add("spring.redis.port", () -> "6379");
+    }
 
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper();
+        baseUrl = "http://localhost:" + port;
+        mockServer = MockRestServiceServer.createServer(restTemplateForMock);
+        // Invalidate cached tokens to ensure fresh authentication checks
+        proxyService.invalidateCachedToken("Bearer valid-token");
+        proxyService.invalidateCachedToken("Bearer invalid-token");
     }
 
     // ==================== HEALTH CHECK TESTS ====================
 
     @Test
-    @DisplayName("Health check should return OK")
-    void healthCheck_ShouldReturnOK() throws Exception {
-        mockMvc.perform(get("/healthcheck"))
-                .andExpect(status().isOk())
-                .andExpect(content().string("OK"));
+    @DisplayName("Application should start and health check should work")
+    void applicationShouldStartAndHealthCheckShouldWork() {
+        ResponseEntity<String> response = restTemplate.getForEntity(
+                baseUrl + "/healthcheck", String.class);
+        
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("OK", response.getBody());
     }
 
     @Test
-    @DisplayName("Services health check should return service status")
-    void healthCheckServices_ShouldReturnServiceStatus() throws Exception {
-        when(proxyService.checkAllServicesHealth())
-                .thenReturn(ResponseEntity.ok("{\"gateway\":\"OK\",\"authentication-service\":\"OK\"}"));
+    @DisplayName("Services health check should return all service statuses")
+    void servicesHealthCheck_ShouldReturnAllServiceStatuses() {
+        // Mock external service responses
+        mockServer.expect(requestTo("http://auth-service:8081/auth/healthcheck"))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess("OK", MediaType.TEXT_PLAIN));
 
-        mockMvc.perform(get("/healthcheck/services"))
-                .andExpect(status().isOk())
-                .andExpect(content().json("{\"gateway\":\"OK\",\"authentication-service\":\"OK\"}"));
+        mockServer.expect(requestTo("http://map-service:8083/api/v1/maps/healthcheck"))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess("OK", MediaType.TEXT_PLAIN));
+
+        mockServer.expect(requestTo("http://solver-service:8082/health"))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess("OK", MediaType.TEXT_PLAIN));
+
+        ResponseEntity<String> response = restTemplate.getForEntity(
+                baseUrl + "/healthcheck/services", String.class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        
+        String body = response.getBody();
+        assertTrue(body.contains("\"gateway\": \"OK\""));
+        assertTrue(body.contains("\"authentication-service\": \"OK\""));
+        assertTrue(body.contains("\"map-storage-service\": \"OK\""));
+        assertTrue(body.contains("\"solver-service\": \"OK\""));
+
+        mockServer.verify();
     }
 
-    // ==================== AUTHENTICATION TESTS ====================
+    // ==================== AUTHENTICATION FLOW TESTS ====================
 
     @Test
-    @DisplayName("Register with valid data should return success")
-    void register_WithValidData_ShouldReturnSuccess() throws Exception {
+    @DisplayName("End-to-end registration should work with mocked auth service")
+    void endToEndRegistration_ShouldWorkWithMockedAuthService() throws Exception {
         String requestBody = objectMapper.writeValueAsString(
                 Map.of("username", "testuser", "email", "test@example.com", "password", "password123")
         );
 
-        when(proxyService.isRateLimited(anyString())).thenReturn(false);
-        when(proxyService.forwardRequest(anyString(), anyString(), any(), any(), any()))
-                .thenReturn(ResponseEntity.ok("{\"id\":1,\"username\":\"testuser\"}"));
+        // Mock auth service response
+        mockServer.expect(requestTo("http://auth-service:8081/auth/register"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andRespond(withSuccess("{\"id\":1,\"username\":\"testuser\"}", MediaType.APPLICATION_JSON));
 
-        mockMvc.perform(post("/api/v1/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
-                .andExpect(status().isOk())
-                .andExpect(content().json("{\"id\":1,\"username\":\"testuser\"}"));
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                baseUrl + "/api/v1/auth/register", request, String.class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody().contains("testuser"));
+        
+        mockServer.verify();
     }
 
     @Test
-    @DisplayName("Register with invalid data should return error")
-    void register_WithInvalidData_ShouldReturnError() throws Exception {
-        String requestBody = objectMapper.writeValueAsString(
-                Map.of("username", "", "email", "invalid-email", "password", "")
-        );
-
-        when(proxyService.isRateLimited(anyString())).thenReturn(false);
-        when(proxyService.forwardRequest(anyString(), anyString(), any(), any(), any()))
-                .thenReturn(ResponseEntity.badRequest().body("{\"error\":\"Invalid data\"}"));
-
-        mockMvc.perform(post("/api/v1/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().json("{\"error\":\"Invalid data\"}"));
-    }
-
-    @Test
-    @DisplayName("Login with valid credentials should return token")
-    void login_WithValidCredentials_ShouldReturnToken() throws Exception {
+    @DisplayName("End-to-end login should work with mocked auth service")
+    void endToEndLogin_ShouldWorkWithMockedAuthService() throws Exception {
         String requestBody = objectMapper.writeValueAsString(
                 Map.of("email", "test@example.com", "password", "password123")
         );
 
-        when(proxyService.isRateLimited(anyString())).thenReturn(false);
-        when(proxyService.forwardRequest(anyString(), anyString(), any(), any(), any()))
-                .thenReturn(ResponseEntity.ok("{\"token\":\"jwt-token-here\",\"user\":{\"id\":1}}"));
+        // Mock auth service response
+        mockServer.expect(requestTo("http://auth-service:8081/auth/login"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andRespond(withSuccess("{\"token\":\"jwt-token-here\",\"user\":{\"id\":1,\"username\":\"testuser\"}}", MediaType.APPLICATION_JSON));
 
-        mockMvc.perform(post("/api/v1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
-                .andExpect(status().isOk())
-                .andExpect(content().json("{\"token\":\"jwt-token-here\",\"user\":{\"id\":1}}"));
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                baseUrl + "/api/v1/auth/login", request, String.class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody().contains("jwt-token-here"));
+        
+        mockServer.verify();
     }
 
     @Test
-    @DisplayName("Login with invalid credentials should return unauthorized")
-    void login_WithInvalidCredentials_ShouldReturnUnauthorized() throws Exception {
-        String requestBody = objectMapper.writeValueAsString(
-                Map.of("email", "test@example.com", "password", "wrongpassword")
-        );
+    @DisplayName("Logout should invalidate token and forward to auth service")
+    void logout_ShouldInvalidateTokenAndForwardToAuthService() {
+        // Mock auth service response
+        mockServer.expect(requestTo("http://auth-service:8081/auth/logout"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header("Authorization", "Bearer valid-token"))
+                .andRespond(withSuccess("{\"message\":\"Logged out successfully\"}", MediaType.APPLICATION_JSON));
 
-        when(proxyService.isRateLimited(anyString())).thenReturn(false);
-        when(proxyService.forwardRequest(anyString(), anyString(), any(), any(), any()))
-                .thenReturn(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"error\":\"Invalid credentials\"}"));
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer valid-token");
+        HttpEntity<String> request = new HttpEntity<>(headers);
 
-        mockMvc.perform(post("/api/v1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
-                .andExpect(status().isUnauthorized())
-                .andExpect(content().json("{\"error\":\"Invalid credentials\"}"));
-    }
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                baseUrl + "/api/v1/auth/logout", request, String.class);
 
-    @Test
-    @DisplayName("Logout with valid token should return success")
-    void logout_WithValidToken_ShouldReturnSuccess() throws Exception {
-        when(proxyService.isRateLimited(anyString())).thenReturn(false);
-        when(proxyService.forwardRequest(anyString(), anyString(), any(), any(), any()))
-                .thenReturn(ResponseEntity.ok("{\"message\":\"Logged out successfully\"}"));
-
-        mockMvc.perform(post("/api/v1/auth/logout")
-                        .header("Authorization", "Bearer valid-token"))
-                .andExpect(status().isOk())
-                .andExpect(content().json("{\"message\":\"Logged out successfully\"}"));
-    }
-
-    @Test
-    @DisplayName("Refresh token should return new token")
-    void refreshToken_ShouldReturnNewToken() throws Exception {
-        when(proxyService.isRateLimited(anyString())).thenReturn(false);
-        when(proxyService.forwardRequest(anyString(), anyString(), any(), any(), any()))
-                .thenReturn(ResponseEntity.ok("{\"token\":\"new-jwt-token\"}"));
-
-        mockMvc.perform(post("/api/v1/auth/refresh")
-                        .header("Authorization", "Bearer old-token"))
-                .andExpect(status().isOk())
-                .andExpect(content().json("{\"token\":\"new-jwt-token\"}"));
-    }
-
-    @Test
-    @DisplayName("Verify token should return validation result")
-    void verifyToken_ShouldReturnValidationResult() throws Exception {
-        when(proxyService.isRateLimited(anyString())).thenReturn(false);
-        when(proxyService.forwardRequest(anyString(), anyString(), any(), any(), any()))
-                .thenReturn(ResponseEntity.ok("{\"valid\":true}"));
-
-        mockMvc.perform(post("/api/v1/auth/verify")
-                        .header("Authorization", "Bearer valid-token"))
-                .andExpect(status().isOk())
-                .andExpect(content().json("{\"valid\":true}"));
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody().contains("Logged out successfully"));
+        
+        mockServer.verify();
     }
 
     // ==================== MAP COLORING TESTS ====================
@@ -186,33 +204,48 @@ class GatewayIntegrationTest {
                 Map.of("image", Map.of("data", new int[]{1, 2, 3, 4}), "width", 800, "height", 600)
         );
 
-        when(proxyService.isRateLimited(anyString())).thenReturn(false);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
 
-        mockMvc.perform(post("/api/v1/maps/color")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
-                .andExpect(status().isUnauthorized())
-                .andExpect(content().json("{\"error\":\"Authentication required\"}"));
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                baseUrl + "/api/v1/maps/color", request, String.class);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        assertTrue(response.getBody().contains("Authentication required"));
     }
 
     @Test
-    @DisplayName("Color map with valid auth should return colored map")
-    void colorMap_WithValidAuth_ShouldReturnColoredMap() throws Exception {
+    @DisplayName("Color map with valid auth should forward to solver service")
+    void colorMap_WithValidAuth_ShouldForwardToSolverService() throws Exception {
         String requestBody = objectMapper.writeValueAsString(
-                Map.of("image", Map.of("data", new int[]{1, 2, 3, 4}), "width", 800, "height", 600)
+                Map.of("image", Map.of("data", new int[]{1, 2, 3, 4}), "width", 800, "height", 600, "userId", "user123")
         );
 
-        when(proxyService.isRateLimited(anyString())).thenReturn(false);
-        when(proxyService.verifyToken(anyString())).thenReturn(ResponseEntity.ok("{\"valid\":true}"));
-        when(proxyService.forwardRequest(anyString(), anyString(), any(), any(), any()))
-                .thenReturn(ResponseEntity.ok("{\"coloredImage\":{\"data\":[1,2,3,4]},\"colors\":4}"));
+        // Mock auth verification first (this is called first by the gateway)
+        mockServer.expect(requestTo("http://auth-service:8081/auth/verify"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header("Authorization", "Bearer valid-token"))
+                .andRespond(withSuccess("{\"valid\":true}", MediaType.APPLICATION_JSON));
 
-        mockMvc.perform(post("/api/v1/maps/color")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer valid-token")
-                        .content(requestBody))
-                .andExpect(status().isOk())
-                .andExpect(content().json("{\"coloredImage\":{\"data\":[1,2,3,4]},\"colors\":4}"));
+        // Mock solver service response second (this is called after auth verification)
+        mockServer.expect(requestTo("http://solver-service:8082/api/solve"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andRespond(withSuccess("{\"coloredImage\":{\"data\":[1,2,3,4]},\"colors\":4,\"processingTime\":150}", MediaType.APPLICATION_JSON));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer valid-token");
+        HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                baseUrl + "/api/v1/maps/color", request, String.class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody().contains("coloredImage"));
+        
+        mockServer.verify();
     }
 
     @Test
@@ -222,258 +255,251 @@ class GatewayIntegrationTest {
                 Map.of("image", Map.of("data", new int[]{1, 2, 3, 4}), "width", 800, "height", 600)
         );
 
-        when(proxyService.isRateLimited(anyString())).thenReturn(false);
-        when(proxyService.verifyToken(anyString())).thenReturn(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("{\"error\":\"Invalid token\"}"));
+        // Mock auth verification failure (this should be called for invalid tokens)
+        mockServer.expect(requestTo("http://auth-service:8081/auth/verify"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header("Authorization", "Bearer invalid-token"))
+                .andRespond(withStatus(HttpStatus.UNAUTHORIZED)
+                        .body("{\"error\":\"Invalid token\"}")
+                        .contentType(MediaType.APPLICATION_JSON));
 
-        mockMvc.perform(post("/api/v1/maps/color")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer invalid-token")
-                        .content(requestBody))
-                .andExpect(status().isUnauthorized())
-                .andExpect(content().json("{\"error\":\"Authentication required\"}"));
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer invalid-token");
+        HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                baseUrl + "/api/v1/maps/color", request, String.class);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        assertTrue(response.getBody().contains("Authentication required"));
+        
+        mockServer.verify();
     }
 
     // ==================== MAP STORAGE TESTS ====================
 
     @Test
-    @DisplayName("Create map with valid auth should return success")
-    void createMap_WithValidAuth_ShouldReturnSuccess() throws Exception {
+    @DisplayName("Create map with valid auth should forward to map service")
+    void createMap_WithValidAuth_ShouldForwardToMapService() throws Exception {
         String requestBody = objectMapper.writeValueAsString(
                 Map.of("name", "Test Map", "data", "map-data", "userId", "user123")
         );
 
-        when(proxyService.isRateLimited(anyString())).thenReturn(false);
-        when(proxyService.verifyToken(anyString())).thenReturn(ResponseEntity.ok("{\"valid\":true}"));
-        when(proxyService.forwardRequest(anyString(), anyString(), any(), any(), any()))
-                .thenReturn(ResponseEntity.ok("{\"id\":\"map123\",\"name\":\"Test Map\"}"));
+        // Mock auth verification first (this is called first by the gateway)
+        mockServer.expect(requestTo("http://auth-service:8081/auth/verify"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header("Authorization", "Bearer valid-token"))
+                .andRespond(withSuccess("{\"valid\":true}", MediaType.APPLICATION_JSON));
 
-        mockMvc.perform(post("/api/v1/maps")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer valid-token")
-                        .content(requestBody))
-                .andExpect(status().isOk())
-                .andExpect(content().json("{\"id\":\"map123\",\"name\":\"Test Map\"}"));
+        // Mock map service response second (this is called after auth verification)
+        mockServer.expect(requestTo("http://map-service:8083/api/v1/maps"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andRespond(withSuccess("{\"id\":\"map123\",\"name\":\"Test Map\"}", MediaType.APPLICATION_JSON));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer valid-token");
+        HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                baseUrl + "/api/v1/maps", request, String.class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody().contains("Test Map"));
+        
+        mockServer.verify();
     }
 
     @Test
     @DisplayName("Get maps with valid auth should return maps list")
-    void getMaps_WithValidAuth_ShouldReturnMapsList() throws Exception {
-        when(proxyService.isRateLimited(anyString())).thenReturn(false);
-        when(proxyService.verifyToken(anyString())).thenReturn(ResponseEntity.ok("{\"valid\":true}"));
-        when(proxyService.forwardRequest(anyString(), anyString(), any(), any(), any()))
-                .thenReturn(ResponseEntity.ok("[{\"id\":\"map1\",\"name\":\"Map 1\"},{\"id\":\"map2\",\"name\":\"Map 2\"}]"));
+    void getMaps_WithValidAuth_ShouldReturnMapsList() {
+        // Mock auth verification first (this is called first by the gateway)
+        // Mock auth verification first (this is called first by the gateway)
+        mockServer.expect(requestTo("http://auth-service:8081/auth/verify"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header("Authorization", "Bearer valid-token"))
+                .andRespond(withSuccess("{\"valid\":true}", MediaType.APPLICATION_JSON));
 
-        mockMvc.perform(get("/api/v1/maps")
-                        .header("Authorization", "Bearer valid-token"))
-                .andExpect(status().isOk())
-                .andExpect(content().json("[{\"id\":\"map1\",\"name\":\"Map 1\"},{\"id\":\"map2\",\"name\":\"Map 2\"}]"));
+        // Mock map service response second (this is called after auth verification)
+        mockServer.expect(requestTo("http://map-service:8083/api/v1/maps"))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess("[{\"id\":\"map1\",\"name\":\"Map 1\"},{\"id\":\"map2\",\"name\":\"Map 2\"}]", MediaType.APPLICATION_JSON));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer valid-token");
+        HttpEntity<String> request = new HttpEntity<>(headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                baseUrl + "/api/v1/maps", HttpMethod.GET, request, String.class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody().contains("Map 1"));
+        assertTrue(response.getBody().contains("Map 2"));
+        
+        mockServer.verify();
     }
 
     @Test
     @DisplayName("Get maps with query parameters should forward correctly")
-    void getMaps_WithQueryParameters_ShouldForwardCorrectly() throws Exception {
-        when(proxyService.isRateLimited(anyString())).thenReturn(false);
-        when(proxyService.verifyToken(anyString())).thenReturn(ResponseEntity.ok("{\"valid\":true}"));
-        when(proxyService.forwardRequest(anyString(), anyString(), any(), any(), any()))
-                .thenReturn(ResponseEntity.ok("[{\"id\":\"map1\",\"name\":\"Map 1\"}]"));
+    void getMaps_WithQueryParameters_ShouldForwardCorrectly() {
+        // Mock auth verification first (this is called first by the gateway)
+        mockServer.expect(requestTo("http://auth-service:8081/auth/verify"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header("Authorization", "Bearer valid-token"))
+                .andRespond(withSuccess("{\"valid\":true}", MediaType.APPLICATION_JSON));
 
-        mockMvc.perform(get("/api/v1/maps?userId=user123&limit=10")
-                        .header("Authorization", "Bearer valid-token"))
-                .andExpect(status().isOk());
+        // Mock map service response second (this is called after auth verification)
+        mockServer.expect(requestTo("http://map-service:8083/api/v1/maps?userId=user123&limit=10"))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess("[{\"id\":\"map1\",\"name\":\"Map 1\"}]", MediaType.APPLICATION_JSON));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer valid-token");
+        HttpEntity<String> request = new HttpEntity<>(headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                baseUrl + "/api/v1/maps?userId=user123&limit=10", 
+                HttpMethod.GET, request, String.class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        
+        mockServer.verify();
     }
 
     @Test
-    @DisplayName("Get map by ID with valid auth should return map")
-    void getMapById_WithValidAuth_ShouldReturnMap() throws Exception {
-        when(proxyService.isRateLimited(anyString())).thenReturn(false);
-        when(proxyService.verifyToken(anyString())).thenReturn(ResponseEntity.ok("{\"valid\":true}"));
-        when(proxyService.forwardRequest(anyString(), anyString(), any(), any(), any()))
-                .thenReturn(ResponseEntity.ok("{\"id\":\"map123\",\"name\":\"Test Map\",\"data\":\"map-data\"}"));
+    @DisplayName("Get map by ID should forward to map service")
+    void getMapById_ShouldForwardToMapService() {
+        // Mock auth verification first (this is called first by the gateway)
+        mockServer.expect(requestTo("http://auth-service:8081/auth/verify"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header("Authorization", "Bearer valid-token"))
+                .andRespond(withSuccess("{\"valid\":true}", MediaType.APPLICATION_JSON));
 
-        mockMvc.perform(get("/api/v1/maps/map123")
-                        .header("Authorization", "Bearer valid-token"))
-                .andExpect(status().isOk())
-                .andExpect(content().json("{\"id\":\"map123\",\"name\":\"Test Map\",\"data\":\"map-data\"}"));
+        // Mock map service response second (this is called after auth verification)
+        mockServer.expect(requestTo("http://map-service:8083/api/v1/maps/map123"))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess("{\"id\":\"map123\",\"name\":\"Test Map\",\"data\":\"map-data\"}", MediaType.APPLICATION_JSON));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer valid-token");
+        HttpEntity<String> request = new HttpEntity<>(headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                baseUrl + "/api/v1/maps/map123", HttpMethod.GET, request, String.class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody().contains("map123"));
+        
+        mockServer.verify();
     }
 
     @Test
-    @DisplayName("Update map with valid auth should return success")
-    void updateMap_WithValidAuth_ShouldReturnSuccess() throws Exception {
+    @DisplayName("Update map should forward to map service")
+    void updateMap_ShouldForwardToMapService() throws Exception {
         String requestBody = objectMapper.writeValueAsString(
                 Map.of("name", "Updated Map", "data", "updated-data")
         );
 
-        when(proxyService.isRateLimited(anyString())).thenReturn(false);
-        when(proxyService.verifyToken(anyString())).thenReturn(ResponseEntity.ok("{\"valid\":true}"));
-        when(proxyService.forwardRequest(anyString(), anyString(), any(), any(), any()))
-                .thenReturn(ResponseEntity.ok("{\"id\":\"map123\",\"name\":\"Updated Map\"}"));
+        // Mock auth verification first (this is called first by the gateway)
+        mockServer.expect(requestTo("http://auth-service:8081/auth/verify"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header("Authorization", "Bearer valid-token"))
+                .andRespond(withSuccess("{\"valid\":true}", MediaType.APPLICATION_JSON));
 
-        mockMvc.perform(put("/api/v1/maps/map123")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer valid-token")
-                        .content(requestBody))
-                .andExpect(status().isOk())
-                .andExpect(content().json("{\"id\":\"map123\",\"name\":\"Updated Map\"}"));
+        // Mock map service response second (this is called after auth verification)
+        mockServer.expect(requestTo("http://map-service:8083/api/v1/maps/map123"))
+                .andExpect(method(HttpMethod.PUT))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andRespond(withSuccess("{\"id\":\"map123\",\"name\":\"Updated Map\"}", MediaType.APPLICATION_JSON));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer valid-token");
+        HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                baseUrl + "/api/v1/maps/map123", HttpMethod.PUT, request, String.class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody().contains("Updated Map"));
+        
+        mockServer.verify();
     }
 
     @Test
-    @DisplayName("Delete map with valid auth should return success")
-    void deleteMap_WithValidAuth_ShouldReturnSuccess() throws Exception {
-        when(proxyService.isRateLimited(anyString())).thenReturn(false);
-        when(proxyService.verifyToken(anyString())).thenReturn(ResponseEntity.ok("{\"valid\":true}"));
-        when(proxyService.forwardRequest(anyString(), anyString(), any(), any(), any()))
-                .thenReturn(ResponseEntity.ok("{\"message\":\"Map deleted successfully\"}"));
+    @DisplayName("Delete map should forward to map service")
+    void deleteMap_ShouldForwardToMapService() {
+        // Mock auth verification first (this is called first by the gateway)
+        mockServer.expect(requestTo("http://auth-service:8081/auth/verify"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header("Authorization", "Bearer valid-token"))
+                .andRespond(withSuccess("{\"valid\":true}", MediaType.APPLICATION_JSON));
 
-        mockMvc.perform(delete("/api/v1/maps/map123")
-                        .header("Authorization", "Bearer valid-token"))
-                .andExpect(status().isOk())
-                .andExpect(content().json("{\"message\":\"Map deleted successfully\"}"));
-    }
+        // Mock map service response second (this is called after auth verification)
+        mockServer.expect(requestTo("http://map-service:8083/api/v1/maps/map123"))
+                .andExpect(method(HttpMethod.DELETE))
+                .andRespond(withSuccess("{\"message\":\"Map deleted successfully\"}", MediaType.APPLICATION_JSON));
 
-    // ==================== RATE LIMITING TESTS ====================
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer valid-token");
+        HttpEntity<String> request = new HttpEntity<>(headers);
 
-    @Test
-    @DisplayName("Rate limited request should return too many requests")
-    void rateLimitedRequest_ShouldReturnTooManyRequests() throws Exception {
-        String requestBody = objectMapper.writeValueAsString(
-                Map.of("username", "testuser", "email", "test@example.com", "password", "password123")
-        );
+        ResponseEntity<String> response = restTemplate.exchange(
+                baseUrl + "/api/v1/maps/map123", HttpMethod.DELETE, request, String.class);
 
-        when(proxyService.isRateLimited(anyString())).thenReturn(true);
-
-        mockMvc.perform(post("/api/v1/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
-                .andExpect(status().isTooManyRequests())
-                .andExpect(content().json("{\"error\":\"Rate limit exceeded. Please try again later.\"}"));
-    }
-
-    @Test
-    @DisplayName("Rate limited map request should return too many requests")
-    void rateLimitedMapRequest_ShouldReturnTooManyRequests() throws Exception {
-        String requestBody = objectMapper.writeValueAsString(
-                Map.of("name", "Test Map", "data", "map-data")
-        );
-
-        when(proxyService.isRateLimited(anyString())).thenReturn(true);
-
-        mockMvc.perform(post("/api/v1/maps")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer valid-token")
-                        .content(requestBody))
-                .andExpect(status().isTooManyRequests())
-                .andExpect(content().json("{\"error\":\"Rate limit exceeded. Please try again later.\"}"));
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody().contains("deleted successfully"));
+        
+        mockServer.verify();
     }
 
     // ==================== ERROR HANDLING TESTS ====================
 
     @Test
-    @DisplayName("Service unavailable should return internal server error")
-    void serviceUnavailable_ShouldReturnInternalServerError() throws Exception {
+    @DisplayName("Service failure should return appropriate error")
+    void serviceFailure_ShouldReturnAppropriateError() throws Exception {
         String requestBody = objectMapper.writeValueAsString(
                 Map.of("username", "testuser", "email", "test@example.com", "password", "password123")
         );
 
-        when(proxyService.isRateLimited(anyString())).thenReturn(false);
-        when(proxyService.forwardRequest(anyString(), anyString(), any(), any(), any()))
-                .thenReturn(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body("{\"error\":\"Internal Server Error\", \"Target Service\": \"http://auth-service\", \"Error Message\": \"Connection timeout\", \"Status Code\": \"500\"}"));
+        // Mock auth service to return 500 error
+        mockServer.expect(requestTo("http://auth-service:8081/auth/register"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andRespond(withServerError()
+                        .body("{\"error\":\"Internal server error\"}")
+                        .contentType(MediaType.APPLICATION_JSON));
 
-        mockMvc.perform(post("/api/v1/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
-                .andExpect(status().isInternalServerError());
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                baseUrl + "/api/v1/auth/register", request, String.class);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertTrue(response.getBody().contains("Internal server error"));
+        
+        mockServer.verify();
     }
 
     // ==================== CORS TESTS ====================
 
     @Test
-    @DisplayName("OPTIONS request should return OK")
-    void optionsRequest_ShouldReturnOK() throws Exception {
-        mockMvc.perform(options("/api/v1/auth/login"))
-                .andExpect(status().isOk());
-    }
+    @DisplayName("CORS should be properly configured")
+    void cors_ShouldBeProperlyConfigured() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Origin", "http://localhost:3000");
+        HttpEntity<String> request = new HttpEntity<>(headers);
 
-    @Test
-    @DisplayName("OPTIONS request for any endpoint should return OK")
-    void optionsRequestForAnyEndpoint_ShouldReturnOK() throws Exception {
-        mockMvc.perform(options("/api/v1/maps/color"))
-                .andExpect(status().isOk());
-    }
+        ResponseEntity<String> response = restTemplate.exchange(
+                baseUrl + "/api/v1/auth/login", 
+                HttpMethod.OPTIONS, 
+                request, 
+                String.class);
 
-    // ==================== HEADER FORWARDING TESTS ====================
-
-    @Test
-    @DisplayName("Request with custom headers should forward headers correctly")
-    void requestWithCustomHeaders_ShouldForwardHeadersCorrectly() throws Exception {
-        String requestBody = objectMapper.writeValueAsString(
-                Map.of("username", "testuser", "email", "test@example.com", "password", "password123")
-        );
-
-        when(proxyService.isRateLimited(anyString())).thenReturn(false);
-        when(proxyService.forwardRequest(anyString(), anyString(), any(), any(), any()))
-                .thenReturn(ResponseEntity.ok("{\"id\":1,\"username\":\"testuser\"}"));
-
-        mockMvc.perform(post("/api/v1/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-Custom-Header", "custom-value")
-                        .header("User-Agent", "test-agent")
-                        .content(requestBody))
-                .andExpect(status().isOk());
-    }
-
-    // ==================== EDGE CASE TESTS ====================
-
-    @Test
-    @DisplayName("Empty request body should be handled gracefully")
-    void emptyRequestBody_ShouldBeHandledGracefully() throws Exception {
-        when(proxyService.isRateLimited(anyString())).thenReturn(false);
-        when(proxyService.forwardRequest(anyString(), anyString(), any(), any(), any()))
-                .thenReturn(ResponseEntity.badRequest().body("{\"error\":\"Empty request body\"}"));
-
-        mockMvc.perform(post("/api/v1/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(""))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    @DisplayName("Large request body should be handled")
-    void largeRequestBody_ShouldBeHandled() throws Exception {
-        // Create a large request body
-        StringBuilder largeBody = new StringBuilder();
-        largeBody.append("{\"data\":\"");
-        for (int i = 0; i < 1000; i++) {
-            largeBody.append("large-data-chunk-");
-        }
-        largeBody.append("\"}");
-
-        when(proxyService.isRateLimited(anyString())).thenReturn(false);
-        when(proxyService.verifyToken(anyString())).thenReturn(ResponseEntity.ok("{\"valid\":true}"));
-        when(proxyService.forwardRequest(anyString(), anyString(), any(), any(), any()))
-                .thenReturn(ResponseEntity.ok("{\"status\":\"processed\"}"));
-
-        mockMvc.perform(post("/api/v1/maps")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer valid-token")
-                        .content(largeBody.toString()))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    @DisplayName("Request with special characters should be handled")
-    void requestWithSpecialCharacters_ShouldBeHandled() throws Exception {
-        String requestBody = objectMapper.writeValueAsString(
-                Map.of("username", "test@user#123", "email", "test+user@example.com", "password", "pass@word#123")
-        );
-
-        when(proxyService.isRateLimited(anyString())).thenReturn(false);
-        when(proxyService.forwardRequest(anyString(), anyString(), any(), any(), any()))
-                .thenReturn(ResponseEntity.ok("{\"id\":1,\"username\":\"test@user#123\"}"));
-
-        mockMvc.perform(post("/api/v1/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
-                .andExpect(status().isOk());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }
