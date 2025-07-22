@@ -1,0 +1,8 @@
+spring:
+  profiles:
+    active: test
+
+logging:
+  level:
+    com.fourcolour.common: DEBUG
+    org.springframework: INFO
