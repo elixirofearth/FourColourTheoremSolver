@@ -356,6 +356,9 @@ class MapStorageSecurityTest {
 
             assertEquals(HttpStatus.CREATED, response.getStatusCode());
             verify(mapService).saveMap(mapRequest);
+            
+            // Reset mock to avoid verification issues in loop
+            reset(mapService);
         }
     }
 
@@ -395,6 +398,9 @@ class MapStorageSecurityTest {
 
             assertEquals(HttpStatus.CREATED, response.getStatusCode());
             verify(mapService).saveMap(mapRequest);
+            
+            // Reset mock to avoid verification issues in loop
+            reset(mapService);
         }
     }
 
