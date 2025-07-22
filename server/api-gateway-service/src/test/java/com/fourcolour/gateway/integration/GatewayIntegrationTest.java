@@ -1,21 +1,18 @@
 package com.fourcolour.gateway.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fourcolour.gateway.ApiGatewayServiceApplication;
+import com.fourcolour.gateway.controller.GatewayController;
+import com.fourcolour.gateway.service.ProxyService;
 import com.fourcolour.gateway.service.TokenCacheService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.context.WebApplicationContext;
 
 import java.util.Map;
 
@@ -24,29 +21,23 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-@SpringBootTest(classes = ApiGatewayServiceApplication.class, properties = {
-    "spring.redis.host=localhost",
-    "spring.redis.port=6379"
-})
-@AutoConfigureWebMvc
+@WebMvcTest(GatewayController.class)
 @ActiveProfiles("test")
 class GatewayIntegrationTest {
 
     @Autowired
-    private WebApplicationContext webApplicationContext;
+    private MockMvc mockMvc;
 
     @MockBean
-    private RestTemplate restTemplate;
+    private ProxyService proxyService;
 
     @MockBean
     private TokenCacheService tokenCacheService;
 
-    private MockMvc mockMvc;
     private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
         objectMapper = new ObjectMapper();
     }
 
@@ -64,7 +55,7 @@ class GatewayIntegrationTest {
         );
 
         when(tokenCacheService.isRateLimited(anyString())).thenReturn(false);
-        when(restTemplate.exchange(anyString(), any(), any(), eq(String.class)))
+        when(proxyService.forwardRequest(anyString(), anyString(), any(), any(), any()))
                 .thenReturn(ResponseEntity.ok("{\"id\":1,\"username\":\"testuser\"}"));
 
         mockMvc.perform(post("/api/v1/auth/register")
