@@ -151,8 +151,8 @@ class AuthControllerTest {
         ResponseEntity<?> response = authController.verifyToken(token);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertTrue(response.getBody().toString().contains("\"valid\":true"));
-        assertTrue(response.getBody().toString().contains("\"user_id\":1"));
+        assertTrue(response.getBody().toString().contains("valid=true"));
+        assertTrue(response.getBody().toString().contains("user_id=1"));
     }
 
     @Test
