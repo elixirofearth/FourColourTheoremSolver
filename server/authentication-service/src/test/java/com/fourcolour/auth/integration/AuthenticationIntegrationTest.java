@@ -16,10 +16,17 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.core5.util.Timeout;
 
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -31,6 +38,7 @@ import static org.mockito.Mockito.*;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class AuthenticationIntegrationTest {
 
     @LocalServerPort
@@ -56,25 +64,52 @@ class AuthenticationIntegrationTest {
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", () -> "jdbc:h2:mem:testdb");
+        registry.add("spring.datasource.url", () -> "jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE");
         registry.add("spring.datasource.driver-class-name", () -> "org.h2.Driver");
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
-        registry.add("app.jwt.secret", () -> "testSecretKeyForIntegrationTests123456789");
+        registry.add("app.jwt.secret", () -> "testSecretKeyForIntegrationTests12345678901234567890123456789012");
         registry.add("app.jwt.expiration", () -> "3600");
+        registry.add("spring.jpa.show-sql", () -> "false");
+        registry.add("logging.level.org.springframework.web", () -> "WARN");
+        registry.add("logging.level.org.hibernate.SQL", () -> "WARN");
+        registry.add("spring.task.scheduling.enabled", () -> "false");
+        registry.add("server.tomcat.threads.max", () -> "200");
+        registry.add("server.tomcat.threads.min-spare", () -> "10");
+        registry.add("server.tomcat.accept-count", () -> "100");
     }
 
     @BeforeEach
+    @Transactional
     void setUp() {
         objectMapper = new ObjectMapper();
         baseUrl = "http://localhost:" + port;
         
-        // Clear database
-        sessionRepository.deleteAll();
-        userRepository.deleteAll();
+        // Clear database with proper transaction handling
+        sessionRepository.deleteAllInBatch();
+        userRepository.deleteAllInBatch();
         
         // Reset mocks
         reset(loggerClient);
         doNothing().when(loggerClient).logEvent(anyString(), anyString(), anyString(), anyString(), anyInt(), any());
+        
+        // Configure TestRestTemplate to use Apache HttpClient with disabled retries
+        var httpClient = HttpClients.custom()
+                .disableAutomaticRetries()
+                .build();
+        
+        HttpComponentsClientHttpRequestFactory requestFactory = 
+            new HttpComponentsClientHttpRequestFactory(httpClient);
+        requestFactory.setConnectTimeout(5000);
+        requestFactory.setConnectionRequestTimeout(5000);
+        
+        restTemplate.getRestTemplate().setRequestFactory(requestFactory);
+        
+        // Add small delay to ensure database is ready
+        try {
+            TimeUnit.MILLISECONDS.sleep(100);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     // ==================== HEALTH CHECK TESTS ====================

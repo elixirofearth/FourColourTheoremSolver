@@ -29,7 +29,7 @@ spring:
 
 app:
   jwt:
-    secret: testSecretKeyForUnitTests123456789
+    secret: testSecretKeyForUnitTests12345678901234567890123456789012
     expiration: 3600 # 1 hour in seconds
 
 grpc:
