@@ -45,19 +45,23 @@ public class MapService {
                    savedMap.getId(), savedMap.getUserId());
 
         // Log to logger service
-        loggerClient.logEvent(
-                "map-storage-service",
-                "map_created",
-                request.getUserId(),
-                "Map created: " + savedMap.getName(),
-                1,
-                java.util.Map.of(
-                        "map_id", savedMap.getId(),
-                        "map_name", savedMap.getName() != null ? savedMap.getName() : "",
-                        "width", String.valueOf(savedMap.getWidth()),
-                        "height", String.valueOf(savedMap.getHeight())
-                )
-        );
+        try {
+            loggerClient.logEvent(
+                    "map-storage-service",
+                    "map_created",
+                    request.getUserId(),
+                    "Map created: " + (request.getName() != null ? request.getName() : "null"),
+                    1,
+                    java.util.Map.of(
+                            "map_id", savedMap.getId(),
+                            "map_name", savedMap.getName() != null ? savedMap.getName() : "",
+                            "width", String.valueOf(savedMap.getWidth()),
+                            "height", String.valueOf(savedMap.getHeight())
+                    )
+            );
+        } catch (Exception e) {
+            logger.warn("Failed to log map creation event: {}", e.getMessage());
+        }
 
         return savedMap;
     }
@@ -97,17 +101,21 @@ public class MapService {
                    map.getName(), map.getUserId());
 
         // Log to logger service
-        loggerClient.logEvent(
-                "map-storage-service",
-                "map_deleted",
-                map.getUserId(),
-                "Map deleted: " + map.getName(),
-                1,
-                java.util.Map.of(
-                        "map_id", id,
-                        "map_name", map.getName() != null ? map.getName() : ""
-                )
-        );
+        try {
+            loggerClient.logEvent(
+                    "map-storage-service",
+                    "map_deleted",
+                    map.getUserId(),
+                    "Map deleted: " + map.getName(),
+                    1,
+                    java.util.Map.of(
+                            "map_id", id,
+                            "map_name", map.getName() != null ? map.getName() : ""
+                    )
+            );
+        } catch (Exception e) {
+            logger.warn("Failed to log map deletion event: {}", e.getMessage());
+        }
 
         return true;
     }
