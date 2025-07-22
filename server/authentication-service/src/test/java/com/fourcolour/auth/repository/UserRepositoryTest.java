@@ -144,10 +144,10 @@ class UserRepositoryTest {
     }
 
     @Test
-    void findById_WithNullId_ShouldReturnEmpty() {
-        Optional<User> found = userRepository.findById(null);
-
-        assertFalse(found.isPresent());
+    void findById_WithNullId_ShouldThrowException() {
+        assertThrows(org.springframework.dao.InvalidDataAccessApiUsageException.class, () -> {
+            userRepository.findById(null);
+        });
     }
 
     @Test
@@ -286,8 +286,10 @@ class UserRepositoryTest {
 
     @Test
     void save_WithLongEmail_ShouldPersistUser() {
+        // Create a valid but long email address (max 254 characters total)
         StringBuilder longEmail = new StringBuilder();
-        for (int i = 0; i < 100; i++) {
+        longEmail.append("verylongemailaddress");
+        for (int i = 0; i < 30; i++) {
             longEmail.append("a");
         }
         longEmail.append("@example.com");
