@@ -214,6 +214,7 @@ class LoggerPerformanceTest {
         
         int numberOfRequests = 100;
         CountDownLatch latch = new CountDownLatch(numberOfRequests);
+        ExecutorService executor = Executors.newFixedThreadPool(numberOfRequests);
 
         // Setup mocks
         when(kafkaTemplate.send(anyString(), any(Log.class))).thenReturn(null);
@@ -328,7 +329,7 @@ class LoggerPerformanceTest {
         ExecutorService executor = Executors.newFixedThreadPool(numberOfThreads);
 
         // Setup mocks for repository
-        when(logRepository.deleteById(anyString())).thenReturn(true);
+        doNothing().when(logRepository).deleteById(anyString());
 
         for (int i = 0; i < numberOfThreads; i++) {
             final int threadId = i;
@@ -435,9 +436,8 @@ class LoggerPerformanceTest {
             // Do nothing
         }
 
-        @SuppressWarnings("unchecked")
-        public LogResponse getResponse() {
-            return (LogResponse) response;
+        public T getResponse() {
+            return response;
         }
 
         public Throwable getError() {

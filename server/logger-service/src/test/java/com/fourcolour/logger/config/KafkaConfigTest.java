@@ -172,9 +172,10 @@ class KafkaConfigTest {
 
         assertNotNull(producerFactory);
         
-        // Verify the serializers are correctly configured
-        assertNotNull(producerFactory.getKeySerializer());
-        assertNotNull(producerFactory.getValueSerializer());
+        // Verify the serializers are correctly configured by checking the configuration properties
+        Map<String, Object> configs = producerFactory.getConfigurationProperties();
+        assertNotNull(configs.get(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG));
+        assertNotNull(configs.get(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG));
     }
 
     @Test
@@ -353,7 +354,7 @@ class KafkaConfigTest {
         
         // Verify the key deserializer is StringDeserializer
         Map<String, Object> configs = consumerFactory.getConfigurationProperties();
-        assertEquals(org.apache.kafka.common.serialization.StringDeserializer.class.getName(), 
+        assertEquals(org.apache.kafka.common.serialization.StringDeserializer.class, 
                    configs.get(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG));
     }
 
@@ -370,7 +371,7 @@ class KafkaConfigTest {
         
         // Verify the key serializer is StringSerializer
         Map<String, Object> configs = producerFactory.getConfigurationProperties();
-        assertEquals(org.apache.kafka.common.serialization.StringSerializer.class.getName(), 
+        assertEquals(org.apache.kafka.common.serialization.StringSerializer.class, 
                    configs.get(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG));
     }
 
@@ -388,7 +389,7 @@ class KafkaConfigTest {
         
         // Verify the value deserializer is JsonDeserializer
         Map<String, Object> configs = consumerFactory.getConfigurationProperties();
-        assertEquals(org.springframework.kafka.support.serializer.JsonDeserializer.class.getName(), 
+        assertEquals(org.springframework.kafka.support.serializer.JsonDeserializer.class, 
                    configs.get(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG));
     }
 
@@ -405,7 +406,7 @@ class KafkaConfigTest {
         
         // Verify the value serializer is JsonSerializer
         Map<String, Object> configs = producerFactory.getConfigurationProperties();
-        assertEquals(org.springframework.kafka.support.serializer.JsonSerializer.class.getName(), 
+        assertEquals(org.springframework.kafka.support.serializer.JsonSerializer.class, 
                    configs.get(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG));
     }
 } 
