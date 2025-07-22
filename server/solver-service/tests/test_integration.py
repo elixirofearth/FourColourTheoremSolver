@@ -24,60 +24,77 @@ class TestSolverIntegration(unittest.TestCase):
 
     def setUp(self):
         """Set up test data for each test"""
-        # Simple 4x4 image with clear regions
+        # Simple 4x4 image with clear regions (RGBA format - 4 values per pixel)
         self.simple_map_data = {
             "image": [
-                # Top-left region (white)
+                # Top-left region (white) - 4 pixels
                 255,
                 255,
                 255,
+                255,  # pixel 1
                 255,
                 255,
                 255,
+                255,  # pixel 2
                 255,
                 255,
-                # Top-right region (black boundary)
+                255,
+                255,  # pixel 3
+                255,
+                255,
+                255,
+                255,  # pixel 4
+                # Top-right region (black boundary) - 4 pixels
                 0,
                 0,
                 0,
-                255,
+                255,  # pixel 5
                 0,
                 0,
                 0,
-                255,
-                255,
-                255,
-                255,
-                255,
-                255,
-                255,
-                255,
-                255,
-                # Bottom-left region (black boundary)
+                255,  # pixel 6
                 0,
                 0,
                 0,
-                255,
+                255,  # pixel 7
                 0,
                 0,
                 0,
-                255,
-                255,
-                255,
-                255,
-                255,
-                255,
-                255,
-                255,
-                255,
+                255,  # pixel 8
+                # Bottom-left region (black boundary) - 4 pixels
                 0,
                 0,
                 0,
+                255,  # pixel 9
+                0,
+                0,
+                0,
+                255,  # pixel 10
+                0,
+                0,
+                0,
+                255,  # pixel 11
+                0,
+                0,
+                0,
+                255,  # pixel 12
+                # Bottom-right region (white) - 4 pixels
                 255,
-                0,
-                0,
-                0,
                 255,
+                255,
+                255,  # pixel 13
+                255,
+                255,
+                255,
+                255,  # pixel 14
+                255,
+                255,
+                255,
+                255,  # pixel 15
+                255,
+                255,
+                255,
+                255,  # pixel 16
             ],
             "width": 4,
             "height": 4,
@@ -517,6 +534,7 @@ class TestSolverIntegration(unittest.TestCase):
         response = self.app.post(
             "/api/solve",
             data=json.dumps(self.simple_map_data),
+            content_type="application/json",
         )
 
         self.assertEqual(response.status_code, 200)

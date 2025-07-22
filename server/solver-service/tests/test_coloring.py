@@ -79,7 +79,7 @@ class TestGraphColoringCSP(unittest.TestCase):
         self.assertIsNotNone(result)
         self.assertIsInstance(removed_values, defaultdict)
 
-        # Red should be removed from neighbors' domains
+        # Blue should be removed from neighbors' domains (0 and 2 are neighbors of 1)
         self.assertNotIn("blue", csp.domains[0])  # 0 is neighbor of 1
         self.assertNotIn("blue", csp.domains[2])  # 2 is neighbor of 1
 

@@ -28,7 +28,7 @@ def mock_logger():
 def sample_request_data():
     """Provide sample request data for tests"""
     return {
-        "image": [255, 255, 255, 255] * 4,  # 2x2 white image
+        "image": [255, 255, 255, 255] * 4,  # 2x2 white image (RGBA format)
         "width": 2,
         "height": 2,
         "userId": "test-user",
@@ -74,7 +74,7 @@ def performance_data():
     """Provide data for performance testing"""
     return {
         "small": {
-            "image": [255, 0] * 50,  # 5x5 checkerboard
+            "image": [255, 255, 255, 255] * 25,  # 5x5 white image (RGBA format)
             "width": 5,
             "height": 5,
             "userId": "perf-small",

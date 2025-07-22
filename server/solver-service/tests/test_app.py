@@ -235,7 +235,7 @@ class TestSolverApp(unittest.TestCase):
     def test_solve_endpoint_negative_dimensions(self):
         """Test solve endpoint with negative dimensions"""
         negative_data = {
-            "image": [255] * 16,
+            "image": [255, 255, 255, 255] * 4,
             "width": -2,
             "height": -2,
             "userId": "test-user-negative",
@@ -247,7 +247,7 @@ class TestSolverApp(unittest.TestCase):
             content_type="application/json",
         )
 
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 400)
 
     def test_solve_endpoint_mismatched_image_size(self):
         """Test solve endpoint with image data that doesn't match dimensions"""
@@ -264,7 +264,7 @@ class TestSolverApp(unittest.TestCase):
             content_type="application/json",
         )
 
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 400)
 
     @patch("app.grpc.insecure_channel")
     def test_log_event_success(self, mock_channel):
