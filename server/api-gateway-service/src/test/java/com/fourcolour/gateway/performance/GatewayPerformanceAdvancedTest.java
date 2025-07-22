@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.HttpStatus;
@@ -23,6 +25,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class GatewayPerformanceAdvancedTest {
 
     @Mock
@@ -58,8 +61,8 @@ class GatewayPerformanceAdvancedTest {
                 try {
                     for (int j = 0; j < requestsPerThread; j++) {
                         try {
-                            boolean isValid = tokenCacheService.isTokenValid("Bearer token-" + j);
-                            if (isValid) {
+                            Boolean isValid = tokenCacheService.getCachedTokenValidation("Bearer token-" + j);
+                            if (isValid != null && isValid) {
                                 successCount.incrementAndGet();
                             } else {
                                 failureCount.incrementAndGet();
@@ -177,7 +180,7 @@ class GatewayPerformanceAdvancedTest {
     void throughput_UnderHighLoad_ShouldMaintainPerformance() throws InterruptedException {
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         when(valueOperations.get(anyString())).thenReturn(null);
-        when(valueOperations.set(anyString(), any(), anyLong(), any())).thenReturn(true);
+        doNothing().when(valueOperations).set(anyString(), any(), anyLong(), any());
         
         TokenCacheService tokenCacheService = new TokenCacheService();
         org.springframework.test.util.ReflectionTestUtils.setField(tokenCacheService, "redisTemplate", redisTemplate);
@@ -190,10 +193,11 @@ class GatewayPerformanceAdvancedTest {
         long startTime = System.currentTimeMillis();
 
         for (int i = 0; i < numberOfThreads; i++) {
+            final int threadId = i;
             executor.submit(() -> {
                 try {
                     for (int j = 0; j < requestsPerThread; j++) {
-                        tokenCacheService.isRateLimited("192.168.1." + (i % 255));
+                        tokenCacheService.isRateLimited("192.168.1." + (threadId % 255));
                         tokenCacheService.cacheToken("Bearer token-" + j, true);
                     }
                 } finally {

@@ -85,11 +85,14 @@ class GatewaySecurityAdvancedTest {
         String maliciousContentType = "application/json; charset=utf-8\r\n\r\nGET /admin HTTP/1.1";
         when(request.getHeader("Content-Type")).thenReturn(maliciousContentType);
         when(proxyService.isRateLimited(anyString())).thenReturn(false);
+        when(proxyService.forwardRequest(anyString(), anyString(), any(), any(), any()))
+                .thenReturn(ResponseEntity.ok("{\"success\":true}"));
 
         ResponseEntity<String> response = gatewayController.register("{\"test\":\"data\"}", request);
 
         // Should handle gracefully without security issues
         assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test
@@ -167,10 +170,13 @@ class GatewaySecurityAdvancedTest {
         String maliciousSessionId = "session_id=malicious_session; Path=/; HttpOnly";
         when(request.getHeader("Cookie")).thenReturn(maliciousSessionId);
         when(proxyService.isRateLimited(anyString())).thenReturn(false);
+        when(proxyService.forwardRequest(anyString(), anyString(), any(), any(), any()))
+                .thenReturn(ResponseEntity.ok("{\"success\":true}"));
 
         ResponseEntity<String> response = gatewayController.register("{\"test\":\"data\"}", request);
 
         // Should handle gracefully
         assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 } 
