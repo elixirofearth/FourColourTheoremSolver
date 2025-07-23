@@ -105,8 +105,21 @@ test.describe("Authentication Tests", () => {
     test("should handle signup with existing email", async ({ page }) => {
       await page.goto("/signup");
 
+      // sign up first with email
+      const uniqueEmail = `testuser${Date.now()}@example.com`;
       await page.fill('input[type="text"]', "Test User");
-      await page.fill('input[type="email"]', "existing@example.com");
+      await page.fill('input[type="email"]', uniqueEmail);
+      await page.fill('input[type="password"]', "password123");
+      await page.click('button[type="submit"]');
+
+      // log out
+      await page.click("text=Sign Out");
+      await expect(page).toHaveURL("/login", { timeout: 10000 });
+
+      // sign up again with existing email
+      await page.goto("/signup");
+      await page.fill('input[type="text"]', "Test User");
+      await page.fill('input[type="email"]', uniqueEmail);
       await page.fill('input[type="password"]', "password123");
       await page.click('button[type="submit"]');
 
