@@ -284,37 +284,6 @@ mvn test
 cd solver-service && python -m pytest tests/
 ```
 
-#### Python Solver Service Setup
-
-Before running Python tests, ensure the following setup:
-
-```bash
-# 1. Navigate to solver service
-cd solver-service
-
-# 2. Create and activate virtual environment
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# 3. Install dependencies
-pip install -r requirements.txt
-pip install -r requirements_test.txt
-
-# 4. Generate gRPC files (if not already generated)
-cd proto/logs
-python -m grpc_tools.protoc --python_out=. --grpc_python_out=. --proto_path=. logger.proto
-cd ../..
-
-# 5. Fix import in generated gRPC file (if needed)
-# Edit proto/logs/logger_pb2_grpc.py and change:
-# from logs import logger_pb2 as logs_dot_logger__pb2
-# to:
-# from . import logger_pb2 as logger__pb2
-
-# 6. Run tests
-python -m pytest tests/ -v
-```
-
 #### Individual Service Tests
 
 ```bash
@@ -327,11 +296,6 @@ make test_logger
 
 # Python solver service
 make test_solver
-
-# Or manually:
-cd solver-service
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-python -m pytest tests/ -v
 ```
 
 #### Test with Coverage
@@ -341,7 +305,7 @@ python -m pytest tests/ -v
 mvn test jacoco:report
 
 # Python solver with coverage
-cd solver-service && source venv/bin/activate && python -m pytest tests/ --cov=app --cov-report=html
+cd solver-service && python -m pytest tests/ --cov=app --cov-report=html
 ```
 
 ### Test Infrastructure
@@ -480,9 +444,6 @@ mvn test jacoco:report
 #### Python Tests
 
 ```bash
-# Ensure virtual environment is activated
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
 # Run with verbose output
 python -m pytest tests/ -v
 
@@ -501,48 +462,6 @@ python -m pytest tests/ --cov=app --cov-report=html
 4. **Cleanup**: Tests clean up after themselves
 5. **Naming**: Clear, descriptive test method names
 6. **Documentation**: Tests serve as living documentation
-
-### Python Test Troubleshooting
-
-#### Common Issues
-
-**Import errors with gRPC files:**
-
-```bash
-# Regenerate gRPC files
-cd solver-service/proto/logs
-python -m grpc_tools.protoc --python_out=. --grpc_python_out=. --proto_path=. logger.proto
-
-# Fix import in generated file
-# Edit proto/logs/logger_pb2_grpc.py line 6:
-# Change: from logs import logger_pb2 as logs_dot_logger__pb2
-# To: from . import logger_pb2 as logger__pb2
-```
-
-**Virtual environment not activated:**
-
-```bash
-# Activate virtual environment
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Verify activation
-which python  # Should point to venv/bin/python
-```
-
-**Missing dependencies:**
-
-```bash
-# Install all dependencies
-pip install -r requirements.txt
-pip install -r requirements_test.txt
-```
-
-**Tests failing due to logs folder:**
-
-```bash
-# Remove redundant logs folder if it exists
-rm -rf logs/  # The proto/logs/ folder is the correct one
-```
 
 ## Migration from Go
 
