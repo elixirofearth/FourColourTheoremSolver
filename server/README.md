@@ -245,9 +245,223 @@ docker-compose logs [service-name]
 
 ## Testing
 
+The project includes comprehensive test suites for all services with multiple testing strategies:
+
+### Test Types
+
+- **Unit Tests**: Individual component testing with mocked dependencies
+- **Integration Tests**: End-to-end testing with real databases and external services
+- **Security Tests**: Authentication, authorization, and input validation testing
+- **Performance Tests**: Load testing and performance benchmarking
+- **Repository Tests**: Database interaction testing with Testcontainers
+
+### Test Coverage
+
+#### Spring Boot Services
+
+- **API Gateway Service**: Gateway routing, caching, authentication proxy
+- **Authentication Service**: User registration, login, JWT token management
+- **Map Storage Service**: CRUD operations, MongoDB integration
+- **Logger Service**: gRPC logging, Kafka messaging, MongoDB persistence
+- **Common Module**: DTOs, shared services, validation
+
+#### Python Solver Service
+
+- **Algorithm Tests**: Graph coloring algorithm correctness
+- **Integration Tests**: API endpoints, external service communication
+- **Security Tests**: Input validation, authentication, authorization
+- **Performance Tests**: Load testing, memory usage, response times
+
+### Running Tests
+
+#### All Tests
+
 ```bash
+# Run all Java tests
 mvn test
+
+# Run all Python tests
+cd solver-service && python -m pytest tests/
 ```
+
+#### Individual Service Tests
+
+```bash
+# Java services
+make test_common
+make test_api_gateway
+make test_authentication
+make test_map_storage
+make test_logger
+
+# Python solver service
+make test_solver
+```
+
+#### Test with Coverage
+
+```bash
+# Java services with coverage
+mvn test jacoco:report
+
+# Python solver with coverage
+cd solver-service && python -m pytest tests/ --cov=app --cov-report=html
+```
+
+### Test Infrastructure
+
+#### Java Services
+
+- **JUnit 5**: Primary testing framework
+- **Mockito**: Mocking and stubbing
+- **Testcontainers**: Database containers for integration tests
+- **Spring Boot Test**: Application context testing
+- **TestRestTemplate**: HTTP client testing
+
+#### Python Solver Service
+
+- **pytest**: Testing framework
+- **pytest-cov**: Coverage reporting
+- **Flask Test Client**: HTTP endpoint testing
+- **unittest.mock**: Mocking and patching
+
+### Test Databases
+
+#### Integration Test Databases
+
+- **H2**: In-memory database for authentication service tests
+- **MongoDB**: Testcontainers for map storage and logger services
+- **Kafka**: Testcontainers for logger service messaging tests
+- **Redis**: Mocked for API gateway caching tests
+
+### Test Configuration
+
+#### Java Services
+
+```yaml
+# application-test.yml
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/testdb
+  kafka:
+    bootstrap-servers: localhost:9092
+```
+
+#### Python Solver Service
+
+```python
+# requirements_test.txt
+pytest==8.4.1
+pytest-cov
+Flask==2.3.3
+networkx==3.5
+numpy==1.26.4
+```
+
+### Test Categories
+
+#### Unit Tests
+
+- Service layer business logic
+- Repository data access patterns
+- Controller request/response handling
+- Utility function validation
+
+#### Integration Tests
+
+- Full HTTP request/response cycles
+- Database persistence and retrieval
+- External service communication
+- Authentication and authorization flows
+
+#### Security Tests
+
+- Input validation and sanitization
+- Authentication token verification
+- Authorization role checking
+- SQL injection prevention
+- XSS protection
+
+#### Performance Tests
+
+- Response time benchmarking
+- Memory usage monitoring
+- Concurrent request handling
+- Database query optimization
+
+### Test Utilities
+
+#### Common Test Utilities
+
+- **TestUtils.java**: Shared test data and helper methods
+- **TestEntityManager**: JPA entity management for tests
+- **MockRestServiceServer**: HTTP service mocking
+- **TestRestTemplate**: HTTP client for integration tests
+
+#### Test Data Management
+
+- **@BeforeEach**: Test setup and teardown
+- **@DirtiesContext**: Context isolation between tests
+- **@Transactional**: Database transaction management
+- **@ActiveProfiles("test")**: Test-specific configuration
+
+### Continuous Integration
+
+#### Test Execution
+
+```bash
+# CI/CD pipeline commands
+make test              # Run all tests
+make test_solver       # Run Python tests
+make test_common       # Run shared module tests
+```
+
+#### Test Reports
+
+- JUnit XML reports for Java tests
+- pytest HTML reports for Python tests
+- JaCoCo coverage reports
+- Test execution time tracking
+
+### Debugging Tests
+
+#### Java Tests
+
+```bash
+# Run with debug logging
+mvn test -Dspring.profiles.active=test -Dlogging.level.com.fourcolour=DEBUG
+
+# Run specific test class
+mvn test -Dtest=AuthenticationServiceTest
+
+# Run with coverage
+mvn test jacoco:report
+```
+
+#### Python Tests
+
+```bash
+# Run with verbose output
+python -m pytest tests/ -v
+
+# Run specific test file
+python -m pytest tests/test_app.py
+
+# Run with coverage
+python -m pytest tests/ --cov=app --cov-report=html
+```
+
+### Test Best Practices
+
+1. **Isolation**: Each test is independent and doesn't affect others
+2. **Mocking**: External dependencies are mocked for unit tests
+3. **Real Databases**: Integration tests use real database containers
+4. **Cleanup**: Tests clean up after themselves
+5. **Naming**: Clear, descriptive test method names
+6. **Documentation**: Tests serve as living documentation
 
 ## Migration from Go
 
