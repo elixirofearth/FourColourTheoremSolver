@@ -441,18 +441,55 @@ mvn test -Dtest=AuthenticationServiceTest
 mvn test jacoco:report
 ```
 
-#### Python Tests
+#### Python Solver Service Tests
 
 ```bash
-# Run with verbose output
-python -m pytest tests/ -v
+# Navigate to solver service
+cd solver-service
 
-# Run specific test file
-python -m pytest tests/test_app.py
+# Activate virtual environment
+source venv/bin/activate  # macOS/Linux
+# or venv\Scripts\activate  # Windows
+
+# Install test dependencies (one-time)
+pip install -r requirements_test.txt
+
+# Generate protobuf files (one-time)
+python -m grpc_tools.protoc --python_out=. --grpc_python_out=. --proto_path=proto/logs proto/logs/logger.proto
+mv logger_pb2.py proto/logs/ && mv logger_pb2_grpc.py proto/logs/
+
+# Run all tests
+pytest
+
+# Run with verbose output
+pytest -v
+
+# Run specific test files
+pytest tests/test_app.py
+pytest tests/test_coloring.py
+pytest tests/test_algorithms.py
+pytest tests/test_integration.py
+pytest tests/test_performance.py
+pytest tests/test_security.py
+
+# Run specific test methods
+pytest tests/test_app.py::TestSolverApp::test_health_endpoint
 
 # Run with coverage
-python -m pytest tests/ --cov=app --cov-report=html
+pytest --cov=app tests/
+
+# Run tests in parallel
+pytest -n auto
 ```
+
+**Test Categories (126 total tests):**
+
+- **App Tests** (32): Flask endpoints, API validation
+- **Coloring Tests** (24): Graph coloring algorithms, CSP solver
+- **Algorithm Tests** (20): Image processing algorithms
+- **Integration Tests** (13): End-to-end testing
+- **Performance Tests** (17): Scalability and performance
+- **Security Tests** (20): Vulnerability and security testing
 
 ### Test Best Practices
 

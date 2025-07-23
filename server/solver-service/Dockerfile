@@ -21,7 +21,7 @@ RUN pip install --upgrade pip && \
 RUN mkdir -p proto/logs
 
 # Copy proto files first
-COPY solver-service/proto/logger.proto proto/logs/
+COPY solver-service/proto/logs/logger.proto proto/logs/
 
 # Create __init__.py files to make proto a proper Python package
 RUN touch proto/__init__.py proto/logs/__init__.py

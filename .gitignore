@@ -55,7 +55,6 @@ hs_err_pid*
 
 # Spring Boot
 *.log
-logs/
 spring.log
 *.tmp
 *.bak
