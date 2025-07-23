@@ -82,24 +82,24 @@ public class LoggerGrpcService extends LoggerServiceGrpc.LoggerServiceImplBase {
     }
 
     private String getTopicForService(String serviceName) {
-        switch (serviceName.toLowerCase()) {
-            case "auth":
-            case "authentication":
-            case "authentication-service":
-                return "auth_logs";
-            case "map_coloring":
-            case "map_coloring_service":
-            case "solver":
-            case "solver-service":
-                return "map_coloring_logs";
-            case "map_storage":
-            case "map_storage_service":
-            case "map-storage":
-            case "map-storage-service":
-                return "map_storage_logs";
-            default:
-                logger.warn("Unknown service: {}, using map_coloring_logs topic", serviceName);
-                return "map_coloring_logs";
+        String lowerServiceName = serviceName.toLowerCase();
+        
+        // Check for auth-related services
+        if (lowerServiceName.contains("auth") || lowerServiceName.contains("authentication")) {
+            return "auth_logs";
         }
+        
+        // Check for map coloring/solver services
+        if (lowerServiceName.contains("map_coloring") || lowerServiceName.contains("solver")) {
+            return "map_coloring_logs";
+        }
+        
+        // Check for map storage services
+        if (lowerServiceName.contains("map_storage") || lowerServiceName.contains("map-storage")) {
+            return "map_storage_logs";
+        }
+        
+        logger.warn("Unknown service: {}, using map_coloring_logs topic", serviceName);
+        return "map_coloring_logs";
     }
 } 
