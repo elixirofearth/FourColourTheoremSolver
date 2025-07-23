@@ -18,8 +18,10 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.MongoDBContainer;
+import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -43,6 +45,9 @@ class LoggerIntegrationTest {
     @Container
     static MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:4.4.2");
 
+    @Container
+    static KafkaContainer kafkaContainer = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.4.0"));
+
     @Autowired
     private LogRepository logRepository;
 
@@ -59,6 +64,8 @@ class LoggerIntegrationTest {
         registry.add("spring.jpa.show-sql", () -> "false");
         registry.add("logging.level.org.springframework.web", () -> "WARN");
         registry.add("logging.level.org.springframework.data.mongodb", () -> "WARN");
+        registry.add("spring.kafka.bootstrap-servers", kafkaContainer::getBootstrapServers);
+        registry.add("spring.kafka.consumer.group-id", () -> "logger-service-test-group");
     }
 
     @BeforeEach

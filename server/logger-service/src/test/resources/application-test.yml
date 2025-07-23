@@ -5,7 +5,6 @@ spring:
       database: testdb
       auto-index-creation: true
   kafka:
-    bootstrap-servers: localhost:9092
     consumer:
       group-id: logger-service-test-group
       auto-offset-reset: earliest
