@@ -47,7 +47,7 @@ class LoggerSecurityTest {
     @Test
     void sqlInjectionInServiceName_ShouldBeHandledSafely() {
         LogRequest maliciousRequest = LogRequest.newBuilder()
-                .setServiceName("auth-service'; DROP TABLE logs; --")
+                .setServiceName("solver-service'; DROP TABLE logs; --")
                 .setEventType("user_login")
                 .setUserId("user123")
                 .setDescription("User logged in successfully")
@@ -67,7 +67,7 @@ class LoggerSecurityTest {
     @Test
     void sqlInjectionInEventType_ShouldBeHandledSafely() {
         LogRequest maliciousRequest = LogRequest.newBuilder()
-                .setServiceName("auth-service")
+                .setServiceName("solver-service")
                 .setEventType("user_login'; DROP TABLE logs; --")
                 .setUserId("user123")
                 .setDescription("User logged in successfully")
@@ -87,7 +87,7 @@ class LoggerSecurityTest {
     @Test
     void sqlInjectionInUserId_ShouldBeHandledSafely() {
         LogRequest maliciousRequest = LogRequest.newBuilder()
-                .setServiceName("auth-service")
+                .setServiceName("solver-service")
                 .setEventType("user_login")
                 .setUserId("user123'; DROP TABLE logs; --")
                 .setDescription("User logged in successfully")
@@ -107,7 +107,7 @@ class LoggerSecurityTest {
     @Test
     void sqlInjectionInDescription_ShouldBeHandledSafely() {
         LogRequest maliciousRequest = LogRequest.newBuilder()
-                .setServiceName("auth-service")
+                .setServiceName("solver-service")
                 .setEventType("user_login")
                 .setUserId("user123")
                 .setDescription("User logged in successfully'; DROP TABLE logs; --")
@@ -147,7 +147,7 @@ class LoggerSecurityTest {
     @Test
     void xssInEventType_ShouldBeHandledSafely() {
         LogRequest xssRequest = LogRequest.newBuilder()
-                .setServiceName("auth-service")
+                .setServiceName("solver-service")
                 .setEventType("<script>alert('xss')</script>")
                 .setUserId("user123")
                 .setDescription("User logged in successfully")
@@ -167,7 +167,7 @@ class LoggerSecurityTest {
     @Test
     void xssInUserId_ShouldBeHandledSafely() {
         LogRequest xssRequest = LogRequest.newBuilder()
-                .setServiceName("auth-service")
+                .setServiceName("solver-service")
                 .setEventType("user_login")
                 .setUserId("<script>alert('xss')</script>")
                 .setDescription("User logged in successfully")
@@ -187,7 +187,7 @@ class LoggerSecurityTest {
     @Test
     void xssInDescription_ShouldBeHandledSafely() {
         LogRequest xssRequest = LogRequest.newBuilder()
-                .setServiceName("auth-service")
+                .setServiceName("solver-service")
                 .setEventType("user_login")
                 .setUserId("user123")
                 .setDescription("<script>alert('xss')</script>")
@@ -227,7 +227,7 @@ class LoggerSecurityTest {
     @Test
     void pathTraversalInEventType_ShouldBeHandledSafely() {
         LogRequest maliciousRequest = LogRequest.newBuilder()
-                .setServiceName("auth-service")
+                .setServiceName("solver-service")
                 .setEventType("../../../etc/passwd")
                 .setUserId("user123")
                 .setDescription("User logged in successfully")
@@ -247,7 +247,7 @@ class LoggerSecurityTest {
     @Test
     void pathTraversalInUserId_ShouldBeHandledSafely() {
         LogRequest maliciousRequest = LogRequest.newBuilder()
-                .setServiceName("auth-service")
+                .setServiceName("solver-service")
                 .setEventType("user_login")
                 .setUserId("../../../etc/passwd")
                 .setDescription("User logged in successfully")
@@ -267,7 +267,7 @@ class LoggerSecurityTest {
     @Test
     void pathTraversalInDescription_ShouldBeHandledSafely() {
         LogRequest maliciousRequest = LogRequest.newBuilder()
-                .setServiceName("auth-service")
+                .setServiceName("solver-service")
                 .setEventType("user_login")
                 .setUserId("user123")
                 .setDescription("../../../etc/passwd")
@@ -309,7 +309,7 @@ class LoggerSecurityTest {
     void longEventType_ShouldBeHandledSafely() {
         String longEventType = "a".repeat(1000);
         LogRequest longRequest = LogRequest.newBuilder()
-                .setServiceName("auth-service")
+                .setServiceName("solver-service")
                 .setEventType(longEventType)
                 .setUserId("user123")
                 .setDescription("User logged in successfully")
@@ -330,7 +330,7 @@ class LoggerSecurityTest {
     void longUserId_ShouldBeHandledSafely() {
         String longUserId = "a".repeat(1000);
         LogRequest longRequest = LogRequest.newBuilder()
-                .setServiceName("auth-service")
+                .setServiceName("solver-service")
                 .setEventType("user_login")
                 .setUserId(longUserId)
                 .setDescription("User logged in successfully")
@@ -351,7 +351,7 @@ class LoggerSecurityTest {
     void longDescription_ShouldBeHandledSafely() {
         String longDescription = "a".repeat(1000);
         LogRequest longRequest = LogRequest.newBuilder()
-                .setServiceName("auth-service")
+                .setServiceName("solver-service")
                 .setEventType("user_login")
                 .setUserId("user123")
                 .setDescription(longDescription)
@@ -371,7 +371,7 @@ class LoggerSecurityTest {
     @Test
     void nullByteInjection_ShouldBeHandledSafely() {
         LogRequest maliciousRequest = LogRequest.newBuilder()
-                .setServiceName("auth-service\0")
+                .setServiceName("solver-service\0")
                 .setEventType("user_login\0")
                 .setUserId("user123\0")
                 .setDescription("User logged in successfully\0")
@@ -391,7 +391,7 @@ class LoggerSecurityTest {
     @Test
     void unicodeInjection_ShouldBeHandledSafely() {
         LogRequest unicodeRequest = LogRequest.newBuilder()
-                .setServiceName("auth-service\u0000\u0001\u0002")
+                .setServiceName("solver-service\u0000\u0001\u0002")
                 .setEventType("user_login\u0000\u0001\u0002")
                 .setUserId("user123\u0000\u0001\u0002")
                 .setDescription("User logged in successfully\u0000\u0001\u0002")
@@ -451,7 +451,7 @@ class LoggerSecurityTest {
     @Test
     void negativeSeverity_ShouldBeHandledSafely() {
         LogRequest negativeRequest = LogRequest.newBuilder()
-                .setServiceName("auth-service")
+                .setServiceName("solver-service")
                 .setEventType("user_login")
                 .setUserId("user123")
                 .setDescription("User logged in successfully")
@@ -471,7 +471,7 @@ class LoggerSecurityTest {
     @Test
     void zeroSeverity_ShouldBeHandledSafely() {
         LogRequest zeroRequest = LogRequest.newBuilder()
-                .setServiceName("auth-service")
+                .setServiceName("solver-service")
                 .setEventType("user_login")
                 .setUserId("user123")
                 .setDescription("User logged in successfully")
@@ -491,7 +491,7 @@ class LoggerSecurityTest {
     @Test
     void highSeverity_ShouldBeHandledSafely() {
         LogRequest highRequest = LogRequest.newBuilder()
-                .setServiceName("auth-service")
+                .setServiceName("solver-service")
                 .setEventType("user_login")
                 .setUserId("user123")
                 .setDescription("User logged in successfully")
@@ -511,7 +511,7 @@ class LoggerSecurityTest {
     @Test
     void invalidTimestamp_ShouldBeHandledSafely() {
         LogRequest invalidRequest = LogRequest.newBuilder()
-                .setServiceName("auth-service")
+                .setServiceName("solver-service")
                 .setEventType("user_login")
                 .setUserId("user123")
                 .setDescription("User logged in successfully")
@@ -531,7 +531,7 @@ class LoggerSecurityTest {
     @Test
     void largeMetadata_ShouldBeHandledSafely() {
         LogRequest.Builder requestBuilder = LogRequest.newBuilder()
-                .setServiceName("auth-service")
+                .setServiceName("solver-service")
                 .setEventType("user_login")
                 .setUserId("user123")
                 .setDescription("User logged in successfully")
@@ -557,7 +557,7 @@ class LoggerSecurityTest {
     @Test
     void maliciousMetadata_ShouldBeHandledSafely() {
         LogRequest maliciousRequest = LogRequest.newBuilder()
-                .setServiceName("auth-service")
+                .setServiceName("solver-service")
                 .setEventType("user_login")
                 .setUserId("user123")
                 .setDescription("User logged in successfully")
@@ -588,7 +588,7 @@ class LoggerSecurityTest {
             final int threadId = i;
             threads[i] = new Thread(() -> {
                 LogRequest request = LogRequest.newBuilder()
-                        .setServiceName("auth-service")
+                        .setServiceName("solver-service")
                         .setEventType("user_login")
                         .setUserId("user" + threadId)
                         .setDescription("User logged in successfully")
@@ -619,7 +619,7 @@ class LoggerSecurityTest {
     @Test
     void sensitiveDataInLogs_ShouldNotLeakSensitiveInformation() {
         LogRequest sensitiveRequest = LogRequest.newBuilder()
-                .setServiceName("auth-service")
+                .setServiceName("solver-service")
                 .setEventType("user_login")
                 .setUserId("user123")
                 .setDescription("User logged in with password: secret123")

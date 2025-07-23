@@ -34,7 +34,7 @@ import static org.mockito.Mockito.*;
  * Integration Test for Logger Service
  * Tests the full logger workflow with real database (MongoDB in-memory)
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
 @ActiveProfiles("test")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @Testcontainers
@@ -97,7 +97,7 @@ class LoggerIntegrationTest {
         assertEquals("Log published successfully", responseObserver.getResponse().getMessage());
 
         // Verify Kafka was called
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("auth_logs"), any(Log.class));
 
         // Simulate Kafka consumer processing
         Log logToSave = new Log();
@@ -252,7 +252,7 @@ class LoggerIntegrationTest {
         loggerGrpcService.logEvent(authRequest, authObserver);
 
         assertTrue(authObserver.getResponse().getSuccess());
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("auth_logs"), any(Log.class));
 
         // Test map coloring service
         LogRequest mapColoringRequest = LogRequest.newBuilder()
@@ -268,7 +268,7 @@ class LoggerIntegrationTest {
         loggerGrpcService.logEvent(mapColoringRequest, mapColoringObserver);
 
         assertTrue(mapColoringObserver.getResponse().getSuccess());
-        verify(kafkaTemplate).send("map_coloring_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("map_coloring_logs"), any(Log.class));
 
         // Test map storage service
         LogRequest mapStorageRequest = LogRequest.newBuilder()
@@ -284,7 +284,7 @@ class LoggerIntegrationTest {
         loggerGrpcService.logEvent(mapStorageRequest, mapStorageObserver);
 
         assertTrue(mapStorageObserver.getResponse().getSuccess());
-        verify(kafkaTemplate).send("map_storage_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("map_storage_logs"), any(Log.class));
     }
 
     @Test
@@ -303,7 +303,7 @@ class LoggerIntegrationTest {
         loggerGrpcService.logEvent(request, responseObserver);
 
         assertTrue(responseObserver.getResponse().getSuccess());
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("auth_logs"), any(Log.class));
     }
 
     @Test
@@ -322,7 +322,7 @@ class LoggerIntegrationTest {
         loggerGrpcService.logEvent(request, responseObserver);
 
         assertTrue(responseObserver.getResponse().getSuccess());
-        verify(kafkaTemplate).send("map_coloring_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("map_coloring_logs"), any(Log.class));
     }
 
     @Test
@@ -365,7 +365,7 @@ class LoggerIntegrationTest {
         loggerGrpcService.logEvent(request, responseObserver);
 
         assertTrue(responseObserver.getResponse().getSuccess());
-        verify(kafkaTemplate).send("auth_logs", any(Log.class));
+        verify(kafkaTemplate).send(eq("auth_logs"), any(Log.class));
 
         // Step 2: Simulate Kafka consumer processing
         Log logToSave = new Log();
