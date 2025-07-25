@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fourcolour-config
+  namespace: fourcolour
+data:
+  # Database configurations
+  POSTGRES_USER: "postgres"
+  POSTGRES_PASSWORD: "password"
+  POSTGRES_DB: "users"
+  MONGO_INITDB_DATABASE: "mapstore"
+  MONGO_INITDB_ROOT_USERNAME: "admin"
+  MONGO_INITDB_ROOT_PASSWORD: "password"
+
+  # Service URLs
+  COLORING_SERVICE_URL: "http://solver-service:8082"
+  AUTHENTICATION_SERVICE_URL: "http://authentication-service:8081"
+  MAP_STORAGE_SERVICE_URL: "http://map-storage-service:8083"
+  LOGGER_SERVICE_URL: "logger-service:50001"
+
+  # Redis configuration
+  REDIS_HOST: "redis"
+  REDIS_PORT: "6379"
+
+  # MongoDB configuration
+  MONGO_URI: "mongodb://admin:password@mongo:27017/?authSource=admin"
+  MONGO_DB: "mapstore"
+  MONGO_DB_LOGS: "logs"
+
+  # Kafka configuration
+  KAFKA_BOOTSTRAP_SERVERS: "kafka:29092"
+  KAFKA_BROKER_ID: "1"
+  KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+
+  # JWT configuration
+  JWT_SECRET: "mySecretKey123456789012345678901234567890"
+
+  # Solver service configuration
+  SOLVER_PORT: "8082"

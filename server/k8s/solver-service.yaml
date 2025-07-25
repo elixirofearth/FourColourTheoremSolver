@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: solver-service
+  namespace: fourcolour
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: solver-service
+  template:
+    metadata:
+      labels:
+        app: solver-service
+    spec:
+      containers:
+        - name: solver-service
+          image: aqtran/flask-solver-service:latest
+          ports:
+            - containerPort: 8082
+          env:
+            - name: LOGGER_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: fourcolour-config
+                  key: LOGGER_SERVICE_URL
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: fourcolour-config
+                  key: SOLVER_PORT
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8082
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8082
+            initialDelaySeconds: 30
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: solver-service
+  namespace: fourcolour
+spec:
+  selector:
+    app: solver-service
+  ports:
+    - port: 8082
+      targetPort: 8082
+  type: ClusterIP

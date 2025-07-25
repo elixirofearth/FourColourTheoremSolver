@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: authentication-service
+  namespace: fourcolour
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: authentication-service
+  template:
+    metadata:
+      labels:
+        app: authentication-service
+    spec:
+      containers:
+        - name: authentication-service
+          image: aqtran/spring-authentication-service:latest
+          ports:
+            - containerPort: 8081
+          env:
+            - name: DB_HOST
+              value: "postgres"
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: fourcolour-config
+                  key: POSTGRES_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  name: fourcolour-config
+                  key: POSTGRES_PASSWORD
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: fourcolour-config
+                  key: POSTGRES_DB
+            - name: JWT_SECRET
+              valueFrom:
+                configMapKeyRef:
+                  name: fourcolour-config
+                  key: JWT_SECRET
+            - name: LOGGER_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: fourcolour-config
+                  key: LOGGER_SERVICE_URL
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 30
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: authentication-service
+  namespace: fourcolour
+spec:
+  selector:
+    app: authentication-service
+  ports:
+    - port: 8081
+      targetPort: 8081
+  type: ClusterIP

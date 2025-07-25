@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: map-storage-service
+  namespace: fourcolour
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: map-storage-service
+  template:
+    metadata:
+      labels:
+        app: map-storage-service
+    spec:
+      containers:
+        - name: map-storage-service
+          image: aqtran/spring-map-storage-service:latest
+          ports:
+            - containerPort: 8083
+          env:
+            - name: MONGO_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: fourcolour-config
+                  key: MONGO_URI
+            - name: MONGO_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: fourcolour-config
+                  key: MONGO_DB
+            - name: LOGGER_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: fourcolour-config
+                  key: LOGGER_SERVICE_URL
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8083
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8083
+            initialDelaySeconds: 30
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: map-storage-service
+  namespace: fourcolour
+spec:
+  selector:
+    app: map-storage-service
+  ports:
+    - port: 8083
+      targetPort: 8083
+  type: ClusterIP
