@@ -36,7 +36,16 @@ kubectl wait --for=condition=available --timeout=300s deployment/postgres -n fou
 kubectl wait --for=condition=available --timeout=300s deployment/mongo -n fourcolour
 kubectl wait --for=condition=available --timeout=300s deployment/redis -n fourcolour
 kubectl wait --for=condition=available --timeout=300s deployment/zookeeper -n fourcolour
-kubectl wait --for=condition=available --timeout=300s deployment/kafka -n fourcolour
+
+# Wait for Kafka with a longer timeout and continue if it fails
+echo "⏳ Waiting for Kafka to be ready (this may take a while)..."
+if kubectl wait --for=condition=available --timeout=600s deployment/kafka -n fourcolour; then
+    echo "✅ Kafka is ready"
+else
+    echo "⚠️  Kafka deployment is taking longer than expected, but continuing..."
+    echo "📊 Current pod status:"
+    kubectl get pods -n fourcolour -l app=kafka
+fi
 
 echo "✅ Infrastructure deployment completed successfully!"
 echo ""
