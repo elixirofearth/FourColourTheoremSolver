@@ -68,23 +68,18 @@ spec:
         - name: kafka
           image: confluentinc/cp-kafka:7.4.0
           ports:
-            - containerPort: 9092
-            - containerPort: 9101
+            - containerPort: 29092
           env:
             - name: KAFKA_BROKER_ID
-              valueFrom:
-                configMapKeyRef:
-                  name: fourcolour-config
-                  key: KAFKA_BROKER_ID
+              value: "1"
             - name: KAFKA_ZOOKEEPER_CONNECT
-              valueFrom:
-                configMapKeyRef:
-                  name: fourcolour-config
-                  key: KAFKA_ZOOKEEPER_CONNECT
+              value: "zookeeper:2181"
             - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
-              value: "PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT"
+              value: "PLAINTEXT:PLAINTEXT"
             - name: KAFKA_ADVERTISED_LISTENERS
-              value: "PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092"
+              value: "PLAINTEXT://kafka:29092"
+            - name: KAFKA_LISTENERS
+              value: "PLAINTEXT://0.0.0.0:29092"
             - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
               value: "1"
             - name: KAFKA_TRANSACTION_STATE_LOG_MIN_ISR
@@ -93,29 +88,21 @@ spec:
               value: "1"
             - name: KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS
               value: "0"
-            - name: KAFKA_JMX_PORT
-              value: "9101"
-            - name: KAFKA_JMX_HOSTNAME
-              value: "localhost"
+            - name: KAFKA_AUTO_CREATE_TOPICS_ENABLE
+              value: "true"
           volumeMounts:
             - name: kafka-storage
               mountPath: /var/lib/kafka/data
           livenessProbe:
-            exec:
-              command:
-                - sh
-                - -c
-                - "kafka-topics --bootstrap-server localhost:9092 --list"
+            tcpSocket:
+              port: 29092
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          readinessProbe:
+            tcpSocket:
+              port: 29092
             initialDelaySeconds: 30
             periodSeconds: 10
-          readinessProbe:
-            exec:
-              command:
-                - sh
-                - -c
-                - "kafka-topics --bootstrap-server localhost:9092 --list"
-            initialDelaySeconds: 5
-            periodSeconds: 5
       volumes:
         - name: kafka-storage
           persistentVolumeClaim:
@@ -131,11 +118,8 @@ spec:
     app: kafka
   ports:
     - name: kafka
-      port: 9092
-      targetPort: 9092
-    - name: jmx
-      port: 9101
-      targetPort: 9101
+      port: 29092
+      targetPort: 29092
   type: ClusterIP
 ---
 apiVersion: v1
