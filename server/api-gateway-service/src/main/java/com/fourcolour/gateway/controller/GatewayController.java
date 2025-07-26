@@ -25,6 +25,11 @@ public class GatewayController {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @GetMapping("/")
+    public ResponseEntity<String> root() {
+        return ResponseEntity.ok("Hello World");
+    }
+
     @GetMapping("/healthcheck")
     public ResponseEntity<String> healthCheck() {
         return ResponseEntity.ok("OK");
