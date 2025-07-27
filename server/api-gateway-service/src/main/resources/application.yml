@@ -33,3 +33,17 @@ logging:
     org.springframework.data.redis: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# Spring Boot Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+  health:
+    defaults:
+      enabled: true

@@ -35,3 +35,17 @@ logging:
   level:
     com.fourcolour.auth: INFO
     org.springframework.security: DEBUG
+
+# Spring Boot Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+      show-components: always
+  health:
+    defaults:
+      enabled: true

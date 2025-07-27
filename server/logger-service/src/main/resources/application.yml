@@ -30,3 +30,17 @@ logging:
     com.fourcolour.logger: INFO
     org.springframework.kafka: DEBUG
     io.grpc: INFO
+
+# Spring Boot Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+  health:
+    defaults:
+      enabled: true

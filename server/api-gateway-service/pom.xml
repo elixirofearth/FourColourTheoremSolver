@@ -78,6 +78,12 @@
             </exclusions>
         </dependency>
         
+        <!-- Spring Boot Actuator for health checks -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        
         <!-- Redis Dependencies -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
