@@ -5,9 +5,15 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "server/**"
+      - ".github/workflows/deployment.yml"
   pull_request:
     branches:
       - main
+    paths:
+      - "server/**"
+      - ".github/workflows/deployment.yml"
 
 env:
   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
