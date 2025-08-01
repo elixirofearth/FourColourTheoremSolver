@@ -61,25 +61,29 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       />
 
       {/* Modal */}
-      <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative bg-white rounded-3xl shadow-2xl max-w-md w-full mx-auto transform transition-all duration-300 scale-100 border border-gray-100">
+      <div className="flex min-h-full items-center justify-center p-3 sm:p-4">
+        <div className="relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl max-w-sm sm:max-w-md w-full mx-auto transform transition-all duration-300 scale-100 border border-gray-100">
           {/* Header */}
-          <div className="px-6 pt-6 pb-4">
-            <div className="flex items-center space-x-3">
-              <div className="text-3xl">{getIcon()}</div>
-              <h3 className="text-xl font-bold text-gray-900">{title}</h3>
+          <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <div className="text-2xl sm:text-3xl">{getIcon()}</div>
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900">
+                {title}
+              </h3>
             </div>
           </div>
 
           {/* Content */}
-          <div className="px-6 pb-6">
-            <p className="text-gray-600 leading-relaxed mb-6">{message}</p>
+          <div className="px-4 sm:px-6 pb-4 sm:pb-6">
+            <p className="text-gray-600 leading-relaxed mb-4 sm:mb-6 text-sm sm:text-base">
+              {message}
+            </p>
 
             {/* Action Buttons */}
-            <div className="flex space-x-3">
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
               <button
                 onClick={onClose}
-                className="flex-1 bg-gray-100 text-gray-700 py-3 px-4 rounded-xl hover:bg-gray-200 transition-all duration-300 font-semibold focus:outline-none focus:ring-4 focus:ring-gray-200"
+                className="flex-1 bg-gray-100 text-gray-700 py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg sm:rounded-xl hover:bg-gray-200 transition-all duration-300 font-semibold focus:outline-none focus:ring-4 focus:ring-gray-200 text-sm sm:text-base"
               >
                 {cancelText}
               </button>
@@ -88,7 +92,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                   onConfirm();
                   onClose();
                 }}
-                className={`flex-1 bg-gradient-to-r ${getConfirmButtonColors()} text-white py-3 px-4 rounded-xl transition-all duration-300 font-semibold focus:outline-none focus:ring-4 transform hover:-translate-y-0.5 hover:shadow-lg`}
+                className={`flex-1 bg-gradient-to-r ${getConfirmButtonColors()} text-white py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg sm:rounded-xl transition-all duration-300 font-semibold focus:outline-none focus:ring-4 transform hover:-translate-y-0.5 hover:shadow-lg text-sm sm:text-base`}
                 data-testid="confirm-button"
               >
                 {confirmText}

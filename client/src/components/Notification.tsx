@@ -62,23 +62,28 @@ const Notification: React.FC<NotificationProps> = ({
   };
 
   return (
-    <div className="fixed top-4 right-4 z-50" data-testid="notification">
+    <div
+      className="fixed top-3 sm:top-4 right-3 sm:right-4 left-3 sm:left-auto z-50"
+      data-testid="notification"
+    >
       <div
         className={`
-          bg-gradient-to-r ${getColors()} text-white px-6 py-4 rounded-2xl shadow-2xl border-2
+          bg-gradient-to-r ${getColors()} text-white px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl shadow-2xl border-2
           transform transition-all duration-300 ease-in-out backdrop-blur-sm
           ${
             isAnimating
               ? "translate-x-0 opacity-100 scale-100"
               : "translate-x-full opacity-0 scale-95"
           }
-          max-w-sm min-w-[300px]
+          w-full sm:max-w-sm sm:min-w-[300px]
         `}
       >
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3 flex-1">
-            <span className="text-xl flex-shrink-0">{getIcon()}</span>
-            <p className="font-semibold text-white leading-relaxed">
+          <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
+            <span className="text-lg sm:text-xl flex-shrink-0">
+              {getIcon()}
+            </span>
+            <p className="font-semibold text-white leading-relaxed text-sm sm:text-base truncate">
               {message}
             </p>
           </div>
@@ -87,7 +92,7 @@ const Notification: React.FC<NotificationProps> = ({
               setIsAnimating(false);
               setTimeout(onClose, 300);
             }}
-            className="text-white/80 hover:text-white transition-colors duration-200 text-xl leading-none ml-3 flex-shrink-0"
+            className="text-white/80 hover:text-white transition-colors duration-200 text-lg sm:text-xl leading-none ml-2 sm:ml-3 flex-shrink-0 p-1"
           >
             ×
           </button>
