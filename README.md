@@ -40,6 +40,13 @@ Our implementation allows users to:
 - **Kafka**: Message queuing for logs
 - **Zookeeper**: Kafka coordination
 
+### DevOps & Deployment
+
+- **Containerization**: Docker multi-architecture images
+- **Orchestration**: Kubernetes on Vultr Kubernetes Engine
+- **CI/CD**: GitHub Actions with automated testing and deployment
+- **Networking**: NGINX Ingress Controller with single public IP
+
 ## 🧮 Map Coloring Algorithm
 
 The solver implements a sophisticated constraint satisfaction problem (CSP) approach for the Four-Colour Theorem:
