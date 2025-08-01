@@ -42,7 +42,8 @@ Our implementation allows users to:
 
 ### DevOps & Deployment
 
-- **Containerization**: Docker multi-architecture images
+- **Frontend**: Vercel deployment
+- **Containerization**: Docker images on Docker Hub
 - **Orchestration**: Kubernetes on Vultr Kubernetes Engine
 - **CI/CD**: GitHub Actions with automated testing and deployment
 - **Networking**: NGINX Ingress Controller with single public IP
