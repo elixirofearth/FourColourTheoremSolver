@@ -120,6 +120,19 @@ test.describe("Map Functionality Tests", () => {
         await page.fill('input[type="password"]', "password123");
         await page.click('button[type="submit"]');
 
+        // Create a map first by drawing and coloring
+        await expect(
+          page.locator('button:has-text("Color Map")')
+        ).toBeVisible();
+        await page.click('button:has-text("Color Map")');
+        await page.waitForTimeout(5000); // Wait for coloring to complete
+        await expect(page.locator('button:has-text("Save Map")')).toBeVisible();
+        await page.click('button:has-text("Save Map")');
+        await expect(
+          page.locator('[data-testid="notification"]')
+        ).toBeVisible();
+        await page.waitForTimeout(2000); // Wait for save to complete
+
         // Navigate to profile
         await page.click("text=Profile");
 
@@ -144,11 +157,24 @@ test.describe("Map Functionality Tests", () => {
         await page.fill('input[type="password"]', "password123");
         await page.click('button[type="submit"]');
 
+        // Create a map first by drawing and coloring
+        await expect(
+          page.locator('button:has-text("Color Map")')
+        ).toBeVisible();
+        await page.click('button:has-text("Color Map")');
+        await page.waitForTimeout(5000); // Wait for coloring to complete
+        await expect(page.locator('button:has-text("Save Map")')).toBeVisible();
+        await page.click('button:has-text("Save Map")');
+        await expect(
+          page.locator('[data-testid="notification"]')
+        ).toBeVisible();
+        await page.waitForTimeout(2000); // Wait for save to complete
+
         // Navigate to profile
         await page.click("text=Profile");
 
         // Click delete button
-        await page.click("text=Delete");
+        await page.click('button:has-text("Delete")');
 
         // Should show confirmation modal
         await expect(page.locator("text=Are you sure")).toBeVisible();

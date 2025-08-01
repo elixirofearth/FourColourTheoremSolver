@@ -83,7 +83,7 @@ test.describe("Navigation Tests", () => {
     await expect(page).toHaveURL("/profile");
   });
 
-  test("should go to home page by clicking the text ColorMap on the navigation bar", async ({
+  test("should go to home page by clicking the ColorMap logo on the navigation bar", async ({
     page,
   }) => {
     await page.goto("/login");
@@ -94,7 +94,7 @@ test.describe("Navigation Tests", () => {
     await expect(page.locator("nav")).toBeVisible();
     await page.click("text= Profile");
     await expect(page).toHaveURL("/profile");
-    await page.click("text= ColorMap");
+    await page.click('img[alt="Map Coloring Logo"]');
     await expect(page).toHaveURL("/");
   });
 });
