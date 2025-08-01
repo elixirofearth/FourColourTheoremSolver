@@ -198,8 +198,26 @@ jobs:
           done
         working-directory: server/k8s
 
-      - name: Apply other manifests (services, ingresses, etc.)
-        run: kubectl apply -f .
+      - name: Apply infrastructure manifests
+        run: |
+          # Apply specific manifests in order, excluding setup scripts and templates
+          echo "Applying infrastructure manifests..."
+          kubectl apply -f namespace.yaml
+          kubectl apply -f configmap.yaml
+          kubectl apply -f service.yaml
+          kubectl apply -f postgres.yaml
+          kubectl apply -f mongo.yaml
+          kubectl apply -f redis.yaml
+          kubectl apply -f kafka.yaml
+
+          # Apply application service manifests
+          kubectl apply -f api-gateway-service.yaml
+          kubectl apply -f authentication-service.yaml
+          kubectl apply -f map-storage-service.yaml
+          kubectl apply -f logger-service.yaml
+          kubectl apply -f solver-service.yaml
+
+          echo "Infrastructure deployment complete!"
         working-directory: server/k8s
 
       - name: Run health check on the API Gateway
@@ -209,14 +227,22 @@ jobs:
 
           for i in $(seq 1 $max_retries); do
               echo "Attempt $i/$max_retries: Checking API Gateway health..."
-              # Get the public IP of your ingress (updated ingress name)
-              ingress_ip=$(kubectl get ingress fourcolour-ingress -n fourcolour -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+              
+              # Try HTTPS endpoint first (preferred)
+              if curl -f -k "https://api.149.248.46.187.nip.io/actuator/health"; then
+                  echo "HTTPS health check successful!"
+                  exit 0
+              fi
+              
+              # Fallback to HTTP if HTTPS not ready yet
+              ingress_ip=$(kubectl get ingress fourcolour-ingress-ip -n fourcolour -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || echo "149.248.46.187")
               if [ -n "$ingress_ip" ]; then
                   if curl -f "http://$ingress_ip/actuator/health"; then
-                      echo "Health check successful!"
+                      echo "HTTP health check successful (fallback)!"
                       exit 0
                   fi
               fi
+              
               echo "Health check failed. Retrying in $retry_interval seconds..."
               sleep $retry_interval
           done

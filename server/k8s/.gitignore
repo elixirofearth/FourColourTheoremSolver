@@ -1,0 +1,16 @@
+# Exclude temporary files and scripts that shouldn't be in version control
+*.tmp
+*.temp
+*.log
+
+# Exclude kubeconfig files (sensitive)
+*.kubeconfig
+vke-*.yaml
+
+# Exclude backup files
+*.bak
+*.backup
+
+# Exclude environment-specific files
+.env
+.env.* 
