@@ -31,6 +31,12 @@ jobs:
           distribution: "temurin"
           cache: "maven"
 
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
       - name: Cache Maven dependencies
         uses: actions/cache@v4
         with:
@@ -43,9 +49,53 @@ jobs:
         run: mvn clean install -q -DskipTests
         working-directory: server/common
 
-      # Add more test steps for your other services as needed
-      # (e.g., Run Spring Boot Tests, Run Python Solver Tests, etc.)
-      # It's good practice to run tests on a GitHub-hosted runner before deployment.
+      - name: Test Common Module
+        run: mvn test
+        working-directory: server/common
+
+      - name: Build API Gateway Service
+        run: mvn compile -q
+        working-directory: server/api-gateway-service
+
+      - name: Test API Gateway Service
+        run: mvn test
+        working-directory: server/api-gateway-service
+
+      - name: Build Authentication Service
+        run: mvn compile -q
+        working-directory: server/authentication-service
+
+      - name: Test Authentication Service
+        run: mvn test
+        working-directory: server/authentication-service
+
+      - name: Build Map Storage Service
+        run: mvn compile -q
+        working-directory: server/map-storage-service
+
+      - name: Test Map Storage Service
+        run: mvn test
+        working-directory: server/map-storage-service
+
+      - name: Build Logger Service
+        run: mvn compile -q
+        working-directory: server/logger-service
+
+      - name: Test Logger Service
+        run: mvn test
+        working-directory: server/logger-service
+
+      - name: Install Python Dependencies for Solver Service
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements_test.txt
+        working-directory: server/solver-service
+
+      - name: Test Python Solver Service
+        run: |
+          python -m pytest tests/ -v --tb=short
+        working-directory: server/solver-service
 
   build-and-push-docker:
     name: Build and Push Docker Images
