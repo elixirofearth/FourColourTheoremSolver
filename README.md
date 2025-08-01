@@ -77,11 +77,6 @@ The algorithm ensures that:
 - The solution is mathematically valid according to the Four-Colour Theorem
 - The coloring is optimal in terms of color usage
 
-## 📚 Documentation
-
-- [Frontend Documentation](client/README.md) - React client setup and development
-- [Backend Documentation](server/README.md) - Spring Boot microservices architecture
-
 ## 📞 Contact
 
 - Andy Tran ([anhquoctran006@gmail.com](mailto:anhquoctran006@gmail.com))
