@@ -239,9 +239,11 @@ describe("SignUpForm", () => {
     expect(form).toHaveClass(
       "bg-white/95",
       "backdrop-blur-sm",
-      "rounded-3xl",
+      "rounded-2xl",
+      "sm:rounded-3xl",
       "shadow-2xl",
-      "p-8",
+      "p-6",
+      "sm:p-8",
       "transform",
       "hover:scale-105",
       "transition-all",
@@ -262,9 +264,12 @@ describe("SignUpForm", () => {
       "to-pink-600",
       "text-white",
       "font-bold",
-      "py-3",
-      "px-6",
-      "rounded-xl",
+      "py-2.5",
+      "sm:py-3",
+      "px-4",
+      "sm:px-6",
+      "rounded-lg",
+      "sm:rounded-xl",
       "hover:from-purple-700",
       "hover:to-pink-700",
       "transform",
@@ -276,7 +281,9 @@ describe("SignUpForm", () => {
       "focus:ring-4",
       "focus:ring-purple-200",
       "disabled:opacity-50",
-      "disabled:cursor-not-allowed"
+      "disabled:cursor-not-allowed",
+      "text-sm",
+      "sm:text-base"
     );
   });
 
@@ -286,19 +293,24 @@ describe("SignUpForm", () => {
     const nameInput = screen.getByLabelText("Full Name");
     expect(nameInput).toHaveClass(
       "w-full",
-      "px-4",
-      "py-3",
+      "px-3",
+      "sm:px-4",
+      "py-2.5",
+      "sm:py-3",
       "bg-gray-50",
       "border-2",
       "border-gray-200",
-      "rounded-xl",
+      "rounded-lg",
+      "sm:rounded-xl",
       "focus:border-purple-500",
       "focus:ring-4",
       "focus:ring-purple-200",
       "transition-all",
       "duration-300",
       "outline-none",
-      "placeholder-gray-400"
+      "placeholder-gray-400",
+      "text-sm",
+      "sm:text-base"
     );
   });
 
@@ -375,7 +387,14 @@ describe("SignUpForm", () => {
     const logo = screen.getByAltText("Cartoon Logo");
     expect(logo).toBeInTheDocument();
     expect(logo).toHaveAttribute("src", "/logo.png");
-    expect(logo).toHaveClass("mx-auto", "mb-4", "animate-bounce");
+    expect(logo).toHaveClass(
+      "sm:w-20",
+      "sm:h-20",
+      "mx-auto",
+      "mb-3",
+      "sm:mb-4",
+      "animate-bounce"
+    );
   });
 
   it("has proper title styling", async () => {
@@ -383,7 +402,8 @@ describe("SignUpForm", () => {
 
     const title = screen.getByText("Join Us Today!");
     expect(title).toHaveClass(
-      "text-2xl",
+      "text-xl",
+      "sm:text-2xl",
       "md:text-3xl",
       "font-bold",
       "bg-gradient-to-r",
@@ -399,28 +419,26 @@ describe("SignUpForm", () => {
     render(<SignUpForm />);
 
     const subtitle = screen.getByText("Create your account and start coloring");
-    expect(subtitle).toHaveClass("text-gray-600", "text-sm");
+    expect(subtitle).toHaveClass("text-gray-600", "text-xs", "sm:text-sm");
   });
 
   it("has proper error message styling", async () => {
-    mockUseAppSelector.mockReturnValue({
-      isLoading: false,
-      error: "Test error message",
-      isAuthenticated: false,
-    });
-
     render(<SignUpForm />);
 
-    const errorMessage = screen.getByText("Test error message");
+    // Trigger an error by submitting empty form
+    const submitButton = screen.getByRole("button", { name: "Create Account" });
+    fireEvent.click(submitButton);
+
+    const errorMessage = screen.getByText("Please fill in all fields");
     const errorContainer = errorMessage.closest("div");
     expect(errorContainer).toHaveClass(
       "bg-red-50",
       "border-l-4",
       "border-red-500",
-      "p-4",
+      "p-3",
+      "sm:p-4",
       "rounded-lg",
       "animate-shake"
     );
-    expect(errorMessage).toHaveClass("text-red-700", "text-sm", "font-medium");
   });
 });

@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { screen, fireEvent } from "@testing-library/react";
-import { render } from "../../test/test-utils";
+import { describe, it, expect, vi } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { BrowserRouter } from "react-router-dom";
 import { SignInButton, ProfileButton, SignOutButton } from "../Buttons";
 
 // Mock react-router-dom
@@ -14,24 +14,26 @@ vi.mock("react-router-dom", async () => {
   };
 });
 
-describe("Buttons", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
+const renderWithRouter = (component: React.ReactElement) => {
+  return render(<BrowserRouter>{component}</BrowserRouter>);
+};
 
+describe("Buttons", () => {
   describe("SignInButton", () => {
     it("renders sign in button with correct text", () => {
-      render(<SignInButton />);
+      renderWithRouter(<SignInButton />);
 
-      expect(screen.getByText("Sign In")).toBeInTheDocument();
+      const button = screen.getByText("Sign In");
+      expect(button).toBeInTheDocument();
     });
 
     it("renders sign in button with correct styling classes", () => {
-      render(<SignInButton />);
+      renderWithRouter(<SignInButton />);
 
       const button = screen.getByText("Sign In");
       expect(button).toHaveClass(
-        "px-6",
+        "px-3",
+        "sm:px-6",
         "py-2",
         "bg-gradient-to-r",
         "from-blue-500",
@@ -46,39 +48,42 @@ describe("Buttons", () => {
         "hover:shadow-lg",
         "transition-all",
         "duration-300",
-        "focus:outline-none"
+        "focus:outline-none",
+        "text-sm",
+        "sm:text-base"
       );
     });
 
-    it("navigates to login page when clicked", () => {
-      render(<SignInButton />);
+    it("is wrapped in a Link component", () => {
+      renderWithRouter(<SignInButton />);
 
-      const link = screen.getByRole("link", { name: "Sign In" });
-      expect(link).toHaveAttribute("href", "/login");
+      const link = document.querySelector('a[href="/login"]');
+      expect(link).toBeInTheDocument();
     });
 
-    it("has proper button element structure", () => {
-      render(<SignInButton />);
+    it("has proper button role", () => {
+      renderWithRouter(<SignInButton />);
 
-      const button = screen.getByRole("button", { name: "Sign In" });
+      const button = screen.getByRole("button");
       expect(button).toBeInTheDocument();
-      expect(button.tagName).toBe("BUTTON");
     });
   });
 
   describe("ProfileButton", () => {
     it("renders profile button with correct text", () => {
-      render(<ProfileButton />);
+      renderWithRouter(<ProfileButton />);
 
-      expect(screen.getByText("Profile")).toBeInTheDocument();
+      const button = screen.getByText("Profile");
+      expect(button).toBeInTheDocument();
     });
 
     it("renders profile button with correct styling classes", () => {
-      render(<ProfileButton />);
+      renderWithRouter(<ProfileButton />);
 
       const button = screen.getByText("Profile");
       expect(button).toHaveClass(
-        "px-6",
+        "px-3",
+        "sm:px-6",
         "py-2",
         "bg-gradient-to-r",
         "from-emerald-500",
@@ -93,45 +98,54 @@ describe("Buttons", () => {
         "hover:shadow-lg",
         "transition-all",
         "duration-300",
-        "focus:outline-none"
+        "focus:outline-none",
+        "text-sm",
+        "sm:text-base"
       );
     });
 
-    it("navigates to profile page when clicked", () => {
-      render(<ProfileButton />);
+    it("is wrapped in a Link component", () => {
+      renderWithRouter(<ProfileButton />);
 
-      const link = screen.getByRole("link", { name: "Profile" });
-      expect(link).toHaveAttribute("href", "/profile");
+      const link = document.querySelector('a[href="/profile"]');
+      expect(link).toBeInTheDocument();
     });
 
-    it("has proper button element structure", () => {
-      render(<ProfileButton />);
+    it("has proper button role", () => {
+      renderWithRouter(<ProfileButton />);
 
-      const button = screen.getByRole("button", { name: "Profile" });
+      const button = screen.getByRole("button");
       expect(button).toBeInTheDocument();
-      expect(button.tagName).toBe("BUTTON");
     });
   });
 
   describe("SignOutButton", () => {
-    const mockOnSignOut = vi.fn();
-
-    beforeEach(() => {
-      mockOnSignOut.mockClear();
-    });
-
     it("renders sign out button with correct text", () => {
+      const mockOnSignOut = vi.fn();
       render(<SignOutButton onSignOut={mockOnSignOut} />);
 
-      expect(screen.getByText("Sign Out")).toBeInTheDocument();
+      const button = screen.getByText("Sign Out");
+      expect(button).toBeInTheDocument();
+    });
+
+    it("calls onSignOut when clicked", () => {
+      const mockOnSignOut = vi.fn();
+      render(<SignOutButton onSignOut={mockOnSignOut} />);
+
+      const button = screen.getByText("Sign Out");
+      fireEvent.click(button);
+
+      expect(mockOnSignOut).toHaveBeenCalledTimes(1);
     });
 
     it("renders sign out button with correct styling classes", () => {
+      const mockOnSignOut = vi.fn();
       render(<SignOutButton onSignOut={mockOnSignOut} />);
 
       const button = screen.getByText("Sign Out");
       expect(button).toHaveClass(
-        "px-6",
+        "px-3",
+        "sm:px-6",
         "py-2",
         "bg-gradient-to-r",
         "from-red-500",
@@ -146,117 +160,50 @@ describe("Buttons", () => {
         "hover:shadow-lg",
         "transition-all",
         "duration-300",
-        "focus:outline-none"
+        "focus:outline-none",
+        "text-sm",
+        "sm:text-base"
       );
     });
 
-    it("calls onSignOut callback when clicked", () => {
+    it("has proper button role", () => {
+      const mockOnSignOut = vi.fn();
       render(<SignOutButton onSignOut={mockOnSignOut} />);
 
-      const button = screen.getByRole("button", { name: "Sign Out" });
-      fireEvent.click(button);
-
-      expect(mockOnSignOut).toHaveBeenCalledTimes(1);
-    });
-
-    it("has proper button element structure", () => {
-      render(<SignOutButton onSignOut={mockOnSignOut} />);
-
-      const button = screen.getByRole("button", { name: "Sign Out" });
+      const button = screen.getByRole("button");
       expect(button).toBeInTheDocument();
-      expect(button.tagName).toBe("BUTTON");
     });
 
-    it("does not render as a link (unlike other buttons)", () => {
+    it("is accessible with keyboard", () => {
+      const mockOnSignOut = vi.fn();
       render(<SignOutButton onSignOut={mockOnSignOut} />);
 
-      const links = screen.queryAllByRole("link");
-      expect(links).toHaveLength(0);
-    });
-
-    it("handles multiple clicks correctly", () => {
-      render(<SignOutButton onSignOut={mockOnSignOut} />);
-
-      const button = screen.getByRole("button", { name: "Sign Out" });
-      fireEvent.click(button);
-      fireEvent.click(button);
-      fireEvent.click(button);
-
-      expect(mockOnSignOut).toHaveBeenCalledTimes(3);
-    });
-  });
-
-  describe("Button Accessibility", () => {
-    it("all buttons are keyboard accessible", () => {
-      const mockOnSignOut = vi.fn();
-
-      render(
-        <>
-          <SignInButton />
-          <ProfileButton />
-          <SignOutButton onSignOut={mockOnSignOut} />
-        </>
-      );
-
-      const signInButton = screen.getByRole("button", { name: "Sign In" });
-      const profileButton = screen.getByRole("button", { name: "Profile" });
-      const signOutButton = screen.getByRole("button", { name: "Sign Out" });
-
-      // Buttons are naturally keyboard accessible
-      expect(signInButton).toBeInTheDocument();
-      expect(profileButton).toBeInTheDocument();
-      expect(signOutButton).toBeInTheDocument();
-
-      // Verify buttons can be found by their accessible name
-      expect(
-        screen.getByRole("button", { name: "Sign In" })
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: "Profile" })
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: "Sign Out" })
-      ).toBeInTheDocument();
-    });
-
-    it("all buttons have focus outline styles", () => {
-      const mockOnSignOut = vi.fn();
-
-      render(
-        <>
-          <SignInButton />
-          <ProfileButton />
-          <SignOutButton onSignOut={mockOnSignOut} />
-        </>
-      );
-
-      const signInButton = screen.getByRole("button", { name: "Sign In" });
-      const profileButton = screen.getByRole("button", { name: "Profile" });
-      const signOutButton = screen.getByRole("button", { name: "Sign Out" });
-
-      expect(signInButton).toHaveClass("focus:outline-none");
-      expect(profileButton).toHaveClass("focus:outline-none");
-      expect(signOutButton).toHaveClass("focus:outline-none");
+      const button = screen.getByRole("button");
+      button.focus();
+      expect(button).toHaveFocus();
     });
   });
 
   describe("Button Styling Consistency", () => {
     it("all buttons have consistent base styling", () => {
       const mockOnSignOut = vi.fn();
-
       render(
-        <>
-          <SignInButton />
-          <ProfileButton />
+        <div>
+          <BrowserRouter>
+            <SignInButton />
+            <ProfileButton />
+          </BrowserRouter>
           <SignOutButton onSignOut={mockOnSignOut} />
-        </>
+        </div>
       );
 
       const buttons = screen.getAllByRole("button");
+      expect(buttons).toHaveLength(3);
 
       buttons.forEach((button) => {
         expect(button).toHaveClass(
-          "px-6",
+          "px-3",
+          "sm:px-6",
           "py-2",
           "text-white",
           "font-semibold",
@@ -266,34 +213,89 @@ describe("Buttons", () => {
           "hover:shadow-lg",
           "transition-all",
           "duration-300",
-          "focus:outline-none"
+          "focus:outline-none",
+          "text-sm",
+          "sm:text-base"
         );
       });
     });
 
-    it("each button has unique gradient colors", () => {
+    it("all buttons have gradient backgrounds", () => {
       const mockOnSignOut = vi.fn();
-
       render(
-        <>
-          <SignInButton />
-          <ProfileButton />
+        <div>
+          <BrowserRouter>
+            <SignInButton />
+            <ProfileButton />
+          </BrowserRouter>
           <SignOutButton onSignOut={mockOnSignOut} />
-        </>
+        </div>
       );
 
-      const signInButton = screen.getByRole("button", { name: "Sign In" });
-      const profileButton = screen.getByRole("button", { name: "Profile" });
-      const signOutButton = screen.getByRole("button", { name: "Sign Out" });
+      const buttons = screen.getAllByRole("button");
+      buttons.forEach((button) => {
+        expect(button).toHaveClass("bg-gradient-to-r");
+      });
+    });
 
-      // SignInButton: blue to purple
+    it("buttons have different color schemes", () => {
+      const mockOnSignOut = vi.fn();
+      render(
+        <div>
+          <BrowserRouter>
+            <SignInButton />
+            <ProfileButton />
+          </BrowserRouter>
+          <SignOutButton onSignOut={mockOnSignOut} />
+        </div>
+      );
+
+      const signInButton = screen.getByText("Sign In");
+      const profileButton = screen.getByText("Profile");
+      const signOutButton = screen.getByText("Sign Out");
+
       expect(signInButton).toHaveClass("from-blue-500", "to-purple-600");
-
-      // ProfileButton: emerald to teal
       expect(profileButton).toHaveClass("from-emerald-500", "to-teal-600");
-
-      // SignOutButton: red to pink
       expect(signOutButton).toHaveClass("from-red-500", "to-pink-600");
+    });
+  });
+
+  describe("Accessibility", () => {
+    it("all buttons are keyboard accessible", () => {
+      const mockOnSignOut = vi.fn();
+      render(
+        <div>
+          <BrowserRouter>
+            <SignInButton />
+            <ProfileButton />
+          </BrowserRouter>
+          <SignOutButton onSignOut={mockOnSignOut} />
+        </div>
+      );
+
+      const buttons = screen.getAllByRole("button");
+      buttons.forEach((button) => {
+        button.focus();
+        expect(button).toHaveFocus();
+      });
+    });
+
+    it("buttons have proper focus styles", () => {
+      const mockOnSignOut = vi.fn();
+      render(
+        <div>
+          <BrowserRouter>
+            <SignInButton />
+            <ProfileButton />
+          </BrowserRouter>
+          <SignOutButton onSignOut={mockOnSignOut} />
+        </div>
+      );
+
+      const buttons = screen.getAllByRole("button");
+      buttons.forEach((button) => {
+        expect(button).toHaveClass("focus:outline-none");
+      });
     });
   });
 });

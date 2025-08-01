@@ -1,10 +1,27 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { screen, fireEvent } from "@testing-library/react";
-import { render } from "../../test/test-utils";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { Provider } from "react-redux";
+import { BrowserRouter } from "react-router-dom";
+import { configureStore } from "@reduxjs/toolkit";
 import HomeContent from "../HomeContent";
+import authSlice from "../../store/authSlice";
+import type { User } from "../../store/authSlice";
 
-// Mock react-router-dom
-const mockNavigate = vi.hoisted(() => vi.fn());
+// Mock the sketch handlers
+vi.mock("../../utils/sketchHandlers", () => ({
+  handleColorMap: vi.fn(),
+  handleResetMap: vi.fn(),
+  handleDownloadMap: vi.fn(),
+  handleSaveMap: vi.fn(),
+}));
+
+// Mock the Canvas component
+vi.mock("../Canvas", () => ({
+  default: () => <div data-testid="canvas">Canvas Component</div>,
+}));
+
+// Mock useNavigate
+const mockNavigate = vi.fn();
 vi.mock("react-router-dom", async () => {
   const actual = await vi.importActual("react-router-dom");
   return {
@@ -13,127 +30,156 @@ vi.mock("react-router-dom", async () => {
   };
 });
 
-// Mock the store hooks
-const mockUseAppSelector = vi.hoisted(() => vi.fn());
-vi.mock("../../store/hooks", () => ({
-  useAppSelector: mockUseAppSelector,
-}));
+// Import mocked functions for assertions
+import {
+  handleColorMap as mockHandleColorMap,
+  handleResetMap as mockHandleResetMap,
+  handleDownloadMap as mockHandleDownloadMap,
+  handleSaveMap as mockHandleSaveMap,
+} from "../../utils/sketchHandlers";
 
-// Mock sketch handlers
-const mockHandleColorMap = vi.hoisted(() => vi.fn());
-const mockHandleResetMap = vi.hoisted(() => vi.fn());
-const mockHandleDownloadMap = vi.hoisted(() => vi.fn());
-const mockHandleSaveMap = vi.hoisted(() => vi.fn());
+const createMockStore = (
+  isAuthenticated = true,
+  user: User | null = { id: 1, name: "Test User", email: "test@example.com" }
+) =>
+  configureStore({
+    reducer: {
+      auth: authSlice,
+    },
+    preloadedState: {
+      auth: {
+        isAuthenticated,
+        user,
+        token: isAuthenticated ? "mock-token" : null,
+        isLoading: false,
+        error: null,
+      },
+    },
+  });
 
-vi.mock("../../utils/sketchHandlers", () => ({
-  handleColorMap: mockHandleColorMap,
-  handleResetMap: mockHandleResetMap,
-  handleDownloadMap: mockHandleDownloadMap,
-  handleSaveMap: mockHandleSaveMap,
-}));
+const renderWithProviders = (
+  component: React.ReactElement,
+  isAuthenticated = true,
+  user: User | null = { id: 1, name: "Test User", email: "test@example.com" }
+) => {
+  const store = createMockStore(isAuthenticated, user);
+  return render(
+    <Provider store={store}>
+      <BrowserRouter>{component}</BrowserRouter>
+    </Provider>
+  );
+};
 
-// Mock Canvas component
-vi.mock("../Canvas", () => ({
-  default: () => <div data-testid="canvas">Mock Canvas</div>,
-}));
+// Mock window.innerWidth for responsive tests
+const mockWindowWidth = (width: number) => {
+  Object.defineProperty(window, "innerWidth", {
+    writable: true,
+    configurable: true,
+    value: width,
+  });
+  window.dispatchEvent(new Event("resize"));
+};
 
 describe("HomeContent", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUseAppSelector.mockReturnValue({
-      isAuthenticated: true,
-      user: { name: "Test User", email: "test@example.com" },
-    });
+    mockNavigate.mockClear();
+    // Default to desktop width for most tests
+    mockWindowWidth(1200);
   });
 
   describe("Authentication and Loading", () => {
     it("redirects to login when user is not authenticated", () => {
-      mockUseAppSelector.mockReturnValue({
-        isAuthenticated: false,
-        user: null,
-      });
-
-      render(<HomeContent />);
-
+      renderWithProviders(<HomeContent />, false, null);
       expect(mockNavigate).toHaveBeenCalledWith("/login");
     });
 
     it("shows loading state initially", () => {
-      mockUseAppSelector.mockReturnValue({
-        isAuthenticated: true,
-        user: { name: "Test User" },
+      // Mock the store to show loading state
+      const store = configureStore({
+        reducer: { auth: authSlice },
+        preloadedState: {
+          auth: {
+            isAuthenticated: false,
+            user: null,
+            token: null,
+            isLoading: true,
+            error: null,
+          },
+        },
       });
 
-      render(<HomeContent />);
+      render(
+        <Provider store={store}>
+          <BrowserRouter>
+            <HomeContent />
+          </BrowserRouter>
+        </Provider>
+      );
 
-      // The component immediately renders the main content, so we check for the main content instead
-      expect(screen.getByText(/Welcome back/)).toBeInTheDocument();
-      expect(screen.getByTestId("canvas")).toBeInTheDocument();
+      expect(screen.getByText("Loading...")).toBeInTheDocument();
     });
 
     it("shows welcome message with user name", () => {
-      mockUseAppSelector.mockReturnValue({
-        isAuthenticated: true,
-        user: { name: "John Doe" },
-      });
-
-      render(<HomeContent />);
-
-      expect(screen.getByText(/Welcome back, John Doe!/)).toBeInTheDocument();
+      renderWithProviders(<HomeContent />);
+      expect(screen.getByText(/Welcome back, Test User!/)).toBeInTheDocument();
     });
 
     it("shows generic user name when user name is not available", () => {
-      mockUseAppSelector.mockReturnValue({
-        isAuthenticated: true,
-        user: { email: "test@example.com" },
-      });
-
-      render(<HomeContent />);
-
+      renderWithProviders(<HomeContent />, true, null);
       expect(screen.getByText(/Welcome back, User!/)).toBeInTheDocument();
     });
   });
 
   describe("Main Content Structure", () => {
     it("renders the main content when authenticated", () => {
-      render(<HomeContent />);
-
-      expect(screen.getByText(/Welcome back/)).toBeInTheDocument();
+      renderWithProviders(<HomeContent />);
       expect(
         screen.getByText(/Ready to create some amazing maps/)
       ).toBeInTheDocument();
-      expect(screen.getByTestId("canvas")).toBeInTheDocument();
     });
 
     it("renders canvas section with proper styling", () => {
-      render(<HomeContent />);
-
-      const canvasSection = document.querySelector(
-        ".bg-gradient-to-br.from-gray-50.to-gray-100.rounded-2xl.p-6.border-4.border-dashed.border-gray-300"
-      );
-      expect(canvasSection).toBeInTheDocument();
+      renderWithProviders(<HomeContent />);
+      expect(screen.getByText("🖌️ Drawing Canvas")).toBeInTheDocument();
     });
 
     it("renders canvas instructions", () => {
-      render(<HomeContent />);
-
-      expect(screen.getByText("🖌️ Drawing Canvas")).toBeInTheDocument();
+      renderWithProviders(<HomeContent />);
       expect(
         screen.getByText("Click and drag to draw your map regions")
       ).toBeInTheDocument();
     });
 
     it("renders the Canvas component", () => {
-      render(<HomeContent />);
-
+      renderWithProviders(<HomeContent />);
       expect(screen.getByTestId("canvas")).toBeInTheDocument();
-      expect(screen.getByText("Mock Canvas")).toBeInTheDocument();
+    });
+  });
+
+  describe("Mobile/Desktop Responsive Behavior", () => {
+    it("shows canvas on desktop screens", () => {
+      mockWindowWidth(1200); // Desktop width
+      renderWithProviders(<HomeContent />);
+      expect(screen.getByText("🖌️ Drawing Canvas")).toBeInTheDocument();
+      expect(screen.getByTestId("canvas")).toBeInTheDocument();
+    });
+
+    it("shows mobile message on smaller screens", () => {
+      mockWindowWidth(800); // Tablet width
+      renderWithProviders(<HomeContent />);
+      expect(
+        screen.getByText("Desktop Required for Drawing")
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(/The drawing canvas is optimized for desktop use/)
+      ).toBeInTheDocument();
     });
   });
 
   describe("Action Buttons", () => {
     it("renders all four action buttons", () => {
-      render(<HomeContent />);
+      renderWithProviders(<HomeContent />);
 
       expect(
         screen.getByRole("button", { name: "🎨 Color Map" })
@@ -149,8 +195,30 @@ describe("HomeContent", () => {
       ).toBeInTheDocument();
     });
 
-    it("calls handleColorMap when Color Map button is clicked", () => {
-      render(<HomeContent />);
+    it("buttons are disabled on mobile/tablet screens", () => {
+      mockWindowWidth(800); // Tablet width
+      renderWithProviders(<HomeContent />);
+
+      const colorMapButton = screen.getByRole("button", {
+        name: "🎨 Color Map",
+      });
+      const resetButton = screen.getByRole("button", {
+        name: "🔄 Reset Canvas",
+      });
+      const downloadButton = screen.getByRole("button", {
+        name: "⬇️ Download",
+      });
+      const saveButton = screen.getByRole("button", { name: "💾 Save Map" });
+
+      expect(colorMapButton).toBeDisabled();
+      expect(resetButton).toBeDisabled();
+      expect(downloadButton).toBeDisabled();
+      expect(saveButton).toBeDisabled();
+    });
+
+    it("calls handleColorMap when Color Map button is clicked on desktop", () => {
+      mockWindowWidth(1200); // Desktop width
+      renderWithProviders(<HomeContent />);
 
       const colorMapButton = screen.getByRole("button", {
         name: "🎨 Color Map",
@@ -160,8 +228,9 @@ describe("HomeContent", () => {
       expect(mockHandleColorMap).toHaveBeenCalledTimes(1);
     });
 
-    it("calls handleResetMap when Reset Canvas button is clicked", () => {
-      render(<HomeContent />);
+    it("calls handleResetMap when Reset Canvas button is clicked on desktop", () => {
+      mockWindowWidth(1200); // Desktop width
+      renderWithProviders(<HomeContent />);
 
       const resetButton = screen.getByRole("button", {
         name: "🔄 Reset Canvas",
@@ -171,8 +240,9 @@ describe("HomeContent", () => {
       expect(mockHandleResetMap).toHaveBeenCalledTimes(1);
     });
 
-    it("calls handleDownloadMap when Download button is clicked", () => {
-      render(<HomeContent />);
+    it("calls handleDownloadMap when Download button is clicked on desktop", () => {
+      mockWindowWidth(1200); // Desktop width
+      renderWithProviders(<HomeContent />);
 
       const downloadButton = screen.getByRole("button", {
         name: "⬇️ Download",
@@ -182,102 +252,117 @@ describe("HomeContent", () => {
       expect(mockHandleDownloadMap).toHaveBeenCalledTimes(1);
     });
 
-    it("calls handleSaveMap when Save Map button is clicked", () => {
-      render(<HomeContent />);
+    it("calls handleSaveMap when Save Map button is clicked on desktop", () => {
+      mockWindowWidth(1200); // Desktop width
+      renderWithProviders(<HomeContent />);
 
       const saveButton = screen.getByRole("button", { name: "💾 Save Map" });
       fireEvent.click(saveButton);
 
       expect(mockHandleSaveMap).toHaveBeenCalledTimes(1);
     });
+
+    it("does not call handlers when buttons are clicked on mobile", () => {
+      mockWindowWidth(800); // Mobile width
+      renderWithProviders(<HomeContent />);
+
+      const colorMapButton = screen.getByRole("button", {
+        name: "🎨 Color Map",
+      });
+      fireEvent.click(colorMapButton);
+
+      expect(mockHandleColorMap).not.toHaveBeenCalled();
+    });
   });
 
   describe("Button Styling and Icons", () => {
-    it("Color Map button has correct styling and icon", () => {
-      render(<HomeContent />);
+    it("Color Map button has disabled styling on mobile", () => {
+      mockWindowWidth(800); // Mobile width
+      renderWithProviders(<HomeContent />);
 
       const colorMapButton = screen.getByRole("button", {
         name: "🎨 Color Map",
       });
       expect(colorMapButton).toHaveClass(
         "bg-gradient-to-r",
-        "from-emerald-500",
-        "to-teal-600",
-        "hover:from-emerald-600",
-        "hover:to-teal-700",
-        "transform",
-        "hover:-translate-y-2",
-        "hover:shadow-xl"
+        "from-gray-400",
+        "to-gray-500",
+        "cursor-not-allowed",
+        "opacity-60"
       );
-      expect(screen.getByText("🎨")).toBeInTheDocument();
     });
 
-    it("Reset Canvas button has correct styling and icon", () => {
-      render(<HomeContent />);
+    it("Reset Canvas button has disabled styling on mobile", () => {
+      mockWindowWidth(800); // Mobile width
+      renderWithProviders(<HomeContent />);
 
       const resetButton = screen.getByRole("button", {
         name: "🔄 Reset Canvas",
       });
       expect(resetButton).toHaveClass(
         "bg-gradient-to-r",
-        "from-red-500",
-        "to-pink-600",
-        "hover:from-red-600",
-        "hover:to-pink-700",
-        "transform",
-        "hover:-translate-y-2",
-        "hover:shadow-xl"
+        "from-gray-400",
+        "to-gray-500",
+        "cursor-not-allowed",
+        "opacity-60"
       );
-      expect(screen.getByText("🔄")).toBeInTheDocument();
     });
 
-    it("Download button has correct styling and icon", () => {
-      render(<HomeContent />);
+    it("Download button has disabled styling on mobile", () => {
+      mockWindowWidth(800); // Mobile width
+      renderWithProviders(<HomeContent />);
 
       const downloadButton = screen.getByRole("button", {
         name: "⬇️ Download",
       });
       expect(downloadButton).toHaveClass(
         "bg-gradient-to-r",
-        "from-blue-500",
-        "to-indigo-600",
-        "hover:from-blue-600",
-        "hover:to-indigo-700",
-        "transform",
-        "hover:-translate-y-2",
-        "hover:shadow-xl"
+        "from-gray-400",
+        "to-gray-500",
+        "cursor-not-allowed",
+        "opacity-60"
       );
-      expect(screen.getByText("⬇️")).toBeInTheDocument();
     });
 
-    it("Save Map button has correct styling and icon", () => {
-      render(<HomeContent />);
+    it("Save Map button has disabled styling on mobile", () => {
+      mockWindowWidth(800); // Mobile width
+      renderWithProviders(<HomeContent />);
 
       const saveButton = screen.getByRole("button", { name: "💾 Save Map" });
       expect(saveButton).toHaveClass(
         "bg-gradient-to-r",
-        "from-purple-500",
-        "to-violet-600",
-        "hover:from-purple-600",
-        "hover:to-violet-700",
-        "transform",
-        "hover:-translate-y-2",
-        "hover:shadow-xl"
+        "from-gray-400",
+        "to-gray-500",
+        "cursor-not-allowed",
+        "opacity-60"
       );
-      expect(screen.getByText("💾")).toBeInTheDocument();
+    });
+
+    it("buttons have responsive classes for large screens", () => {
+      mockWindowWidth(1200); // Desktop width
+      renderWithProviders(<HomeContent />);
+
+      const colorMapButton = screen.getByRole("button", {
+        name: "🎨 Color Map",
+      });
+      expect(colorMapButton).toHaveClass(
+        "lg:bg-gradient-to-r",
+        "lg:from-emerald-500",
+        "lg:to-teal-600",
+        "lg:opacity-100",
+        "lg:cursor-pointer"
+      );
     });
   });
 
   describe("Instructions Section", () => {
     it("renders instructions section", () => {
-      render(<HomeContent />);
-
+      renderWithProviders(<HomeContent />);
       expect(screen.getByText("📝 How to use:")).toBeInTheDocument();
     });
 
     it("renders all four instruction steps", () => {
-      render(<HomeContent />);
-
+      renderWithProviders(<HomeContent />);
       expect(
         screen.getByText(/Draw regions on the canvas using your mouse/)
       ).toBeInTheDocument();
@@ -292,9 +377,8 @@ describe("HomeContent", () => {
       ).toBeInTheDocument();
     });
 
-    it("has proper instruction styling", () => {
-      render(<HomeContent />);
-
+    it("has proper instruction styling with responsive classes", () => {
+      renderWithProviders(<HomeContent />);
       const instructionsSection = screen
         .getByText("📝 How to use:")
         .closest("div");
@@ -302,8 +386,10 @@ describe("HomeContent", () => {
         "bg-gradient-to-r",
         "from-blue-50",
         "to-purple-50",
-        "rounded-2xl",
-        "p-6",
+        "rounded-xl",
+        "sm:rounded-2xl",
+        "p-4",
+        "sm:p-6",
         "border",
         "border-blue-200"
       );
@@ -311,29 +397,26 @@ describe("HomeContent", () => {
   });
 
   describe("Layout and Responsive Design", () => {
-    it("has proper main container styling", () => {
-      render(<HomeContent />);
-
+    it("has proper main container styling with responsive classes", () => {
+      renderWithProviders(<HomeContent />);
       const mainContainer = document.querySelector(
-        ".min-h-screen.bg-gradient-to-br.from-blue-50.via-indigo-50.to-purple-50.py-8.px-4"
+        ".min-h-screen.bg-gradient-to-br.from-blue-50.via-indigo-50.to-purple-50.py-4.sm\\:py-8.px-4"
       );
       expect(mainContainer).toBeInTheDocument();
     });
 
-    it("has proper content card styling", () => {
-      render(<HomeContent />);
-
+    it("has proper content card styling with responsive classes", () => {
+      renderWithProviders(<HomeContent />);
       const contentCard = document.querySelector(
-        ".bg-white\\/80.backdrop-blur-sm.rounded-3xl.shadow-2xl.p-8.border.border-white\\/20"
+        ".bg-white\\/80.backdrop-blur-sm.rounded-2xl.sm\\:rounded-3xl.shadow-2xl.p-4.sm\\:p-6.lg\\:p-8.border.border-white\\/20"
       );
       expect(contentCard).toBeInTheDocument();
     });
 
     it("has responsive grid layout for action buttons", () => {
-      render(<HomeContent />);
-
+      renderWithProviders(<HomeContent />);
       const buttonGrid = document.querySelector(
-        ".grid.grid-cols-2.md\\:grid-cols-4.gap-4"
+        ".grid.grid-cols-2.lg\\:grid-cols-4.gap-3.sm\\:gap-4"
       );
       expect(buttonGrid).toBeInTheDocument();
     });
@@ -341,73 +424,50 @@ describe("HomeContent", () => {
 
   describe("Accessibility", () => {
     it("has proper button roles", () => {
-      render(<HomeContent />);
-
+      renderWithProviders(<HomeContent />);
       const buttons = screen.getAllByRole("button");
       expect(buttons).toHaveLength(4);
-
-      expect(
-        screen.getByRole("button", { name: "🎨 Color Map" })
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: "🔄 Reset Canvas" })
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: "⬇️ Download" })
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: "💾 Save Map" })
-      ).toBeInTheDocument();
     });
 
     it("has proper heading structure", () => {
-      render(<HomeContent />);
+      renderWithProviders(<HomeContent />);
 
       const headings = screen.getAllByRole("heading");
-      expect(headings).toHaveLength(3); // Welcome heading, Canvas heading, Instructions heading
+      expect(headings).toHaveLength(4); // Welcome heading, Canvas heading, Mobile message heading, Instructions heading
 
       expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
-      expect(screen.getByRole("heading", { level: 2 })).toBeInTheDocument();
-      expect(screen.getByRole("heading", { level: 3 })).toBeInTheDocument();
+      expect(screen.getAllByRole("heading", { level: 2 })).toHaveLength(2); // Canvas and Mobile message headings
+      expect(screen.getByRole("heading", { level: 3 })).toBeInTheDocument(); // Instructions heading
     });
   });
 
   describe("Edge Cases", () => {
     it("handles user with no name property", () => {
-      mockUseAppSelector.mockReturnValue({
-        isAuthenticated: true,
-        user: { email: "test@example.com" },
+      renderWithProviders(<HomeContent />, true, {
+        id: 1,
+        name: "",
+        email: "test@example.com",
       });
-
-      render(<HomeContent />);
-
       expect(screen.getByText(/Welcome back, User!/)).toBeInTheDocument();
     });
 
     it("handles user with null name", () => {
-      mockUseAppSelector.mockReturnValue({
-        isAuthenticated: true,
-        user: { name: null, email: "test@example.com" },
-      });
-
-      render(<HomeContent />);
-
+      renderWithProviders(<HomeContent />, true, null);
       expect(screen.getByText(/Welcome back, User!/)).toBeInTheDocument();
     });
 
     it("handles user with empty name", () => {
-      mockUseAppSelector.mockReturnValue({
-        isAuthenticated: true,
-        user: { name: "", email: "test@example.com" },
+      renderWithProviders(<HomeContent />, true, {
+        id: 1,
+        name: "",
+        email: "test@example.com",
       });
-
-      render(<HomeContent />);
-
       expect(screen.getByText(/Welcome back, User!/)).toBeInTheDocument();
     });
 
-    it("handles multiple button clicks", () => {
-      render(<HomeContent />);
+    it("handles multiple button clicks on desktop", () => {
+      mockWindowWidth(1200); // Desktop width
+      renderWithProviders(<HomeContent />);
 
       const colorMapButton = screen.getByRole("button", {
         name: "🎨 Color Map",
@@ -428,29 +488,55 @@ describe("HomeContent", () => {
 
   describe("Loading State", () => {
     it("shows loading spinner and text", () => {
-      mockUseAppSelector.mockReturnValue({
-        isAuthenticated: true,
-        user: { name: "Test User" },
+      const store = configureStore({
+        reducer: { auth: authSlice },
+        preloadedState: {
+          auth: {
+            isAuthenticated: false,
+            user: null,
+            token: null,
+            isLoading: true,
+            error: null,
+          },
+        },
       });
 
-      render(<HomeContent />);
+      render(
+        <Provider store={store}>
+          <BrowserRouter>
+            <HomeContent />
+          </BrowserRouter>
+        </Provider>
+      );
 
-      // The component immediately renders the main content, so we check for the main content instead
-      expect(screen.getByText(/Welcome back/)).toBeInTheDocument();
-      expect(screen.getByTestId("canvas")).toBeInTheDocument();
+      expect(screen.getByText("Loading...")).toBeInTheDocument();
+      expect(document.querySelector(".animate-spin")).toBeInTheDocument();
     });
 
-    it("has proper loading container styling", () => {
-      mockUseAppSelector.mockReturnValue({
-        isAuthenticated: true,
-        user: { name: "Test User" },
+    it("has proper loading container styling with responsive classes", () => {
+      const store = configureStore({
+        reducer: { auth: authSlice },
+        preloadedState: {
+          auth: {
+            isAuthenticated: false,
+            user: null,
+            token: null,
+            isLoading: true,
+            error: null,
+          },
+        },
       });
 
-      render(<HomeContent />);
+      render(
+        <Provider store={store}>
+          <BrowserRouter>
+            <HomeContent />
+          </BrowserRouter>
+        </Provider>
+      );
 
-      // The component immediately renders the main content, so we check for the main container instead
       const mainContainer = document.querySelector(
-        ".min-h-screen.bg-gradient-to-br.from-blue-50.via-indigo-50.to-purple-50.py-8.px-4"
+        ".min-h-screen.bg-gradient-to-br.from-blue-50.to-purple-100.flex.items-center.justify-center.px-4"
       );
       expect(mainContainer).toBeInTheDocument();
     });
