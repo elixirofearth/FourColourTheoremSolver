@@ -111,8 +111,8 @@ export default function HomeContent() {
               disabled={!isDesktop}
               className={`py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl transform transition-all duration-300 font-bold text-center group text-sm sm:text-base ${
                 isDesktop
-                  ? "bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 hover:-translate-y-1 hover:shadow-xl cursor-pointer"
-                  : "bg-gradient-to-r from-gray-400 to-gray-500 cursor-not-allowed opacity-60"
+                  ? "bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 hover:-translate-y-1 hover:shadow-xl cursor-pointer text-white"
+                  : "bg-gradient-to-r from-gray-400 to-gray-500 cursor-not-allowed opacity-60 text-white"
               }`}
             >
               <div className="text-lg sm:text-2xl mb-1 sm:mb-2 group-hover:animate-bounce">
@@ -126,8 +126,8 @@ export default function HomeContent() {
               disabled={!isDesktop}
               className={`py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl transform transition-all duration-300 font-bold text-center group text-sm sm:text-base ${
                 isDesktop
-                  ? "bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 hover:-translate-y-1 hover:shadow-xl cursor-pointer"
-                  : "bg-gradient-to-r from-gray-400 to-gray-500 cursor-not-allowed opacity-60"
+                  ? "bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 hover:-translate-y-1 hover:shadow-xl cursor-pointer text-white"
+                  : "bg-gradient-to-r from-gray-400 to-gray-500 cursor-not-allowed opacity-60 text-white"
               }`}
             >
               <div className="text-lg sm:text-2xl mb-1 sm:mb-2 group-hover:animate-spin">
@@ -141,8 +141,8 @@ export default function HomeContent() {
               disabled={!isDesktop}
               className={`py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl transform transition-all duration-300 font-bold text-center group text-sm sm:text-base ${
                 isDesktop
-                  ? "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 hover:-translate-y-1 hover:shadow-xl cursor-pointer"
-                  : "bg-gradient-to-r from-gray-400 to-gray-500 cursor-not-allowed opacity-60"
+                  ? "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 hover:-translate-y-1 hover:shadow-xl cursor-pointer text-white"
+                  : "bg-gradient-to-r from-gray-400 to-gray-500 cursor-not-allowed opacity-60 text-white"
               }`}
             >
               <div className="text-lg sm:text-2xl mb-1 sm:mb-2 group-hover:animate-pulse">
@@ -156,8 +156,8 @@ export default function HomeContent() {
               disabled={!isDesktop}
               className={`py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl transform transition-all duration-300 font-bold text-center group text-sm sm:text-base ${
                 isDesktop
-                  ? "bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 hover:-translate-y-1 hover:shadow-xl cursor-pointer"
-                  : "bg-gradient-to-r from-gray-400 to-gray-500 cursor-not-allowed opacity-60"
+                  ? "bg-gradient-to-r from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 hover:-translate-y-1 hover:shadow-xl cursor-pointer text-white"
+                  : "bg-gradient-to-r from-gray-400 to-gray-500 cursor-not-allowed opacity-60 text-white"
               }`}
             >
               <div className="text-lg sm:text-2xl mb-1 sm:mb-2 group-hover:animate-bounce">
