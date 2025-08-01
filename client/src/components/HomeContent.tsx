@@ -92,11 +92,12 @@ export default function HomeContent() {
             </div>
           </div>
 
-          {/* Action Buttons */}
+          {/* Action Buttons - Disabled on mobile/tablet */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <button
               onClick={handleColorMap}
-              className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl hover:from-emerald-600 hover:to-teal-700 transform hover:-translate-y-1 sm:hover:-translate-y-2 hover:shadow-xl transition-all duration-300 font-bold text-center group text-sm sm:text-base"
+              disabled={true}
+              className="bg-gradient-to-r from-gray-400 to-gray-500 text-white py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl transform transition-all duration-300 font-bold text-center group text-sm sm:text-base cursor-not-allowed opacity-60 lg:bg-gradient-to-r lg:from-emerald-500 lg:to-teal-600 lg:hover:from-emerald-600 lg:hover:to-teal-700 lg:hover:-translate-y-1 lg:sm:hover:-translate-y-2 lg:hover:shadow-xl lg:opacity-100 lg:cursor-pointer"
             >
               <div className="text-lg sm:text-2xl mb-1 sm:mb-2 group-hover:animate-bounce">
                 🎨
@@ -106,7 +107,8 @@ export default function HomeContent() {
 
             <button
               onClick={handleResetMap}
-              className="bg-gradient-to-r from-red-500 to-pink-600 text-white py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl hover:from-red-600 hover:to-pink-700 transform hover:-translate-y-1 sm:hover:-translate-y-2 hover:shadow-xl transition-all duration-300 font-bold text-center group text-sm sm:text-base"
+              disabled={true}
+              className="bg-gradient-to-r from-gray-400 to-gray-500 text-white py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl transform transition-all duration-300 font-bold text-center group text-sm sm:text-base cursor-not-allowed opacity-60 lg:bg-gradient-to-r lg:from-red-500 lg:to-pink-600 lg:hover:from-red-600 lg:hover:to-pink-700 lg:hover:-translate-y-1 lg:sm:hover:-translate-y-2 lg:hover:shadow-xl lg:opacity-100 lg:cursor-pointer"
             >
               <div className="text-lg sm:text-2xl mb-1 sm:mb-2 group-hover:animate-spin">
                 🔄
@@ -116,7 +118,8 @@ export default function HomeContent() {
 
             <button
               onClick={handleDownloadMap}
-              className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl hover:from-blue-600 hover:to-indigo-700 transform hover:-translate-y-1 sm:hover:-translate-y-2 hover:shadow-xl transition-all duration-300 font-bold text-center group text-sm sm:text-base"
+              disabled={true}
+              className="bg-gradient-to-r from-gray-400 to-gray-500 text-white py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl transform transition-all duration-300 font-bold text-center group text-sm sm:text-base cursor-not-allowed opacity-60 lg:bg-gradient-to-r lg:from-blue-500 lg:to-indigo-600 lg:hover:from-blue-600 lg:hover:to-indigo-700 lg:hover:-translate-y-1 lg:sm:hover:-translate-y-2 lg:hover:shadow-xl lg:opacity-100 lg:cursor-pointer"
             >
               <div className="text-lg sm:text-2xl mb-1 sm:mb-2 group-hover:animate-pulse">
                 ⬇️
@@ -126,7 +129,8 @@ export default function HomeContent() {
 
             <button
               onClick={handleSaveMap}
-              className="bg-gradient-to-r from-purple-500 to-violet-600 text-white py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl hover:from-purple-600 hover:to-violet-700 transform hover:-translate-y-1 sm:hover:-translate-y-2 hover:shadow-xl transition-all duration-300 font-bold text-center group text-sm sm:text-base"
+              disabled={true}
+              className="bg-gradient-to-r from-gray-400 to-gray-500 text-white py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl transform transition-all duration-300 font-bold text-center group text-sm sm:text-base cursor-not-allowed opacity-60 lg:bg-gradient-to-r lg:from-purple-500 lg:to-violet-600 lg:hover:from-purple-600 lg:hover:to-violet-700 lg:hover:-translate-y-1 lg:sm:hover:-translate-y-2 lg:hover:shadow-xl lg:opacity-100 lg:cursor-pointer"
             >
               <div className="text-lg sm:text-2xl mb-1 sm:mb-2 group-hover:animate-bounce">
                 💾
