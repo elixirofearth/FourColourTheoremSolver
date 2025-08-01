@@ -80,8 +80,9 @@ jobs:
           for service_dir in "${!services[@]}"; do
               image_name="${services[$service_dir]}"
               echo "Building and pushing ${image_name}..."
-              docker build -t "${DOCKER_ORG}/${image_name}:${BUILD_TAG}" \
-                           -f "${service_dir}/Dockerfile" "${service_dir}"
+              # Use correct build context - server directory with service-specific Dockerfile
+              docker build --platform linux/amd64 -t "${DOCKER_ORG}/${image_name}:${BUILD_TAG}" \
+                           -f "${service_dir}/Dockerfile" .
               docker push "${DOCKER_ORG}/${image_name}:${BUILD_TAG}"
               
               docker tag "${DOCKER_ORG}/${image_name}:${BUILD_TAG}" "${DOCKER_ORG}/${image_name}:latest"
