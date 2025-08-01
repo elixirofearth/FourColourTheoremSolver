@@ -1,0 +1,197 @@
+---
+# API Gateway Service - Main entry point
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway-service
+  namespace: fourcolour
+  labels:
+    app: api-gateway-service
+spec:
+  selector:
+    app: api-gateway-service
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+  type: ClusterIP
+
+---
+# Authentication Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: authentication-service
+  namespace: fourcolour
+  labels:
+    app: authentication-service
+spec:
+  selector:
+    app: authentication-service
+  ports:
+    - name: http
+      port: 8081
+      targetPort: 8081
+      protocol: TCP
+  type: ClusterIP
+
+---
+# Solver Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: solver-service
+  namespace: fourcolour
+  labels:
+    app: solver-service
+spec:
+  selector:
+    app: solver-service
+  ports:
+    - name: http
+      port: 8082
+      targetPort: 8082
+      protocol: TCP
+  type: ClusterIP
+
+---
+# Map Storage Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: map-storage-service
+  namespace: fourcolour
+  labels:
+    app: map-storage-service
+spec:
+  selector:
+    app: map-storage-service
+  ports:
+    - name: http
+      port: 8083
+      targetPort: 8083
+      protocol: TCP
+  type: ClusterIP
+
+---
+# Logger Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: logger-service
+  namespace: fourcolour
+  labels:
+    app: logger-service
+spec:
+  selector:
+    app: logger-service
+  ports:
+    - name: http
+      port: 8084
+      targetPort: 8084
+      protocol: TCP
+    - name: grpc
+      port: 50001
+      targetPort: 50001
+      protocol: TCP
+  type: ClusterIP
+
+---
+# Redis Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: fourcolour
+  labels:
+    app: redis
+spec:
+  selector:
+    app: redis
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: 6379
+      protocol: TCP
+  type: ClusterIP
+
+---
+# MongoDB Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo
+  namespace: fourcolour
+  labels:
+    app: mongo
+spec:
+  selector:
+    app: mongo
+  ports:
+    - name: mongo
+      port: 27017
+      targetPort: 27017
+      protocol: TCP
+  type: ClusterIP
+
+---
+# PostgreSQL Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: fourcolour
+  labels:
+    app: postgres
+spec:
+  selector:
+    app: postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+      protocol: TCP
+  type: ClusterIP
+
+---
+# Kafka Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka
+  namespace: fourcolour
+  labels:
+    app: kafka
+spec:
+  selector:
+    app: kafka
+  ports:
+    - name: kafka-internal
+      port: 29092
+      targetPort: 29092
+      protocol: TCP
+    - name: kafka-external
+      port: 9092
+      targetPort: 9092
+      protocol: TCP
+  type: ClusterIP
+
+---
+# Zookeeper Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: zookeeper
+  namespace: fourcolour
+  labels:
+    app: zookeeper
+spec:
+  selector:
+    app: zookeeper
+  ports:
+    - name: zookeeper
+      port: 2181
+      targetPort: 2181
+      protocol: TCP
+  type: ClusterIP

@@ -88,3 +88,4 @@ k8s-four-color-map-theorem-problem-kubeconfig.yaml
 
 # Docker
 *.dockerignore
+vke-935585d0-5378-4731-90c6-7cc43c70e229.yaml

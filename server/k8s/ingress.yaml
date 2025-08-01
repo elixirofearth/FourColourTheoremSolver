@@ -1,0 +1,103 @@
+---
+# Ingress Controller - Routes external traffic to internal services
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fourcolour-ingress
+  namespace: fourcolour
+  annotations:
+    # Enable SSL redirect
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # Enable CORS for frontend communication
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization"
+    # Increase proxy timeouts for long-running operations
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    # Increase body size for map uploads
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    # Rate limiting (optional)
+    nginx.ingress.kubernetes.io/rate-limit-connections: "10"
+    nginx.ingress.kubernetes.io/rate-limit-requests-per-second: "5"
+spec:
+  ingressClassName: nginx
+  # TLS configuration (optional - uncomment when you have SSL certificates)
+  # tls:
+  #   - hosts:
+  #       - your-domain.com
+  #       - api.your-domain.com
+  #     secretName: fourcolour-tls-secret
+  rules:
+    # Main domain routing
+    - host: your-domain.com # Replace with your actual domain
+      http:
+        paths:
+          # Route all API traffic to the API Gateway
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: api-gateway-service
+                port:
+                  number: 8080
+          # Route health checks to API Gateway
+          - path: /actuator
+            pathType: Prefix
+            backend:
+              service:
+                name: api-gateway-service
+                port:
+                  number: 8080
+          # Default route for any other paths (can be used for frontend static files)
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: api-gateway-service
+                port:
+                  number: 8080
+
+    # API subdomain routing (optional alternative)
+    - host: api.your-domain.com # Replace with your actual API subdomain
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: api-gateway-service
+                port:
+                  number: 8080
+
+---
+# Alternative Ingress for IP-based access (for testing without domain)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fourcolour-ingress-ip
+  namespace: fourcolour
+  annotations:
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+spec:
+  ingressClassName: nginx
+  rules:
+    # IP-based routing (no host specified means it accepts any host/IP)
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: api-gateway-service
+                port:
+                  number: 8080
