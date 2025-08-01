@@ -314,7 +314,10 @@ class SessionRepositoryTest {
 
     @Test
     void findByTokenAndNotExpired_WithExactExpiryTime_ShouldReturnEmpty() {
-        LocalDateTime exactExpiryTime = LocalDateTime.now().plusMinutes(30);
+        // Use a fixed time to avoid timing precision issues
+        LocalDateTime baseTime = LocalDateTime.of(2024, 1, 1, 12, 0, 0);
+        LocalDateTime exactExpiryTime = baseTime.plusMinutes(30);
+        
         testSession.setExpiresAt(exactExpiryTime);
         entityManager.persistAndFlush(testSession);
 
@@ -322,6 +325,7 @@ class SessionRepositoryTest {
         Optional<Session> found = sessionRepository.findByTokenAndNotExpired("test-jwt-token", exactExpiryTime);
 
         // Session expires at exactExpiryTime, so it should not be found when queried at that time
+        // The query uses expiresAt > now, so when now == expiresAt, it should return empty
         assertFalse(found.isPresent());
     }
 
