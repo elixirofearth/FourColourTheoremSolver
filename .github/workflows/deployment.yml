@@ -45,6 +45,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
+      - name: Install Parent POM
+        run: mvn clean install -N -q
+        working-directory: server
+
       - name: Build Common Module
         run: mvn clean install -q -DskipTests
         working-directory: server/common
