@@ -91,13 +91,46 @@ describe("NavBar", () => {
   });
 
   it("handles sign out when user clicks sign out button", async () => {
-    renderWithProviders(true);
+    const mockDispatch = vi
+      .fn()
+      .mockResolvedValue({ type: "auth/logout/fulfilled" });
+
+    const store = configureStore({
+      reducer: { auth: authSlice },
+      preloadedState: {
+        auth: {
+          isAuthenticated: true,
+          user: { id: 1, name: "Test User", email: "test@example.com" },
+          token: "mock-token",
+          isLoading: false,
+          error: null,
+        },
+      },
+    });
+
+    // Override the dispatch method
+    store.dispatch = mockDispatch;
+
+    render(
+      <Provider store={store}>
+        <BrowserRouter>
+          <NavBar />
+        </BrowserRouter>
+      </Provider>
+    );
 
     const signOutButton = screen.getByText("Sign Out");
     fireEvent.click(signOutButton);
 
-    // The sign out process should be initiated
-    expect(mockNavigate).toHaveBeenCalledWith("/login");
+    // Wait for the async operations to complete
+    await vi.waitFor(() => {
+      expect(mockDispatch).toHaveBeenCalled();
+    });
+
+    // The navigation should happen after successful logout
+    await vi.waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith("/login");
+    });
   });
 
   it("shows error notification when sign out fails", async () => {

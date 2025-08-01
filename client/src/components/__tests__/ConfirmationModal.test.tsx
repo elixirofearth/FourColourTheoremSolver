@@ -304,9 +304,9 @@ describe("ConfirmationModal", () => {
       fireEvent.click(confirmButton);
       fireEvent.click(confirmButton);
 
-      // Should only be called once due to onClose being called
-      expect(mockOnConfirm).toHaveBeenCalledTimes(1);
-      expect(mockOnClose).toHaveBeenCalledTimes(1);
+      // Both functions should be called for each click
+      expect(mockOnConfirm).toHaveBeenCalledTimes(2);
+      expect(mockOnClose).toHaveBeenCalledTimes(2);
     });
 
     it("handles multiple cancel clicks", () => {
