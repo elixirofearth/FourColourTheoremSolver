@@ -59,7 +59,7 @@ export default function HomeContent() {
           </h1>
           <p className="text-gray-600 text-base sm:text-lg md:text-xl max-w-2xl mx-auto px-4">
             Ready to create some amazing maps? Use your mouse to draw and let
-            our AI solve the four-color theorem for you!
+            our algorithm solve the four-color theorem for you!
           </p>
         </div>
 
