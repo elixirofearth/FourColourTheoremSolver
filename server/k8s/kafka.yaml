@@ -13,6 +13,25 @@ spec:
       labels:
         app: zookeeper
     spec:
+      securityContext:
+        fsGroup: 1000
+      initContainers:
+        - name: fix-permissions
+          image: busybox
+          command: ["sh", "-c"]
+          args:
+            - |
+              echo "Fixing Zookeeper directory permissions..."
+              chown -R 1000:1000 /var/lib/zookeeper/data /var/lib/zookeeper/log
+              chmod -R 755 /var/lib/zookeeper/data /var/lib/zookeeper/log
+              echo "Zookeeper permissions fixed successfully"
+          volumeMounts:
+            - name: zookeeper-storage
+              mountPath: /var/lib/zookeeper/data
+            - name: zookeeper-logs
+              mountPath: /var/lib/zookeeper/log
+          securityContext:
+            runAsUser: 0
       containers:
         - name: zookeeper
           image: confluentinc/cp-zookeeper:7.4.0
@@ -56,6 +75,8 @@ metadata:
   namespace: fourcolour
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: kafka
@@ -64,6 +85,34 @@ spec:
       labels:
         app: kafka
     spec:
+      securityContext:
+        fsGroup: 1001
+      initContainers:
+        - name: fix-permissions
+          image: busybox
+          command: ["sh", "-c"]
+          args:
+            - |
+              echo "Fixing Kafka data directory permissions..."
+              chown -R 1001:1001 /var/lib/kafka/data
+              chmod -R 755 /var/lib/kafka/data
+              echo "Permissions fixed successfully"
+          volumeMounts:
+            - name: kafka-storage
+              mountPath: /var/lib/kafka/data
+          securityContext:
+            runAsUser: 0
+        - name: wait-for-zookeeper
+          image: busybox
+          command: ["sh", "-c"]
+          args:
+            - |
+              echo "Waiting for Zookeeper to be ready..."
+              until nc -z zookeeper 2181; do
+                echo "Zookeeper not ready, waiting..."
+                sleep 2
+              done
+              echo "Zookeeper is ready!"
       containers:
         - name: kafka
           image: bitnami/kafka:3.5.1
