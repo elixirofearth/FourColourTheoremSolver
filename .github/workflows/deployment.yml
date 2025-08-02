@@ -1,4 +1,3 @@
-# .github/workflows/deployment.yml
 name: CI/CD Pipeline to VKE
 
 on:
