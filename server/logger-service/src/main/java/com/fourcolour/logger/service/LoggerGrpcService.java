@@ -86,20 +86,20 @@ public class LoggerGrpcService extends LoggerServiceGrpc.LoggerServiceImplBase {
         
         // Check for auth-related services
         if (lowerServiceName.contains("auth") || lowerServiceName.contains("authentication")) {
-            return "auth-logs";
+            return "auth_logs";
         }
         
         // Check for map coloring/solver services
         if (lowerServiceName.contains("map_coloring") || lowerServiceName.contains("solver")) {
-            return "map-coloring-logs";
+            return "map_coloring_logs";
         }
         
         // Check for map storage services
         if (lowerServiceName.contains("map_storage") || lowerServiceName.contains("map-storage")) {
-            return "map-storage-logs";
+            return "map_storage_logs";
         }
         
-        logger.warn("Unknown service: {}, using map-coloring-logs topic", serviceName);
-        return "map-coloring-logs";
+        logger.warn("Unknown service: {}, using map_coloring_logs topic", serviceName);
+        return "map_coloring_logs";
     }
 } 

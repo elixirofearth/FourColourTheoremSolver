@@ -26,11 +26,11 @@ import java.util.Map;
 public class KafkaConfig {
 
     // Topic names (equivalent to RabbitMQ exchanges)
-    public static final String AUTH_LOGS_TOPIC = "auth-logs";
-    public static final String MAP_COLORING_LOGS_TOPIC = "map-coloring-logs";
-    public static final String MAP_STORAGE_LOGS_TOPIC = "map-storage-logs";
+    public static final String AUTH_LOGS_TOPIC = "auth_logs";
+    public static final String MAP_COLORING_LOGS_TOPIC = "map_coloring_logs";
+    public static final String MAP_STORAGE_LOGS_TOPIC = "map_storage_logs";
 
-    @Value("${spring.kafka.bootstrap-servers:kafka:29092}")
+    @Value("${spring.kafka.bootstrap-servers:kafka:9092}")
     private String bootstrapServers;
 
     @Value("${spring.kafka.consumer.group-id:logger-service-group}")
