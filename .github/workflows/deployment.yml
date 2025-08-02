@@ -170,34 +170,6 @@ jobs:
           echo "${{ env.KUBE_CONFIG }}" > ~/.kube/config
           chmod 600 ~/.kube/config
 
-      - name: Update Deployment with new image tags
-        run: |
-          BUILD_TAG=${{ github.run_number }}
-          DOCKER_ORG=${{ env.DOCKER_USERNAME }}
-
-          # Updated deployment names and container names to match your K8s manifests
-          declare -A services=(
-              ["api-gateway-service"]="spring-api-gateway-service"
-              ["authentication-service"]="spring-authentication-service"
-              ["map-storage-service"]="spring-map-storage-service"
-              ["logger-service"]="spring-logger-service"
-              ["solver-service"]="flask-solver-service"
-          )
-
-          for deployment_name in "${!services[@]}"; do
-              image_name="${services[$deployment_name]}"
-              container_name="${deployment_name}"  # Container names match deployment names
-              echo "Updating deployment '${deployment_name}' with image '${DOCKER_ORG}/${image_name}:${BUILD_TAG}'"
-              
-              kubectl set image deployment/${deployment_name} \
-                          ${container_name}="${DOCKER_ORG}/${image_name}:${BUILD_TAG}" \
-                          -n fourcolour \
-                          --record
-              
-              kubectl rollout status deployment/${deployment_name} -n fourcolour --timeout=5m
-          done
-        working-directory: server/k8s
-
       - name: Apply infrastructure manifests
         run: |
           # Apply specific manifests in order, excluding setup scripts and templates
@@ -220,32 +192,96 @@ jobs:
           echo "Infrastructure deployment complete!"
         working-directory: server/k8s
 
+      - name: Update Application Images
+        run: |
+          BUILD_TAG=${{ github.run_number }}
+          DOCKER_ORG=${{ env.DOCKER_USERNAME }}
+
+          # Updated deployment names and container names to match your K8s manifests
+          declare -A services=(
+              ["api-gateway-service"]="spring-api-gateway-service"
+              ["authentication-service"]="spring-authentication-service"
+              ["map-storage-service"]="spring-map-storage-service"
+              ["logger-service"]="spring-logger-service"
+              ["solver-service"]="flask-solver-service"
+          )
+
+          echo "Updating application images to BUILD_TAG: ${BUILD_TAG}"
+
+          for deployment_name in "${!services[@]}"; do
+              image_name="${services[$deployment_name]}"
+              container_name="${deployment_name}"  # Container names match deployment names
+              echo "Updating deployment '${deployment_name}' with image '${DOCKER_ORG}/${image_name}:${BUILD_TAG}'"
+              
+              kubectl set image deployment/${deployment_name} \
+                          ${container_name}="${DOCKER_ORG}/${image_name}:${BUILD_TAG}" \
+                          -n fourcolour
+              
+              echo "Waiting for ${deployment_name} rollout to complete..."
+              kubectl rollout status deployment/${deployment_name} -n fourcolour --timeout=5m
+              echo "✅ ${deployment_name} updated successfully"
+          done
+
+          echo "🎉 All application images updated successfully!"
+        working-directory: server/k8s
+
+      - name: Verify Infrastructure Health
+        run: |
+          echo "🔍 Checking infrastructure components..."
+
+          # Check Kafka and Zookeeper
+          echo "Checking Kafka and Zookeeper status..."
+          kubectl get pods -n fourcolour | grep -E "(kafka|zookeeper)" || echo "No Kafka/Zookeeper pods found"
+
+          # Check all pods status
+          echo ""
+          echo "📊 Overall pod status:"
+          kubectl get pods -n fourcolour
+
+          # Check for any failing pods
+          failing_pods=$(kubectl get pods -n fourcolour --field-selector=status.phase!=Running --no-headers 2>/dev/null | wc -l)
+          if [ "$failing_pods" -gt 0 ]; then
+            echo "⚠️  Warning: $failing_pods pod(s) not in Running state"
+            kubectl get pods -n fourcolour --field-selector=status.phase!=Running
+          else
+            echo "✅ All pods are running successfully"
+          fi
+        working-directory: server/k8s
+
       - name: Run health check on the API Gateway
         run: |
-          max_retries=10
-          retry_interval=10
+          max_retries=12
+          retry_interval=15
+
+          echo "🔍 Starting API Gateway health checks..."
+          echo "HTTPS URL: https://api.149.248.46.187.nip.io/actuator/health"
+          echo "HTTP Fallback: http://149.248.46.187/actuator/health"
+          echo ""
 
           for i in $(seq 1 $max_retries); do
               echo "Attempt $i/$max_retries: Checking API Gateway health..."
               
-              # Try HTTPS endpoint first (preferred)
-              if curl -f -k "https://api.149.248.46.187.nip.io/actuator/health"; then
-                  echo "HTTPS health check successful!"
+              # Try HTTPS endpoint first (preferred with SSL certificate)
+              if curl -f --max-time 10 "https://api.149.248.46.187.nip.io/actuator/health" >/dev/null 2>&1; then
+                  echo "✅ HTTPS health check successful!"
+                  echo "🎉 API Gateway is healthy and accessible via HTTPS"
                   exit 0
               fi
               
-              # Fallback to HTTP if HTTPS not ready yet
-              ingress_ip=$(kubectl get ingress fourcolour-ingress-ip -n fourcolour -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || echo "149.248.46.187")
-              if [ -n "$ingress_ip" ]; then
-                  if curl -f "http://$ingress_ip/actuator/health"; then
-                      echo "HTTP health check successful (fallback)!"
-                      exit 0
-                  fi
+              # Fallback to HTTP (direct IP access)
+              echo "HTTPS failed, trying HTTP fallback..."
+              if curl -f --max-time 10 "http://149.248.46.187/actuator/health" >/dev/null 2>&1; then
+                  echo "✅ HTTP health check successful (fallback)!"
+                  echo "⚠️  API Gateway is accessible via HTTP, HTTPS may still be initializing"
+                  exit 0
               fi
               
-              echo "Health check failed. Retrying in $retry_interval seconds..."
+              echo "❌ Both HTTPS and HTTP health checks failed"
+              echo "Retrying in $retry_interval seconds..."
               sleep $retry_interval
           done
-          echo "Health check failed after multiple retries."
+
+          echo "💥 Health check failed after $max_retries attempts"
+          echo "This may indicate a deployment issue or the service is still starting up"
           exit 1
         working-directory: server/k8s
