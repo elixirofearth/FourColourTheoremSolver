@@ -11,11 +11,7 @@ Our implementation allows users to:
 - Save and download colored maps
 - Visualize the theorem's practical applications
 
-
-
 https://github.com/user-attachments/assets/964ce3f2-f9cd-4709-933e-80e75afa7fd3
-
-
 
 ## 🏗️ Architecture
 
@@ -61,8 +57,8 @@ The solver implements a sophisticated constraint satisfaction problem (CSP) appr
 ### Algorithm Overview
 
 1. **Image Processing**: Converts user-drawn maps to binary representation
-2. **Region Detection**: Uses flood-fill algorithms to identify distinct regions
-3. **Adjacency Detection**: Determines which regions border each other using morphological operations
+2. **Region Detection**: Uses connected component labeling to identify distinct regions
+3. **Adjacency Detection**: Determines which regions border each other using binary dilation with morphological operations
 4. **Graph Construction**: Creates a graph where vertices represent regions and edges represent adjacencies
 5. **Constraint Satisfaction**: Solves the coloring problem using advanced CSP techniques
 
