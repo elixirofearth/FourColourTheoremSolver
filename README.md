@@ -11,7 +11,11 @@ Our implementation allows users to:
 - Save and download colored maps
 - Visualize the theorem's practical applications
 
-![Screenshot 2025-08-03 at 3 59 26 PM](https://github.com/user-attachments/assets/748ea203-0399-4c71-9ba3-94bdb72b94ef)
+
+
+https://github.com/user-attachments/assets/964ce3f2-f9cd-4709-933e-80e75afa7fd3
+
+
 
 ## 🏗️ Architecture
 
