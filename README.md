@@ -11,6 +11,8 @@ Our implementation allows users to:
 - Save and download colored maps
 - Visualize the theorem's practical applications
 
+![Screenshot 2025-08-03 at 3 59 26 PM](https://github.com/user-attachments/assets/748ea203-0399-4c71-9ba3-94bdb72b94ef)
+
 ## 🏗️ Architecture
 
 ### Frontend (React + TypeScript)
