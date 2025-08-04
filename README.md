@@ -8,7 +8,7 @@ Our implementation allows users to:
 
 - Create custom maps through an interactive canvas
 - Automatically generate mathematically valid four-colour solutions
-- Save and download colored maps
+- Save and download coloured maps
 - Visualize the theorem's practical applications
 
 https://github.com/user-attachments/assets/964ce3f2-f9cd-4709-933e-80e75afa7fd3
@@ -25,13 +25,13 @@ https://github.com/user-attachments/assets/964ce3f2-f9cd-4709-933e-80e75afa7fd3
 - **HTTP Client**: Fetch API
 - **Authentication**: JWT tokens
 
-### Backend (Spring Boot + Flask Microservices)
+### Backend (Spring Boot Microservices)
 
-- **API Gateway** (REST) - Main entry point, routing, authentication, Redis caching
+- **API Gateway** (REST) - Main entry point, routing, Redis caching
 - **Authentication Service** (REST) - User auth, JWT tokens, PostgreSQL
 - **Map Storage Service** (REST) - CRUD operations, MongoDB
 - **Logger Service** (gRPC & AMQP) - Centralized logging, Kafka messaging
-- **Solver Service** (REST) - Python Flask service for graph coloring algorithms
+- **Solver Service** (REST) - Python Flask service for graph colouring algorithm
 - **Testing**: JUnit5 + Mockito + Spring Boot Test
 
 ### Infrastructure
@@ -50,7 +50,7 @@ https://github.com/user-attachments/assets/964ce3f2-f9cd-4709-933e-80e75afa7fd3
 - **CI/CD**: GitHub Actions with automated testing and deployment
 - **Networking**: NGINX Ingress Controller with single public IP
 
-## 🧮 Map Coloring Algorithm
+## 🧮 Map colouring Algorithm
 
 The solver implements a sophisticated constraint satisfaction problem (CSP) approach for the Four-Colour Theorem:
 
@@ -60,7 +60,7 @@ The solver implements a sophisticated constraint satisfaction problem (CSP) appr
 2. **Region Detection**: Uses connected component labeling to identify distinct regions
 3. **Adjacency Detection**: Determines which regions border each other using binary dilation with morphological operations
 4. **Graph Construction**: Creates a graph where vertices represent regions and edges represent adjacencies
-5. **Constraint Satisfaction**: Solves the coloring problem using advanced CSP techniques
+5. **Constraint Satisfaction**: Solves the colouring problem using advanced CSP techniques
 
 ### CSP Implementation Details
 
@@ -75,17 +75,17 @@ The solver implements a sophisticated constraint satisfaction problem (CSP) appr
 
 - **Heuristic Optimization**: MRV and LCV heuristics for efficient search
 - **Forward Checking**: Prevents invalid assignments early
-- **Fallback Strategy**: Greedy coloring if CSP fails
+- **Fallback Strategy**: Greedy colouring if CSP fails
 - **Performance Monitoring**: Tracks processing time and complexity
 
 #### Mathematical Foundation:
 
 The algorithm ensures that:
 
-- No adjacent regions share the same color
-- Only four colors are used (red, green, blue, yellow)
+- No adjacent regions share the same colour
+- Only four colours are used (red, green, blue, yellow)
 - The solution is mathematically valid according to the Four-Colour Theorem
-- The coloring is optimal in terms of color usage
+- The colouring is optimal in terms of colour usage
 
 ## 📞 Contact
 
