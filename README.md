@@ -50,7 +50,7 @@ https://github.com/user-attachments/assets/964ce3f2-f9cd-4709-933e-80e75afa7fd3
 - **CI/CD**: GitHub Actions with automated testing and deployment
 - **Networking**: NGINX Ingress Controller with single public IP
 
-## 🧮 Map colouring Algorithm
+## 🧮 Map Colouring Algorithm
 
 The solver implements a sophisticated constraint satisfaction problem (CSP) approach for the Four-Colour Theorem:
 
