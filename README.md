@@ -25,7 +25,7 @@ https://github.com/user-attachments/assets/964ce3f2-f9cd-4709-933e-80e75afa7fd3
 - **HTTP Client**: Fetch API
 - **Authentication**: JWT tokens
 
-### Backend (Spring Boot Microservices)
+### Backend (Spring Boot + Flask Microservices)
 
 - **API Gateway** (REST) - Main entry point, routing, authentication, Redis caching
 - **Authentication Service** (REST) - User auth, JWT tokens, PostgreSQL
