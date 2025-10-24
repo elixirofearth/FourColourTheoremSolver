@@ -87,7 +87,7 @@ The algorithm ensures that:
 - The solution is mathematically valid according to the Four-Colour Theorem
 - The colouring is optimal in terms of colour usage
 
-## 📞 Contact
+## 📞 Contributors
 
 - Andy Tran ([anhquoctran006@gmail.com](mailto:anhquoctran006@gmail.com))
 - Riley Kinahan ([rdkinaha@ualberta.ca](mailto:rdkinaha@ualberta.ca))
