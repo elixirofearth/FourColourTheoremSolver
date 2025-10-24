@@ -48,7 +48,7 @@ https://github.com/user-attachments/assets/964ce3f2-f9cd-4709-933e-80e75afa7fd3
 - **Containerization**: Docker images on Docker Hub
 - **Orchestration**: Kubernetes on Vultr Kubernetes Engine
 - **CI/CD**: GitHub Actions with automated testing and deployment
-- **Networking**: NGINX Ingress Controller with single public IP
+- **Networking**: NGINX Ingress Controller with a single public IP
 
 ## 🧮 Map Colouring Algorithm
 
@@ -57,7 +57,7 @@ The solver implements a sophisticated constraint satisfaction problem (CSP) appr
 ### Algorithm Overview
 
 1. **Image Processing**: Converts user-drawn maps to binary representation
-2. **Region Detection**: Uses connected component labeling to identify distinct regions
+2. **Region Detection**: Uses connected component labelling to identify distinct regions
 3. **Adjacency Detection**: Determines which regions border each other using binary dilation with morphological operations
 4. **Graph Construction**: Creates a graph where vertices represent regions and edges represent adjacencies
 5. **Constraint Satisfaction**: Solves the colouring problem using advanced CSP techniques
